@@ -114,4 +114,16 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Active OTP Gateway
+    |--------------------------------------------------------------------------
+    |
+    | Here active otp gateway value will be taken form the environment variables.
+    | values can be 'twilio'|'messagebird'
+    |
+    */
+
+    'active_otp_gateway' => env('ACTIVE_OTP_GATEWAY', 'twilio'),
+
 ];

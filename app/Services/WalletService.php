@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Wallet;
+use App\Models\Settings;
+
+class WalletService
+{
+    public function addPoints(int $customerId, int $points): void
+    {
+        if ($points <= 0) return;
+        $wallet = Wallet::firstOrCreate(['customer_id' => $customerId]);
+        $wallet->total_points += $points;
+        $wallet->available_points += $points;
+        $wallet->save();
+    }
+
+    public function currencyToWalletPoints(float $currency): int
+    {
+        $ratio = $this->getCurrencyToWalletRatio();
+        return (int) ($currency * $ratio);
+    }
+
+    public function walletPointsToCurrency(int $points): float
+    {
+        $ratio = $this->getCurrencyToWalletRatio();
+        return round($points / max($ratio, 1), 2);
+    }
+
+    private function getCurrencyToWalletRatio(): float
+    {
+        $settings = Settings::getData();
+        $ratio = $settings->options['currencyToWalletRatio'] ?? 1;
+        return (float) ($ratio == 0 ? 1 : $ratio);
+    }
+}
