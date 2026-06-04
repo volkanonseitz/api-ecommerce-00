@@ -25,3 +25,7 @@ Route::post('/social-login-token', [UserController::class, 'socialLogin']);
 Route::post('/send-otp-code', [UserController::class, 'sendOtpCode']);
 Route::post('/verify-otp-code', [UserController::class, 'verifyOtpCode']);
 Route::post('/otp-login', [UserController::class, 'otpLogin']);
+
+Route::post('/email/verification-notification', [UserController::class, 'sendVerificationEmail'])
+    ->middleware(['auth:sanctum', 'throttle:6,1'])
+    ->name('verification.send');

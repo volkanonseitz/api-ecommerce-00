@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Settings extends Model
 {
     protected $table = 'settings';
+
     protected $guarded = [];
+
     protected $casts = [
         'options' => 'json',
     ];
@@ -15,10 +17,15 @@ class Settings extends Model
     public static function getData($language = null)
     {
         $lang = $language ?? config('shop.default_language', 'id');
+
         $data = static::where('language', $lang)->first();
-        if (!$data) {
+
+        if (! $data) {
             $data = static::where('language', 'id')->first();
         }
-        return $data;
+
+        return $data ?? new static([
+            'options' => [],
+        ]);
     }
 }

@@ -25,6 +25,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
@@ -76,9 +77,20 @@ class UserController extends Controller
 
     public function sendVerificationEmail(Request $request): JsonResponse
     {
-        $request->user()->sendEmailVerificationNotification();
+        $user = $request->user();
 
-        return response()->json(['message' => 'Email verification link sent on your email id', 'success' => true]);
+        if (! $user) {
+            throw new AuthorizationException(
+                config('notice.NOT_AUTHORIZED')
+            );
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json([
+            'message' => 'Email verification link sent on your email id',
+            'success' => true,
+        ]);
     }
 
     // ==================== USER LISTS ====================
@@ -105,7 +117,7 @@ class UserController extends Controller
         $user = $request->user();
         $shopId = $request->shop_id;
         $exclude = is_numeric($request->exclude) ? (int) $request->exclude : null;
-        $isActive = $request->is_active === 'true';
+        $isActive = filter_var($request->input('is_active', true), FILTER_VALIDATE_BOOLEAN);
         $adminIds = User::whereHas('permissions', fn ($q) => $q->where('name', Permission::SUPER_ADMIN->value))->pluck('id')->toArray();
 
         if ($this->userService->hasPermission($user, $shopId)) {
@@ -239,7 +251,7 @@ class UserController extends Controller
     public function register(UserCreateRequest $request)
     {
         $notAllowed = [Permission::SUPER_ADMIN->value];
-        $permissionInput = $request->permission->value ?? $request->permission ?? null;
+        $permissionInput = data_get($request, 'permission.value') ?? $request->permission;
         if ($permissionInput && in_array($permissionInput, $notAllowed)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
@@ -251,8 +263,7 @@ class UserController extends Controller
         $data = UserData::fromRequest($payload);
 
         $settings = Settings::getData();
-        // $mustVerify = $settings->options['useMustVerifyEmail'] ?? false;
-        $mustVerify = true;
+        $mustVerify = data_get($settings, 'options.useMustVerifyEmail', true); // false untuk noaktifkan kirim email
 
         $result = $this->authService->register($data, $mustVerify);
         $this->userService->giveSignupPoints($result['user']->id);
@@ -555,41 +566,67 @@ class UserController extends Controller
 
     public function updateContact(Request $request)
     {
-        $phoneNumber = $request->phone_number;
-        $userId = $request->user_id;
-        try {
-            if ($this->verifyOtp($request)) {
-                $user = User::find($userId);
-                if (! $user) {
-                    return ['message' => config('notice.NOT_FOUND'), 'success' => false];
-                }
-                $user->profile()->updateOrCreate(
-                    ['customer_id' => $userId],
-                    ['contact' => $phoneNumber]
-                );
+        $request->validate([
+            'phone_number' => 'required|string',
+            'otp_id' => 'required',
+            'code' => 'required',
+        ]);
 
-                return [
-                    'message' => config('notice.CONTACT_UPDATE_SUCCESSFUL'),
-                    'success' => true,
-                ];
-            }
+        $user = $request->user();
 
-            return ['message' => config('notice.CONTACT_UPDATE_FAILED'), 'success' => false];
-        } catch (\Exception $e) {
-            return response()->json(['error' => config('notice.INVALID_GATEWAY')], 422);
+        if (! $user) {
+            throw new AuthorizationException(
+                config('notice.NOT_AUTHORIZED')
+            );
         }
+
+        if (! $this->verifyOtp($request)) {
+            return [
+                'message' => config('notice.CONTACT_UPDATE_FAILED'),
+                'success' => false,
+            ];
+        }
+
+        $user->profile()->updateOrCreate(
+            ['customer_id' => $user->id],
+            ['contact' => $request->phone_number]
+        );
+
+        return [
+            'message' => config('notice.CONTACT_UPDATE_SUCCESSFUL'),
+            'success' => true,
+        ];
     }
 
     // ==================== WALLET & POINTS ====================
     public function addPoints(Request $request)
     {
+        $user = $request->user();
+
+        if (
+            ! $user ||
+            ! $user->hasPermissionTo(
+                Permission::SUPER_ADMIN->value
+            )
+        ) {
+            throw new AuthorizationException(
+                config('notice.NOT_AUTHORIZED')
+            );
+        }
+
         $request->validate([
             'points' => 'required|numeric',
             'customer_id' => 'required|exists:users,id',
         ]);
-        $this->walletService->addPoints($request->customer_id, (int) $request->points);
 
-        return response()->json(['success' => true]);
+        $this->walletService->addPoints(
+            $request->customer_id,
+            (int) $request->points
+        );
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     // ==================== PERMISSIONS ====================
@@ -608,6 +645,7 @@ class UserController extends Controller
                 } else {
                     $targetUser->givePermissionTo(Permission::SUPER_ADMIN->value);
                     $targetUser->assignRole(Role::SUPER_ADMIN->value);
+                    Cache::forget('cached_admin');
 
                     return response()->json(true);
                 }
@@ -649,7 +687,7 @@ class UserController extends Controller
     {
         $user = $request->user();
         $permission = strtolower($request->permission ?? '');
-        $isActive = $request->is_active ?? true;
+        $isActive = filter_var($request->input('is_active', true), FILTER_VALIDATE_BOOLEAN);
         $query = User::where('is_active', $isActive);
 
         if (! $this->userService->hasPermission($user, $request->shop_id)) {
