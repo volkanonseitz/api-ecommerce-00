@@ -6,6 +6,8 @@ use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\AttributeValueController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +64,12 @@ Route::apiResource('products', ProductController::class, [
     'only' => ['index', 'show'],
 ]);
 
+Route::post('import-attributes', [AttributeController::class, 'importAttributes']);
+Route::get('export-attributes/{shop_id}', [AttributeController::class, 'exportAttributes']);
+Route::apiResource('attributes', AttributeController::class, [
+    'only' => ['index', 'show'],
+]);
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -111,6 +119,13 @@ Route::group(
         Route::get('staffs', [UserController::class, 'staffs']);
         // Route::get('/admin/list', [UserController::class, 'admins']);
         Route::get('/vendors/list', [UserController::class, 'vendors']);
+
+        Route::apiResource('attributes', AttributeController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
+        Route::apiResource('attribute-values', AttributeValueController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
     }
 );
 
