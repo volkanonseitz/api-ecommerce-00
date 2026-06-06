@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ManufacturerController;
+use App\Http\Controllers\TypeController;
 use App\Enums\Permission;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +39,15 @@ Route::apiResource('authors', AuthorController::class, [
     'only' => ['index', 'show'],
 ]);
 
+Route::get('top-manufacturers', [ManufacturerController::class, 'topManufacturer']);
+Route::apiResource('manufacturers', ManufacturerController::class, [
+    'only' => ['index', 'show'],
+]);
+
+Route::apiResource('types', TypeController::class, [
+    'only' => ['index', 'show'],
+]);
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -59,6 +70,10 @@ Route::group(
     ['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']],
     function () {
         Route::apiResource('authors', AuthorController::class, [
+            'only' => ['store'],
+        ]);
+
+        Route::apiResource('manufacturers', ManufacturerController::class, [
             'only' => ['store'],
         ]);
     }
@@ -96,6 +111,14 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
 
     Route::apiResource('authors', AuthorController::class, [
         'only' => ['update', 'destroy'],
+    ]);
+
+    Route::apiResource('manufacturers', ManufacturerController::class, [
+        'only' => ['update', 'destroy'],
+    ]);
+
+    Route::apiResource('types', TypeController::class, [
+        'only' => ['store', 'update', 'destroy'],
     ]);
 
 });
