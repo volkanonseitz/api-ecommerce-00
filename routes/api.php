@@ -1,10 +1,11 @@
 <?php
 
+use App\Enums\Permission;
 use App\Http\Controllers\AuthorController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\TypeController;
-use App\Enums\Permission;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,19 @@ Route::apiResource('types', TypeController::class, [
     'only' => ['index', 'show'],
 ]);
 
+Route::get('popular-products', [ProductController::class, 'popularProducts']);
+Route::get('best-selling-products', [ProductController::class, 'bestSellingProducts']);
+Route::get('check-availability', [ProductController::class, 'checkAvailability']);
+Route::get('products/calculate-rental-price', [ProductController::class, 'calculateRentalPrice']);
+Route::post('import-products', [ProductController::class, 'importProducts']);
+Route::post('import-variation-options', [ProductController::class, 'importVariationOptions']);
+Route::get('export-products/{shop_id}', [ProductController::class, 'exportProducts']);
+Route::get('export-variation-options/{shop_id}', [ProductController::class, 'exportVariableOptions']);
+Route::post('generate-description', [ProductController::class, 'generateDescription']);
+Route::apiResource('products', ProductController::class, [
+    'only' => ['index', 'show'],
+]);
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -59,6 +73,8 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
     Route::put('users/{id}', [UserController::class, 'update']);
     Route::post('/change-password', [UserController::class, 'changePassword']);
     Route::post('/update-contact', [UserController::class, 'updateContact']);
+
+    Route::get('my-wishlists', [ProductController::class, 'myWishlists']);
 });
 
 /**
@@ -76,6 +92,12 @@ Route::group(
         Route::apiResource('manufacturers', ManufacturerController::class, [
             'only' => ['store'],
         ]);
+
+        Route::apiResource('products', ProductController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
+        Route::get('draft-products', [ProductController::class, 'draftedProducts']);
+        Route::get('products-stock', [ProductController::class, 'productStock']);
     }
 );
 /**
