@@ -34,4 +34,25 @@ class WalletService
         $ratio = $settings->options['currencyToWalletRatio'] ?? 1;
         return (float) ($ratio == 0 ? 1 : $ratio);
     }
+
+    public function giveSignupPoints(int $customerId): void
+    {
+        $settings = Settings::getData();
+        $points = $settings->options['signupPoints'] ?? 0;
+        if ($points <= 0) return;
+        $wallet = Wallet::firstOrCreate(['customer_id' => $customerId]);
+        $wallet->total_points += $points;
+        $wallet->available_points += $points;
+        $wallet->save();
+    }
+
+    public function deductPoints(int $customerId, int $points): void
+    {
+        $wallet = Wallet::where('customer_id', $customerId)->first();
+        if (!$wallet) return;
+        $available = $wallet->available_points - $points;
+        $wallet->available_points = max($available, 0);
+        $wallet->points_used = ($wallet->points_used ?? 0) + min($points, $wallet->available_points + $wallet->points_used);
+        $wallet->save();
+    }
 }

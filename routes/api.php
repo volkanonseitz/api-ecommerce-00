@@ -9,6 +9,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +79,18 @@ Route::apiResource('shops', ShopController::class, [
 ]);
 Route::post('shop-maintenance-event', [ShopController::class, 'shopMaintenanceEvent']);
 
+Route::get('export-order/token/{token}', [OrderController::class, 'exportOrder'])->name('export_order.token');
+Route::get('download-invoice/token/{token}', [OrderController::class, 'downloadInvoice'])->name('download_invoice.token');
+Route::apiResource('orders', OrderController::class, [
+    'only' => ['show', 'store'],
+]);
+Route::post('orders/payment', [OrderController::class, 'submitPayment']);
+
+Route::apiResource('categories', CategoryController::class, [
+    'only' => ['index', 'show'],
+]);
+Route::get('featured-categories', [CategoryController::class, 'featuredCategories']);
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -95,6 +109,11 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
     Route::get('/followed-shops', [ShopController::class, 'userFollowedShops']);
     Route::get('/follow-shop', [ShopController::class, 'userFollowedShop']);
     Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
+
+    Route::apiResource('orders', OrderController::class, [
+        'only' => ['index'],
+    ]);
+    Route::get('orders/tracking-number/{tracking_number}', [OrderController::class, 'findByTrackingNumber']);
 });
 
 /**
@@ -118,6 +137,12 @@ Route::group(
         ]);
         Route::get('draft-products', [ProductController::class, 'draftedProducts']);
         Route::get('products-stock', [ProductController::class, 'productStock']);
+
+        Route::apiResource('orders', OrderController::class, [
+            'only' => ['update', 'destroy'],
+        ]);
+        Route::get('export-order-url/{shop_id?}', [OrderController::class, 'exportOrderUrl']);
+        Route::post('download-invoice-url', [OrderController::class, 'downloadInvoiceUrl']);
     }
 );
 /**
@@ -181,5 +206,9 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     Route::post('approve-shop', [ShopController::class, 'approveShop']);
     Route::post('disapprove-shop', [ShopController::class, 'disApproveShop']);
     Route::get('new-shops', [ShopController::class, 'newOrInActiveShops']);
+
+    Route::apiResource('categories', CategoryController::class, [
+        'only' => ['store', 'update', 'destroy'],
+    ]);
 
 });
