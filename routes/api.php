@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\AttributeValueController;
+use App\Http\Controllers\ShopController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +71,12 @@ Route::apiResource('attributes', AttributeController::class, [
     'only' => ['index', 'show'],
 ]);
 
+Route::get('near-by-shop/{lat}/{lng}', [ShopController::class, 'nearByShop']);
+Route::apiResource('shops', ShopController::class, [
+    'only' => ['index', 'show'],
+]);
+Route::post('shop-maintenance-event', [ShopController::class, 'shopMaintenanceEvent']);
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -83,6 +90,11 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
     Route::post('/update-contact', [UserController::class, 'updateContact']);
 
     Route::get('my-wishlists', [ProductController::class, 'myWishlists']);
+
+    Route::get('/followed-shops-popular-products', [ShopController::class, 'followedShopsPopularProducts']);
+    Route::get('/followed-shops', [ShopController::class, 'userFollowedShops']);
+    Route::get('/follow-shop', [ShopController::class, 'userFollowedShop']);
+    Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
 });
 
 /**
@@ -126,6 +138,14 @@ Route::group(
         Route::apiResource('attribute-values', AttributeValueController::class, [
             'only' => ['store', 'update', 'destroy'],
         ]);
+
+        Route::apiResource('shops', ShopController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
+        Route::post('staffs', [ShopController::class, 'addStaff']);
+        Route::delete('staffs/{id}', [ShopController::class, 'deleteStaff']);
+        Route::get('my-shops', [ShopController::class, 'myShops']);
+        Route::post('transfer-shop-ownership', [ShopController::class, 'transferShopOwnership']);
     }
 );
 
@@ -157,5 +177,9 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     Route::apiResource('types', TypeController::class, [
         'only' => ['store', 'update', 'destroy'],
     ]);
+
+    Route::post('approve-shop', [ShopController::class, 'approveShop']);
+    Route::post('disapprove-shop', [ShopController::class, 'disApproveShop']);
+    Route::get('new-shops', [ShopController::class, 'newOrInActiveShops']);
 
 });
