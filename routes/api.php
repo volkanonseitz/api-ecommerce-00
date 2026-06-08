@@ -11,6 +11,8 @@ use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\StoreNoticeController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +93,10 @@ Route::apiResource('categories', CategoryController::class, [
 ]);
 Route::get('featured-categories', [CategoryController::class, 'featuredCategories']);
 
+Route::get('/download/token/{token}', [DownloadController::class, 'downloadFile'])->name('download_url.token');
+
+Route::get('store-notices', [StoreNoticeController::class, 'index'])->name('store-notices.index');
+
 /**
  * ******************************************
  * Authorized Route for Customers only
@@ -114,6 +120,9 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
         'only' => ['index'],
     ]);
     Route::get('orders/tracking-number/{tracking_number}', [OrderController::class, 'findByTrackingNumber']);
+
+    Route::get('downloads', [DownloadController::class, 'fetchDownloadableFiles']);
+    Route::post('downloads/digital_file', [DownloadController::class, 'generateDownloadableUrl']);
 });
 
 /**
@@ -143,6 +152,14 @@ Route::group(
         ]);
         Route::get('export-order-url/{shop_id?}', [OrderController::class, 'exportOrderUrl']);
         Route::post('download-invoice-url', [OrderController::class, 'downloadInvoiceUrl']);
+
+        Route::get('store-notices/getStoreNoticeType', [StoreNoticeController::class, 'getStoreNoticeType']);
+        Route::get('store-notices/getUsersToNotify', [StoreNoticeController::class, 'getUsersToNotify']);
+        Route::post('store-notices/read/', [StoreNoticeController::class, 'readNotice']);
+        Route::post('store-notices/read-all', [StoreNoticeController::class, 'readAllNotice']);
+        Route::apiResource('store-notices', StoreNoticeController::class, [
+            'only' => ['show', 'store', 'update', 'destroy']
+        ]);
     }
 );
 /**
