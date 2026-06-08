@@ -13,6 +13,9 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\StoreNoticeController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\TermsAndConditionsController;
+use App\Http\Controllers\TaxController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -96,6 +99,14 @@ Route::get('featured-categories', [CategoryController::class, 'featuredCategorie
 Route::get('/download/token/{token}', [DownloadController::class, 'downloadFile'])->name('download_url.token');
 
 Route::get('store-notices', [StoreNoticeController::class, 'index'])->name('store-notices.index');
+
+Route::apiResource('tags', TagController::class, [
+    'only' => ['index', 'show'],
+]);
+
+Route::apiResource('terms-and-conditions', TermsAndConditionsController::class, [
+    'only' => ['index', 'show'],
+]);
 
 /**
  * ******************************************
@@ -188,6 +199,13 @@ Route::group(
         Route::delete('staffs/{id}', [ShopController::class, 'deleteStaff']);
         Route::get('my-shops', [ShopController::class, 'myShops']);
         Route::post('transfer-shop-ownership', [ShopController::class, 'transferShopOwnership']);
+
+        Route::apiResource('terms-and-conditions', TermsAndConditionsController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
+        Route::apiResource('terms-and-conditions', TermsAndConditionsController::class, [
+            'only' => ['store', 'update', 'destroy'],
+        ]);
     }
 );
 
@@ -228,4 +246,12 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
         'only' => ['store', 'update', 'destroy'],
     ]);
 
+    Route::apiResource('tags', TagController::class, [
+        'only' => ['store', 'update', 'destroy'],
+    ]);
+
+    Route::apiResource('taxes', TaxController::class);
+
+    Route::post('approve-terms-and-conditions', [TermsAndConditionsController::class, 'approveTerm']);
+    Route::post('disapprove-terms-and-conditions', [TermsAndConditionsController::class, 'disApproveTerm']);
 });
