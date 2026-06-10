@@ -3,18 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PaymentIntent extends Model
+class PaymentMethod extends Model
 {
     use SoftDeletes;
-
     protected $table = 'payment_methods';
     protected $guarded = [];
 
-    public function payment_gateways(): BelongsTo
+    public function paymentGateway(): BelongsTo
     {
-        return $this->BelongsTo(PaymentGateway::class, 'payment_gateway_id');
+        return $this->belongsTo(PaymentGateway::class, 'payment_gateway_id');
     }
 }
