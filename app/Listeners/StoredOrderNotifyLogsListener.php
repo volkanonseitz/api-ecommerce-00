@@ -5,21 +5,25 @@ namespace App\Listeners;
 use App\Events\OrderCreated;
 use App\Models\NotifyLogs;
 use App\Models\Shop;
-use App\Models\User;
-use App\Traits\UsersTrait;
+use App\Services\UserService;
 
 class StoredOrderNotifyLogsListener
 {
-    use UsersTrait;
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function handle(OrderCreated $event)
     {
         // Notifikasi ke admin
-        $admins = $this->getAdminUsers();
+        $admins = $this->userService->getAdminUsers();
         foreach ($admins as $admin) {
             NotifyLogs::create([
                 'receiver' => $admin->id,
-                'sender' => $event->user?->id ?? $event->order->customer_id,
+                'sender'   => $event->user?->id ?? $event->order->customer_id,
                 'notify_type' => 'order',
                 'notify_receiver_type' => 'admin',
                 'is_read' => false,
@@ -28,19 +32,18 @@ class StoredOrderNotifyLogsListener
             ]);
         }
 
-        // Notifikasi ke vendor untuk setiap child order
-        $childOrders = $event->order->children;
-        foreach ($childOrders as $child) {
-            $shop = Shop::find($child->shop_id);
+        // Notifikasi ke vendor
+        foreach ($event->order->children as $childOrder) {
+            $shop = Shop::find($childOrder->shop_id);
             if ($shop && $shop->owner_id) {
                 NotifyLogs::create([
                     'receiver' => $shop->owner_id,
-                    'sender' => $child->customer_id,
+                    'sender'   => $childOrder->customer_id,
                     'notify_type' => 'order',
                     'notify_receiver_type' => 'vendor',
                     'is_read' => false,
-                    'notify_text' => 'One new order created. Order ID : ' . $child->tracking_number,
-                    'notify_tracker' => $child->tracking_number,
+                    'notify_text' => 'One new order created. Order ID : ' . $childOrder->tracking_number,
+                    'notify_tracker' => $childOrder->tracking_number,
                 ]);
             }
         }

@@ -22,7 +22,7 @@ use App\Http\Controllers\{
     FaqsController,
     FeedbackController,
     FlashSaleController,
-    FlashSaleVendorRequestController,
+    FlashSaleVendorController,
     LanguageController,
     ManufacturerController,
     MessageController,
@@ -325,9 +325,9 @@ Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permis
     // CouponController
     Route::apiResource('/coupons', CouponController::class)->only(['update']);
 
-    // FlashSaleVendorRequestController
-    Route::get('/requested-products-for-flash-sale', [FlashSaleVendorRequestController::class, 'getRequestedProductsForFlashSale']);
-    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorRequestController::class)->only(['index', 'show', 'store', 'destroy']);
+    // FlashSaleVendorController
+    Route::get('/requested-products-for-flash-sale', [FlashSaleVendorController::class, 'getRequestedProductsForFlashSale']);
+    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorController::class)->only(['index', 'show', 'store', 'destroy']);
 });
 
 // ========================
@@ -453,10 +453,10 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     Route::post('/approve-coupon', [CouponController::class, 'approveCoupon']);
     Route::post('/disapprove-coupon', [CouponController::class, 'disApproveCoupon']);
 
-    // FlashSaleVendorRequestController
-    Route::post('/approve-flash-sale-requested-products', [FlashSaleVendorRequestController::class, 'approveFlashSaleProductsRequest']);
-    Route::post('/disapprove-flash-sale-requested-products', [FlashSaleVendorRequestController::class, 'disapproveFlashSaleProductsRequest']);
-    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorRequestController::class)->only(['update']);
+    // FlashSaleVendorController
+    Route::post('/approve-flash-sale-requested-products', [FlashSaleVendorController::class, 'approveFlashSaleProductsRequest']);
+    Route::post('/disapprove-flash-sale-requested-products', [FlashSaleVendorController::class, 'disapproveFlashSaleProductsRequest']);
+    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorController::class)->only(['update']);
 
     // OwnershipTransferController
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['update', 'destroy']);
