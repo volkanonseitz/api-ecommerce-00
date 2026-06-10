@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class FlashSaleCreateRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string'],
+            'description' => ['required', 'string', 'max:10000'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date'],
+            'slug' => ['nullable', 'string'],
+            'language' => ['nullable', 'string'],
+            'image' => ['nullable', 'array'],
+            'cover_image' => ['nullable', 'array'],
+            'sale_builder' => ['required', 'array'],
+            'rate' => ['nullable', 'numeric'],
+            'type' => ['nullable', 'string'],
+            'sale_status' => ['nullable', 'string'],
+        ];
+    }
+}
