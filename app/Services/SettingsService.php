@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Settings;
 use App\DTO\SettingsData;
+use App\Models\Settings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -34,27 +34,42 @@ class SettingsService
         ];
     }
 
-    public function getSettings(string $language)
+    public function getSettings(string $language): array
     {
-        $cacheKey = 'cached_settings_' . $language;
+        $cacheKey = 'cached_settings_'.$language;
+
         return Cache::rememberForever($cacheKey, function () use ($language) {
             $settings = Settings::where('language', $language)->first();
-            if (!$settings) {
-                $settings = Settings::where('language', config('shop.default_language', 'en'))->first();
+
+            if (! $settings) {
+                $settings = Settings::where(
+                    'language',
+                    config('shop.default_language', 'en')
+                )->first();
             }
-            return $settings;
+
+            return $settings ? $settings->toArray() : [];
         });
     }
 
     public function getSettingsWithMaintenance(string $language): array
     {
-        $settings = $this->getSettings($language);
-        $data = $settings ? $settings->toArray() : [];
+        $data = $this->getSettings($language);
 
-        if ($settings && isset($settings->options['maintenance']['start'], $settings->options['maintenance']['until'])) {
+        if (
+            isset(
+                $data['options']['maintenance']['start'],
+                $data['options']['maintenance']['until']
+            )
+        ) {
             $data['maintenance'] = [
-                'start' => Carbon::parse($settings->options['maintenance']['start'])->format('F j, Y h:i A'),
-                'until' => Carbon::parse($settings->options['maintenance']['until'])->format('F j, Y h:i A'),
+                'start' => Carbon::parse(
+                    $data['options']['maintenance']['start']
+                )->format('F j, Y h:i A'),
+
+                'until' => Carbon::parse(
+                    $data['options']['maintenance']['until']
+                )->format('F j, Y h:i A'),
             ];
         }
 
@@ -64,7 +79,7 @@ class SettingsService
     public function storeOrUpdate(SettingsData $data, bool $isCreation = false): Settings
     {
         $language = $data->language;
-        $cacheKey = 'cached_settings_' . $language;
+        $cacheKey = 'cached_settings_'.$language;
 
         // Merge application settings and server info
         $mergedOptions = array_merge(
