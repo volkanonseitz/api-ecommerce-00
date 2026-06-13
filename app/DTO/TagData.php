@@ -23,7 +23,7 @@ class TagData
             icon: $data['icon'] ?? null,
             image: $data['image'] ?? null,
             details: $data['details'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }

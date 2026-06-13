@@ -12,7 +12,7 @@ class CouponUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $language = $this->language ?? config('shop.default_language', 'en');
+        $language = $this->language ?? config('shop.default_language', 'id');
         $amountRules = ($this->type === 'percentage')
             ? ['required', 'numeric', 'min:0', 'max:100']
             : ['required', 'numeric', 'min:0'];
@@ -26,7 +26,7 @@ class CouponUpdateRequest extends FormRequest
         ];
 
         // Jika language adalah default, boleh update code, type, active_from, expire_at
-        if ($language === config('shop.default_language', 'en')) {
+        if ($language === config('shop.default_language', 'id')) {
             $rules['code'] = ['nullable', 'string', Rule::unique('coupons')->ignore($this->id)->where('language', $language)];
             $rules['type'] = ['nullable', Rule::in(CouponType::values())];
             $rules['active_from'] = ['nullable', 'date'];

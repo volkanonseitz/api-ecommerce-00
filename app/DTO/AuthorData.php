@@ -25,7 +25,7 @@ class AuthorData
             image: $data['image'] ?? null,
             cover_image: $data['cover_image'] ?? null,
             is_approved: $data['is_approved'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }

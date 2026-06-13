@@ -14,7 +14,7 @@ class DeliveryTimeController extends Controller
 
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $deliveryTimes = $this->deliveryTimeService->getAll($language);
         return response()->json($deliveryTimes);
     }
@@ -28,7 +28,7 @@ class DeliveryTimeController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $deliveryTime = $this->deliveryTimeService->find($params, $language);
         return response()->json($deliveryTime);
     }

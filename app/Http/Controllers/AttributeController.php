@@ -19,7 +19,7 @@ class AttributeController extends Controller
      */
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $attributes = $this->attributeService->getAttributesByLanguage($language);
         return AttributeResource::collection($attributes);
     }
@@ -44,7 +44,7 @@ class AttributeController extends Controller
      */
     public function show(Request $request, $identifier)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $attribute = $this->attributeService->getAttributeByIdOrSlug($identifier, $language);
         return new AttributeResource($attribute);
     }

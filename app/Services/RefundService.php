@@ -29,7 +29,7 @@ class RefundService
 
     public function getRefundsQuery(Request $request, Authenticatable $user)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Refund::whereHas('order', fn($q) => $q->where('language', $language));
 
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {

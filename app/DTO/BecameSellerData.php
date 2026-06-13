@@ -13,7 +13,7 @@ class BecameSellerData
     {
         return new self(
             page_options: $data['page_options'] ?? [],
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }

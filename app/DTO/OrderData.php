@@ -39,7 +39,7 @@ class OrderData
             tracking_number: $data['tracking_number'] ?? null,
             customer_id: $data['customer_id'] ?? null,
             shop_id: $data['shop_id'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             order_status: $data['order_status'] ?? null,
             payment_status: $data['payment_status'] ?? null,
             amount: $data['amount'] ?? null,

@@ -26,7 +26,7 @@ class CategoryData
             image: $data['image'] ?? null,
             details: $data['details'] ?? null,
             banner_image: $data['banner_image'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             parent: $data['parent'] ?? null,
         );
     }

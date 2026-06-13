@@ -36,7 +36,7 @@ class RefundPolicyService
 
     public function getPoliciesQuery(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         return RefundPolicy::where('language', $language);
     }
 

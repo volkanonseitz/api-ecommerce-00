@@ -14,10 +14,10 @@ class BecameSeller extends Model
 
     public static function getData($language = null)
     {
-        $lang = $language ?? config('shop.default_language', 'en');
+        $lang = $language ?? config('shop.default_language', 'id');
         $data = static::where('language', $lang)->first();
         if (!$data) {
-            $data = static::where('language', config('shop.default_language', 'en'))->first();
+            $data = static::where('language', config('shop.default_language', 'id'))->first();
         }
         return $data;
     }

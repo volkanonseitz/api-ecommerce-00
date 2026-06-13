@@ -26,7 +26,7 @@ class CouponData
     {
         return new self(
             code: $data['code'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             description: $data['description'] ?? null,
             image: $data['image'] ?? null,
             type: $data['type'] ?? null,

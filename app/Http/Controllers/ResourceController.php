@@ -19,7 +19,7 @@ class ResourceController extends Controller
      */
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $resources = $this->resourceService->getResources($language, $limit);
         return ResourceResource::collection($resources);
@@ -40,7 +40,7 @@ class ResourceController extends Controller
      */
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $resource = $this->resourceService->find($params, $language);
         return new ResourceResource($resource);
     }

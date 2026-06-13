@@ -36,7 +36,7 @@ class FaqsService
 
     public function getFaqsQuery(Request $request, ?Authenticatable $user)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Faqs::with('shop')->where('language', $language);
 
         if (!$user) {

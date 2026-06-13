@@ -16,7 +16,7 @@ class TagController extends Controller
 
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $tags = $this->tagService->getTags($language, $limit);
         $data = TagResource::collection($tags)->response()->getData(true);
@@ -32,7 +32,7 @@ class TagController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $tag = $this->tagService->getTagByIdOrSlug($params, $language);
         return new TagResource($tag);
     }

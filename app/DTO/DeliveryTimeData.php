@@ -17,7 +17,7 @@ class DeliveryTimeData
         return new self(
             title: $data['title'] ?? null,
             slug: $data['slug'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             description: $data['description'] ?? null,
             icon: $data['icon'] ?? null,
         );

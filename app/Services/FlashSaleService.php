@@ -27,7 +27,7 @@ class FlashSaleService
 
     public function getFlashSalesQuery(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = FlashSale::where('language', $language);
 
         if ($request->request_from === 'vendor') {

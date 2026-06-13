@@ -12,7 +12,7 @@ class CouponCreateRequest extends FormRequest
 
     public function rules(): array
     {
-        $language = $this->language ?? config('shop.default_language', 'en');
+        $language = $this->language ?? config('shop.default_language', 'id');
         $amountRules = ($this->type === 'percentage') 
             ? ['required', 'numeric', 'min:0', 'max:100']
             : ['required', 'numeric', 'min:0'];

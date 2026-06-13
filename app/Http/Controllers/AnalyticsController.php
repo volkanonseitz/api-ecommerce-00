@@ -33,7 +33,7 @@ class AnalyticsController extends Controller
         if (!$user) {
             throw new AuthenticationException();
         }
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $typeId = $request->type_id;
         if ($request->type_slug && !$typeId) {
             $type = Type::where('slug', $request->type_slug)
@@ -57,7 +57,7 @@ class AnalyticsController extends Controller
         if (!$user) {
             throw new AuthenticationException();
         }
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $data = $this->analyticsService->categoryWiseProductCount($user, $language, $limit);
         return response()->json($data);
@@ -72,7 +72,7 @@ class AnalyticsController extends Controller
         if (!$user) {
             throw new AuthenticationException();
         }
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $data = $this->analyticsService->categoryWiseProductSales($user, $language, $limit);
         return response()->json($data);
@@ -87,7 +87,7 @@ class AnalyticsController extends Controller
         if (!$user) {
             throw new AuthenticationException();
         }
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 10;
         $data = $this->analyticsService->topRatedProducts($user, $language, $limit);
         return response()->json($data);

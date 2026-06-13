@@ -15,7 +15,7 @@ class TypeController extends Controller
 
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
 
         $types = $this->typeService->getTypesByLanguage($language, $limit);
@@ -32,7 +32,7 @@ class TypeController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $type = $this->typeService->getTypeByIdOrSlug($params, $language);
 
         return new TypeResource($type);

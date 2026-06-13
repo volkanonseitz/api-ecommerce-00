@@ -43,7 +43,7 @@ class OrderController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $order = $this->orderService->getOrderByTrackingOrId($params, $language, $request->user());
         // Attach payment intent jika perlu
         if (!in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'])) {
@@ -54,7 +54,7 @@ class OrderController extends Controller
 
     public function findByTrackingNumber(Request $request, $tracking_number)
     {
-        $order = $this->orderService->getOrderByTrackingOrId($tracking_number, $request->language ?? config('shop.default_language', 'en'), $request->user());
+        $order = $this->orderService->getOrderByTrackingOrId($tracking_number, $request->language ?? config('shop.default_language', 'id'), $request->user());
         return new OrderResource($order);
     }
 
@@ -97,7 +97,7 @@ class OrderController extends Controller
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $request->validate(['order_id' => 'required']);
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $isRtl = $request->is_rtl ?? false;
         $translatedText = $request->translated_text ?? [];
         $url = $this->orderService->getInvoiceToken($user->id, $request->order_id, $language, $translatedText, $isRtl);
@@ -111,7 +111,7 @@ class OrderController extends Controller
         $downloadToken->delete();
 
         $order = Order::with(['products', 'children.shop', 'parent_order', 'wallet_point'])->where('id', $payload['order_id'])->orWhere('tracking_number', $payload['order_id'])->firstOrFail();
-        $settings = Settings::getData($payload['language'] ?? config('shop.default_language', 'en'));
+        $settings = Settings::getData($payload['language'] ?? config('shop.default_language', 'id'));
         $invoiceData = [
             'order' => $order,
             'settings' => $settings,

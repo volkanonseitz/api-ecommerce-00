@@ -26,7 +26,7 @@ class ResourceData
             image: $data['image'] ?? null,
             icon: $data['icon'] ?? null,
             details: $data['details'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             is_approved: $data['is_approved'] ?? null,
         );
     }

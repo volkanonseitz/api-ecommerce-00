@@ -20,7 +20,7 @@ class FaqsData
         return new self(
             faq_title: $data['faq_title'] ?? null,
             faq_description: $data['faq_description'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             slug: $data['slug'] ?? null,
             user_id: $userId,
             shop_id: $data['shop_id'] ?? null,

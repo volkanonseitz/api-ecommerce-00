@@ -34,7 +34,7 @@ class TermsAndConditionsController extends Controller
 
     public function show(Request $request, $slug)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $term = TermsAndConditions::where('slug', $slug)->where('language', $language)->firstOrFail();
         return new TermsConditionResource($term);
     }

@@ -31,7 +31,7 @@ class TermsService
 
     public function getTermsQuery(Request $request, ?Authenticatable $user)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = TermsAndConditions::with('shop')->where('language', $language);
 
         if ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {

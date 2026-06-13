@@ -9,6 +9,7 @@ use App\Http\Resources\StoreNoticeResource;
 use App\DTO\StoreNoticeData;
 use App\Models\StoreNotice;
 use App\Enums\StoreNoticeType;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;

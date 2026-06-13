@@ -18,7 +18,7 @@ class AttributeData
             name: $data['name'] ?? null,
             slug: $data['slug'] ?? null,
             shop_id: $data['shop_id'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             values: $data['values'] ?? null,
         );
     }

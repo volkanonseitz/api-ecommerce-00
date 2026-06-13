@@ -22,7 +22,7 @@ class AuthorController extends Controller
     public function index(Request $request)
     {
         $limit = $request->limit ?? 15;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $authors = $this->authorService->getAuthorsByLanguage($language, $limit);
         $data = AuthorResource::collection($authors)->response()->getData(true);
 
@@ -35,19 +35,10 @@ class AuthorController extends Controller
     public function store(AuthorRequest $request)
     {
         $user = $request->user();
-        $author = Author::findOrFail($id);
-
-        if (
-            ! $this->authorService->hasPermission(
-                $user,
-                $author->shop_id
-            )
-        ) {
-            throw new AuthorizationException(
-                config('notice.NOT_AUTHORIZED')
-            );
+        $shopId = $request->shop_id; // asumsikan ada shop_id di request
+        if (! $this->authorService->hasPermission($user, $shopId)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-
         $data = AuthorData::fromRequest($request->validated());
         $author = $this->authorService->createAuthor($data);
 
@@ -59,7 +50,7 @@ class AuthorController extends Controller
      */
     public function show(Request $request, string $slug)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         try {
             $author = $this->authorService->getAuthorBySlug($slug, $language);
 
@@ -116,7 +107,7 @@ class AuthorController extends Controller
      */
     public function topAuthor(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 10;
         $authors = $this->authorService->getTopAuthors($language, $limit);
 

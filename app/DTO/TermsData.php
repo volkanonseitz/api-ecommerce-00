@@ -18,7 +18,7 @@ class TermsData
         return new self(
             title: $data['title'] ?? null,
             description: $data['description'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             slug: $data['slug'] ?? null,
             shop_id: $data['shop_id'] ?? null,
             user_id: $userId,

@@ -18,7 +18,7 @@ class SettingsController extends Controller
      */
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $data = $this->settingsService->getSettingsWithMaintenance($language);
         return response()->json($data);
     }

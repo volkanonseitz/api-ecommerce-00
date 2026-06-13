@@ -16,7 +16,7 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $parent = $request->parent ?? null;
         $selfId = $request->self ?? null;
         $limit = $request->limit ?? 15;
@@ -33,7 +33,7 @@ class CategoryController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $category = $this->categoryService->getCategoryByIdOrSlug($params, $language);
         return new CategoryResource($category);
     }

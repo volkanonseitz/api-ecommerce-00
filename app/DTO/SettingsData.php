@@ -13,7 +13,7 @@ class SettingsData
     {
         return new self(
             options: $data['options'] ?? [],
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 

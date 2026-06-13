@@ -11,6 +11,7 @@ use App\Events\FlashSaleProcessed;
 use App\Models\FlashSale;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Access\AuthorizationException;
+use App\Http\Resources\ProductResource;
 
 class FlashSaleController extends Controller
 {
@@ -22,7 +23,7 @@ class FlashSaleController extends Controller
     public function index(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         event(new FlashSaleProcessed('index', $language));
         $flashSales = $this->flashSaleService->getFlashSalesQuery($request)->paginate($limit);
         return FlashSaleResource::collection($flashSales);
@@ -46,7 +47,7 @@ class FlashSaleController extends Controller
      */
     public function show(Request $request, $slug)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $flashSale = $this->flashSaleService->findFlashSaleBySlug($slug, $language);
         if (!$flashSale) {
             abort(404, config('notice.NOT_FOUND'));
@@ -88,7 +89,7 @@ class FlashSaleController extends Controller
     {
         $request->validate(['slug' => 'required|string']);
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $products = $this->flashSaleService->getProductsByFlashSaleSlug($request->slug, $language, $limit);
         return ProductResource::collection($products);
     }

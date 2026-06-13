@@ -51,7 +51,7 @@ class CouponController extends Controller
      */
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $coupon = $this->couponService->findCoupon($params, $language);
         return new CouponResource($coupon);
     }

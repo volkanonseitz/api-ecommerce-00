@@ -26,7 +26,7 @@ class FlashSaleData
             description: $data['description'] ?? null,
             start_date: $data['start_date'] ?? null,
             end_date: $data['end_date'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
             slug: $data['slug'] ?? null,
             image: $data['image'] ?? null,
             cover_image: $data['cover_image'] ?? null,

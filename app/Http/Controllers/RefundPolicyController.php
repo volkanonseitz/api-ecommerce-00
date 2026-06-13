@@ -49,7 +49,7 @@ class RefundPolicyController extends Controller
      */
     public function show(Request $request, $slug)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $policy = $this->policyService->findPolicy($slug, $language);
         return new RefundPolicyResource($policy);
     }

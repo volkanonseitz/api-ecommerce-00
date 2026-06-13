@@ -21,7 +21,7 @@ class ManufacturerController extends Controller
     public function index(Request $request)
     {
         $limit = $request->limit ?? 15;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         
         $manufacturers = $this->manufacturerService->getManufacturersByLanguage($language, $limit);
         $data = ManufacturerResource::collection($manufacturers)->response()->getData(true);
@@ -61,7 +61,7 @@ class ManufacturerController extends Controller
      */
     public function show(Request $request, string $slug)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         try {
             $manufacturer = $this->manufacturerService->getManufacturerByIdOrSlug($slug, $language);
             return new ManufacturerResource($manufacturer);
@@ -120,7 +120,7 @@ class ManufacturerController extends Controller
     public function topManufacturer(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         
         $manufacturers = $this->manufacturerService->getTopManufacturers($language, $limit);
         return ManufacturerResource::collection($manufacturers);

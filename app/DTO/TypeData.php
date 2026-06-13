@@ -25,7 +25,7 @@ class TypeData
             settings: $data['settings'] ?? null,
             promotional_sliders: $data['promotional_sliders'] ?? null,
             images: $data['images'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }

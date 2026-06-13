@@ -6,6 +6,7 @@ use App\Services\FlashSaleVendorService;
 use App\Http\Requests\FlashSaleVendorCreateRequest;
 use App\Http\Requests\FlashSaleVendorUpdateRequest;
 use App\Http\Resources\FlashSaleRequestResource;
+use App\Http\Resources\ProductResource;
 use App\DTO\FlashSaleRequestData;
 use App\Models\FlashSaleRequest;
 use App\Enums\Permission;
@@ -27,7 +28,7 @@ class FlashSaleVendorController extends Controller
     {
         $user = $request->user();
         if (!$this->service->hasPermission($user)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = FlashSaleRequestData::fromRequest($request->validated(), $request->language);
         $flashSaleRequest = $this->service->create($data);
@@ -36,7 +37,7 @@ class FlashSaleVendorController extends Controller
 
     public function show(Request $request, $id)
     {
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $flashSaleRequest = FlashSaleRequest::where('language', $language)->where('id', $id)->firstOrFail();
         return new FlashSaleRequestResource($flashSaleRequest);
     }
@@ -45,7 +46,7 @@ class FlashSaleVendorController extends Controller
     {
         $user = $request->user();
         if (!$this->service->hasPermission($user)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $flashSaleRequest = FlashSaleRequest::findOrFail($id);
         $data = FlashSaleRequestData::fromRequest($request->validated(), $request->language);
@@ -57,7 +58,7 @@ class FlashSaleVendorController extends Controller
     {
         $user = $request->user();
         if (!$this->service->hasPermission($user)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $flashSaleRequest = FlashSaleRequest::findOrFail($id);
         $this->service->delete($flashSaleRequest, $user);
@@ -68,7 +69,7 @@ class FlashSaleVendorController extends Controller
     {
         $user = $request->user();
         if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $this->service->approveRequest($request->id);
         return response()->json(['message' => 'Request approved']);
@@ -78,7 +79,7 @@ class FlashSaleVendorController extends Controller
     {
         $user = $request->user();
         if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $this->service->disapproveRequest($request->id);
         return response()->json(['message' => 'Request disapproved']);

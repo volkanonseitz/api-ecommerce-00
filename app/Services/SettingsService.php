@@ -44,7 +44,7 @@ class SettingsService
             if (! $settings) {
                 $settings = Settings::where(
                     'language',
-                    config('shop.default_language', 'en')
+                    config('shop.default_language', 'id')
                 )->first();
             }
 

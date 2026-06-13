@@ -22,7 +22,7 @@ class FlashSaleVendorRequestService
 
     public function getRequestsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         return FlashSaleRequest::where('language', $language);
     }
 
@@ -61,7 +61,7 @@ class FlashSaleVendorRequestService
             'requested_flash_sale' => $flashSale,
             'detached_products' => $detachedProducts,
         ];
-        event(new FlashSaleProcessed('delete_vendor_request', config('constants.DEFAULT_LANGUAGE', 'en'), $eventData));
+        event(new FlashSaleProcessed('delete_vendor_request', config('shop.default_language', 'id'), $eventData));
 
         $flashSaleRequest->forceDelete();
     }
@@ -85,7 +85,7 @@ class FlashSaleVendorRequestService
             'attached_product_ids' => $attachedProducts,
             'requested_flash_sale' => $flashSale,
         ];
-        event(new FlashSaleProcessed('append_attached_products', config('constants.DEFAULT_LANGUAGE', 'en'), $eventData));
+        event(new FlashSaleProcessed('append_attached_products', config('shop.default_language', 'id'), $eventData));
     }
 
     public function disapproveRequest(int $id): void
@@ -108,12 +108,12 @@ class FlashSaleVendorRequestService
             'detached_product_ids' => $detachedProducts,
             'requested_flash_sale' => $flashSale,
         ];
-        event(new FlashSaleProcessed('remove_attached_products', config('constants.DEFAULT_LANGUAGE', 'en'), $eventData));
+        event(new FlashSaleProcessed('remove_attached_products', config('shop.default_language', 'id'), $eventData));
     }
 
     public function getRequestedProductsQuery(Request $request, int $vendorRequestId)
     {
-        $language = $request->language ?? config('constants.DEFAULT_LANGUAGE', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $productIds = FlashSaleRequest::where('id', $vendorRequestId)
             ->where('language', $language)
             ->join('flash_sale_requests_products', 'flash_sale_requests.id', '=', 'flash_sale_requests_products.flash_sale_requests_id')

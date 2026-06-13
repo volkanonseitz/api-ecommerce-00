@@ -16,7 +16,7 @@ class RefundReasonController extends Controller
 
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $reasons = $this->service->getRefundReasons($language, $limit);
         return RefundReasonResource::collection($reasons);
@@ -32,7 +32,7 @@ class RefundReasonController extends Controller
 
     public function show(Request $request, $params)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $reason = $this->service->find($params, $language);
         return new RefundReasonResource($reason);
     }

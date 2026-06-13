@@ -23,7 +23,7 @@ class RefundPolicyData
             status: $data['status'] ?? null,
             description: $data['description'] ?? null,
             shop_id: $data['shop_id'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 

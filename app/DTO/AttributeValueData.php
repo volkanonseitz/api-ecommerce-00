@@ -21,7 +21,7 @@ class AttributeValueData
             price: $data['price'] ?? null,
             shop_id: $data['shop_id'] ?? null,
             attribute_id: $data['attribute_id'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }

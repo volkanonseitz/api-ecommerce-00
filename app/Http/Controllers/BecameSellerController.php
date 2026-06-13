@@ -21,7 +21,7 @@ class BecameSellerController extends Controller
      */
     public function index(Request $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = 'cached_became_seller_' . $language;
         return Cache::rememberForever($cacheKey, function () use ($language) {
             return [
@@ -36,7 +36,7 @@ class BecameSellerController extends Controller
      */
     public function store(BecameSellersRequest $request)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = 'cached_became_seller_' . $language;
         Cache::forget($cacheKey);
 
@@ -68,7 +68,7 @@ class BecameSellerController extends Controller
      */
     public function update(BecameSellersRequest $request, $id)
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $data = BecameSellerData::fromRequest($request->only(['page_options', 'language']));
         $updated = $this->becameSellerService->storeOrUpdate($data);
         return response()->json($updated);

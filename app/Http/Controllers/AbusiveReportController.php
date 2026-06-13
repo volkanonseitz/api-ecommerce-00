@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Services\AbusiveReportService;
 use App\Http\Requests\AbusiveReportCreateRequest;
 use App\Http\Requests\AbusiveReportAcceptOrRejectRequest;

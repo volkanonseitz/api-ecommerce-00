@@ -56,7 +56,7 @@ class ProductService
      */
     public function getProductsQuery(Request $request): Builder
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Product::where('language', $language);
 
         // Filter by date range for rental
@@ -98,7 +98,7 @@ class ProductService
      */
     public function getProductDetail(Request $request, string $slug): Product
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $user = $request->user();
         $limit = $request->limit ?? 10;
 
@@ -187,7 +187,7 @@ class ProductService
     public function getBestSellingProducts(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $range = $request->range ?? '';
         $typeId = $this->resolveTypeId($request, $language);
 
@@ -218,7 +218,7 @@ class ProductService
      */
     public function getRelatedProducts(string $slug, int $limit = 10, ?string $language = null): \Illuminate\Support\Collection
     {
-        $language = $language ?? config('shop.default_language', 'en');
+        $language = $language ?? config('shop.default_language', 'id');
         $product = Product::where('slug', $slug)->firstOrFail();
         $categoryIds = $product->categories->pluck('id');
         
@@ -240,7 +240,7 @@ class ProductService
     public function getPopularProducts(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $range = $request->range ?? '';
         $typeId = $this->resolveTypeId($request, $language);
 
@@ -273,7 +273,7 @@ class ProductService
     public function getDraftedProducts(Request $request)
     {
         $user = $request->user();
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Product::with(['type', 'shop'])->where('language', $language)->where('status', ProductStatus::DRAFT->value);
 
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
@@ -301,7 +301,7 @@ class ProductService
     public function getProductStock(Request $request)
     {
         $user = $request->user();
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Product::with(['type', 'shop'])
             ->where('language', $language)
             ->where('quantity', '<', 10)

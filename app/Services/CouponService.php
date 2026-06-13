@@ -47,7 +47,7 @@ class CouponService
      */
     public function getCouponsQuery(Request $request, ?Authenticatable $user): Builder
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Coupon::with('shop')->whereNotNull('id');
 
         if ($user) {

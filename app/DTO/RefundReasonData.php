@@ -15,7 +15,7 @@ class RefundReasonData
         return new self(
             name: $data['name'] ?? null,
             slug: $data['slug'] ?? null,
-            language: $data['language'] ?? config('shop.default_language', 'en'),
+            language: $data['language'] ?? config('shop.default_language', 'id'),
         );
     }
 }
