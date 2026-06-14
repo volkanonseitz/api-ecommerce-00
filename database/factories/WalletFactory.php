@@ -10,16 +10,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class WalletFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Wallet::class;
+
     public function definition(): array
     {
-        $total = fake()->numberBetween(100, 10000);
-        $used = fake()->numberBetween(0, $total);
-
+        $total = $this->faker->randomFloat(2, 0, 1000);
+        $used = $this->faker->randomFloat(2, 0, $total);
         return [
             'total_points' => $total,
             'points_used' => $used,

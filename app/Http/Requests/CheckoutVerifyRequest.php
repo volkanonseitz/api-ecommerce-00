@@ -11,7 +11,7 @@ class CheckoutVerifyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric'],
+            // 'amount' => ['required', 'numeric'],
             'customer_id' => ['nullable', 'exists:users,id'],
             'products' => ['required', 'array'],
             'billing_address' => ['nullable', 'array'],

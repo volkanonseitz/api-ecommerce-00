@@ -52,4 +52,9 @@ class CategoryController extends Controller
         $this->categoryService->deleteCategory($category);
         return response()->json(['message' => 'Category deleted']);
     }
+
+    public function fetchFeaturedCategories(Request $request)
+    {
+        return $this->categoryService->fetchFeaturedCategories();
+    }
 }

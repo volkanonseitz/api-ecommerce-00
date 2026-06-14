@@ -10,41 +10,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AddressFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Address::class;
+
     public function definition(): array
     {
         return [
-            'title' => fake()->randomElement([
-                'Rumah',
-                'Kantor',
-                'Gudang',
-            ]),
-
-            'type' => fake()->randomElement([
-                'home',
-                'office',
-                'warehouse',
-            ]),
-
-            'default' => false,
-
-            'address' => [
-                'street' => fake()->streetAddress(),
-                'city' => fake()->city(),
-                'province' => fake()->state(),
-                'postal_code' => fake()->postcode(),
-                'country' => 'Indonesia',
-            ],
-
-            'location' => [
-                'lat' => fake()->latitude(),
-                'lng' => fake()->longitude(),
-            ],
-
+            'title' => $this->faker->word(),
+            'type' => 'shipping',
+            'default' => $this->faker->boolean(20),
+            'address' => json_encode(['street' => $this->faker->streetAddress()]),
+            'location' => json_encode(['lat' => $this->faker->latitude(), 'lng' => $this->faker->longitude()]),
             'customer_id' => User::factory(),
         ];
     }

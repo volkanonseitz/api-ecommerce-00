@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
+use App\Models\Order;
 
 class Product extends Model
 {
@@ -181,5 +182,12 @@ class Product extends Model
             ->where('order_product.product_id', $this->id)
             ->whereNull('orders.parent_id')
             ->sum('order_quantity');
+    }
+
+        public function orders(): BelongsToMany
+    {
+        return $this->belongsToMany(Order::class, 'order_product')
+            ->withPivot('order_quantity', 'unit_price', 'subtotal', 'variation_option_id')
+            ->withTimestamps();
     }
 }

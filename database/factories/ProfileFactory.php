@@ -8,38 +8,34 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends Factory<Profile>
  */
-class ProfileFactory extends Factory
+class ShopFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Shop::class;
+
     public function definition(): array
     {
         return [
-            'avatar' => [
-                'url' => fake()->imageUrl(),
-                'filename' => fake()->uuid() . '.jpg',
-            ],
-
-            'bio' => fake()->paragraph(),
-
-            'socials' => [
-                'instagram' => fake()->userName(),
-                'facebook' => fake()->userName(),
-                'twitter' => fake()->userName(),
-            ],
-
-            'contact' => fake()->phoneNumber(),
-
-            'notifications' => [
-                'email' => true,
-                'sms' => false,
-                'push' => true,
-            ],
-
-            'customer_id' => User::factory(),
+            'owner_id' => User::factory(),
+            'name' => $this->faker->company(),
+            'slug' => null, // akan di-generate oleh boot
+            'description' => $this->faker->paragraph(),
+            'cover_image' => json_encode([$this->faker->imageUrl()]),
+            'logo' => json_encode([$this->faker->imageUrl()]),
+            'is_active' => $this->faker->boolean(),
+            'address' => json_encode([
+                'street' => $this->faker->streetAddress(),
+                'city' => $this->faker->city(),
+                'country' => $this->faker->country(),
+            ]),
+            'settings' => json_encode(['currency' => 'USD']),
+            'notifications' => json_encode(['email' => $this->faker->email()]),
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => true,
+        ]);
     }
 }

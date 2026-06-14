@@ -38,6 +38,12 @@ class CategoryService
         return Category::with(['type', 'parentCategory', 'children'])->where('slug', $param)->firstOrFail();
     }
 
+    public function fetchFeaturedCategories(int $perPage = 3)
+    {
+        $query = Category::with('products');
+        return $query->paginate($perPage);
+    }
+
     public function createCategory(CategoryData $data): Category
     {
         return $this->createCategory->execute($data);
