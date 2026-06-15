@@ -219,23 +219,44 @@ class UserController extends Controller
     public function token(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => ['required', 'email:rfc,dns'],
+            'password' => ['required', 'string'],
         ]);
 
-        $appValid = true; // lisensi dihapus
-        $result = $this->authService->attemptLogin($request->email, $request->password, $appValid);
+        $result = $this->authService->attemptLogin(
+            $request->email,
+            $request->password,
+            $request,
+            true
+        );
+
         if (! $result) {
-            return response()->json(['token' => null, 'permissions' => []]);
+            return response()->json([
+                'message' => 'Email atau password tidak valid.',
+            ], 401);
         }
+
+        if (! empty($result['locked'])) {
+            return response()->json([
+                'message' => 'Akun dikunci sementara.',
+                'locked_until' => $result['locked_until'],
+            ], 423);
+        }
+
+        if (! ($result['email_verified'] ?? true)) {
+            return response()->json([
+                'message' => 'Silakan verifikasi email Anda terlebih dahulu.',
+            ], 403);
+        }
+
         event(new ProcessUserData);
 
-        return [
+        return response()->json([
             'token' => $result['token'],
             'permissions' => $result['permissions'],
-            'email_verified' => $result['email_verified'],
+            'email_verified' => true,
             'role' => $result['role'],
-        ];
+        ]);
     }
 
     public function logout(Request $request)

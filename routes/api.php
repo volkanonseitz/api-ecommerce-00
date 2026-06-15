@@ -62,7 +62,8 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // UserController (public)
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmail'])->name('verification.verify');
 Route::post('/register', [UserController::class, 'register']);
-Route::post('/token', [UserController::class, 'token']);
+Route::post('/token', [UserController::class, 'token'])
+    ->middleware('throttle:login');
 Route::post('/logout', [UserController::class, 'logout']);
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-forget-password-token', [UserController::class, 'verifyForgetPasswordToken']);

@@ -7,8 +7,11 @@ use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\Settings;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\Registered;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthService
@@ -18,21 +21,70 @@ class AuthService
         private WalletService $walletService
     ) {}
 
-    public function attemptLogin(string $email, string $password, bool $appValid = true): ?array
-    {
-        $user = User::where('email', $email)->where('is_active', true)->first();
-        if (! $user || ! Hash::check($password, $user->password) || ! $appValid) {
+    public function attemptLogin(
+        string $email,
+        string $password,
+        Request $request,
+        bool $appValid = true
+    ): ?array {
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            usleep(random_int(300000, 700000));
+
             return null;
         }
+
+        if ($user->locked_until && $user->locked_until->isFuture()) {
+            return [
+                'locked' => true,
+                'locked_until' => $user->locked_until,
+            ];
+        }
+
+        if (
+            ! $user->is_active ||
+            ! Hash::check($password, $user->password) ||
+            ! $appValid
+        ) {
+            $user->increment('failed_login_attempts');
+
+            if ($user->failed_login_attempts >= 5) {
+                $user->update([
+                    'locked_until' => now()->addMinutes(15),
+                ]);
+            }
+
+            Log::warning('Login gagal', [
+                'user_id' => $user->id,
+                'email' => $email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return null;
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return [
+                'email_verified' => false,
+            ];
+        }
+
+        $user->update([
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
 
         $user->tokens()->delete();
 
         return [
             'token' => $user->createToken('auth_token')->plainTextToken,
             'permissions' => $user->getPermissionNames(),
-            'email_verified' => $user->hasVerifiedEmail(),
+            'email_verified' => true,
             'role' => $user->getRoleNames()->first(),
-            'user' => $user,
         ];
     }
 
