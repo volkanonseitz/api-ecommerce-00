@@ -6,10 +6,12 @@ use App\Services\TypeService;
 use App\Http\Requests\TypeRequest;
 use App\Http\Resources\TypeResource;
 use App\DTO\TypeData;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 
-class TypeController extends Controller
+class TypeController extends BaseController
 {
     public function __construct(private TypeService $typeService) {}
 
@@ -17,41 +19,55 @@ class TypeController extends Controller
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
-
-        $types = $this->typeService->getTypesByLanguage($language, $limit);
-        return TypeResource::collection($types);
+        $cacheKey = "types_{$language}_{$limit}";
+        $types = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->typeService->getTypesByLanguage($language, $limit);
+        });
+        return $this->sendPaginated($types, 'Types retrieved');
     }
 
     public function store(TypeRequest $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = TypeData::fromRequest($request->validated());
         $type = $this->typeService->createType($data);
-
-        return new TypeResource($type->load('banners'));
+        Cache::forget("types_{$data->language}_*");
+        return $this->sendSuccess(new TypeResource($type->load('banners')), 'Type created', 201);
     }
 
     public function show(Request $request, $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $type = $this->typeService->getTypeByIdOrSlug($params, $language);
-
-        return new TypeResource($type);
+        return $this->sendSuccess(new TypeResource($type), 'Type detail');
     }
 
     public function update(TypeRequest $request, int $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $type = \App\Models\Type::findOrFail($id);
         $data = TypeData::fromRequest($request->validated());
         $updated = $this->typeService->updateType($type, $data);
-
-        return new TypeResource($updated);
+        Cache::forget("types_{$data->language}_*");
+        return $this->sendSuccess(new TypeResource($updated), 'Type updated');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $type = \App\Models\Type::findOrFail($id);
+        $language = $type->language;
         $this->typeService->deleteType($type);
-
-        return response()->json(['message' => 'Type deleted successfully']);
+        Cache::forget("types_{$language}_*");
+        return $this->sendSuccess(null, 'Type deleted');
     }
 }

@@ -2,24 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ProductService;
-use App\Services\SettingsService; // jika ada, atau langsung ambil Settings model
+use App\DTO\ProductData;
+// jika ada, atau langsung ambil Settings model
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductUpdateRequest;
-use App\Http\Resources\ProductResource;
 use App\Http\Resources\GetSingleProductResource;
-use App\DTO\ProductData;
-use App\Models\Settings;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\Settings;
 use App\Models\Variation;
-use App\Models\Type;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\ProductService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ProductController extends Controller
 {
@@ -33,6 +29,7 @@ class ProductController extends Controller
         $limit = $request->limit ?? 15;
         $products = $this->productService->getProducts($request, $limit);
         $data = ProductResource::collection($products)->response()->getData(true);
+
         return formatAPIResourcePaginate($data);
     }
 
@@ -43,15 +40,15 @@ class ProductController extends Controller
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        
-        if (!$this->productService->hasPermission($user, $shopId)) {
+
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $settings = Settings::first();
         $data = ProductData::fromRequest($request->validated());
         $product = $this->productService->createProduct($data, $settings);
-        
+
         return new ProductResource($product->load(['type', 'shop']));
     }
 
@@ -62,6 +59,7 @@ class ProductController extends Controller
     {
         try {
             $product = $this->productService->getProductDetail($request, $slug);
+
             return new GetSingleProductResource($product);
         } catch (ModelNotFoundException $e) {
             throw new ModelNotFoundException(config('notice.NOT_FOUND'));
@@ -75,15 +73,15 @@ class ProductController extends Controller
     {
         $user = $request->user();
         $product = Product::findOrFail($id);
-        
-        if (!$this->productService->hasPermission($user, $product->shop_id)) {
+
+        if (! $this->productService->hasPermission($user, $product->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $settings = Settings::first();
         $data = ProductData::fromRequest($request->validated());
         $updated = $this->productService->updateProduct($product, $data, $settings);
-        
+
         return new ProductResource($updated->load(['type', 'shop', 'categories', 'tags']));
     }
 
@@ -94,12 +92,13 @@ class ProductController extends Controller
     {
         $user = $request->user();
         $product = Product::findOrFail($id);
-        
-        if (!$this->productService->hasPermission($user, $product->shop_id)) {
+
+        if (! $this->productService->hasPermission($user, $product->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $this->productService->deleteProduct($product);
+
         return response()->json(['message' => 'Product deleted successfully']);
     }
 
@@ -111,8 +110,9 @@ class ProductController extends Controller
         $limit = $request->limit ?? 10;
         $slug = $request->slug;
         $language = $request->language ?? config('shop.default_language', 'id');
-        
+
         $products = $this->productService->getRelatedProducts($slug, $limit, $language);
+
         return ProductResource::collection($products);
     }
 
@@ -122,6 +122,7 @@ class ProductController extends Controller
     public function bestSellingProducts(Request $request)
     {
         $products = $this->productService->getBestSellingProducts($request);
+
         return ProductResource::collection($products);
     }
 
@@ -131,6 +132,7 @@ class ProductController extends Controller
     public function popularProducts(Request $request)
     {
         $products = $this->productService->getPopularProducts($request);
+
         return ProductResource::collection($products);
     }
 
@@ -140,6 +142,7 @@ class ProductController extends Controller
     public function draftedProducts(Request $request)
     {
         $products = $this->productService->getDraftedProducts($request);
+
         return ProductResource::collection($products);
     }
 
@@ -149,6 +152,7 @@ class ProductController extends Controller
     public function productStock(Request $request)
     {
         $products = $this->productService->getProductStock($request);
+
         return ProductResource::collection($products);
     }
 
@@ -158,6 +162,7 @@ class ProductController extends Controller
     public function myWishlists(Request $request)
     {
         $products = $this->productService->getMyWishlists($request);
+
         return ProductResource::collection($products);
     }
 
@@ -181,8 +186,9 @@ class ProductController extends Controller
             'dropoff_location_id' => 'nullable|exists:resources,id',
             'pickup_location_id' => 'nullable|exists:resources,id',
         ]);
-        
+
         $price = $this->productService->calculateRentalPrice($request);
+
         return response()->json($price);
     }
 
@@ -192,32 +198,32 @@ class ProductController extends Controller
     public function exportProducts(Request $request, int $shopId)
     {
         $user = $request->user();
-        if (!$this->productService->hasPermission($user, $shopId)) {
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $products = Product::with(['categories', 'tags'])
             ->where('shop_id', $shopId)
             ->get();
-        
-        $filename = 'products-for-shop-id-' . $shopId . '.csv';
+
+        $filename = 'products-for-shop-id-'.$shopId.'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
-        
-        $callback = function() use ($products) {
+
+        $callback = function () use ($products) {
             $handle = fopen('php://output', 'w');
             // Headers
             $headers = [
-                'name', 'slug', 'price', 'sale_price', 'type_id', 'shop_id', 
-                'author_id', 'manufacturer_id', 'language', 'product_type', 
-                'quantity', 'unit', 'is_digital', 'is_external', 'description', 
-                'sku', 'image', 'gallery', 'video', 'status', 'height', 
-                'length', 'width', 'in_stock', 'is_taxable', 'visibility'
+                'name', 'slug', 'price', 'sale_price', 'type_id', 'shop_id',
+                'author_id', 'manufacturer_id', 'language', 'product_type',
+                'quantity', 'unit', 'is_digital', 'is_external', 'description',
+                'sku', 'image', 'gallery', 'video', 'status', 'height',
+                'length', 'width', 'in_stock', 'is_taxable', 'visibility',
             ];
             fputcsv($handle, $headers);
-            
+
             foreach ($products as $product) {
                 $row = [
                     $product->name,
@@ -251,7 +257,7 @@ class ProductController extends Controller
             }
             fclose($handle);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -261,24 +267,24 @@ class ProductController extends Controller
     public function exportVariableOptions(Request $request, int $shopId)
     {
         $user = $request->user();
-        if (!$this->productService->hasPermission($user, $shopId)) {
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $productIds = Product::where('shop_id', $shopId)->pluck('id');
         $variations = Variation::whereIn('product_id', $productIds)->get();
-        
-        $filename = 'variable-options-' . Str::random(5) . '.csv';
+
+        $filename = 'variable-options-'.Str::random(5).'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
-        
-        $callback = function() use ($variations) {
+
+        $callback = function () use ($variations) {
             $handle = fopen('php://output', 'w');
             $headers = ['product_id', 'sku', 'title', 'price', 'sale_price', 'quantity', 'options', 'image'];
             fputcsv($handle, $headers);
-            
+
             foreach ($variations as $variation) {
                 $row = [
                     $variation->product_id,
@@ -294,7 +300,7 @@ class ProductController extends Controller
             }
             fclose($handle);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -305,25 +311,22 @@ class ProductController extends Controller
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        
-        if (!$this->productService->hasPermission($user, $shopId)) {
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
-        if (!$request->hasFile('csv')) {
-            throw new HttpException(422, 'CSV file is required');
+        if (! $request->hasFile('csv')) {
+            return $this->sendError('CSV file is required', 422);
         }
-        
         $file = $request->file('csv');
-        $path = $file->storeAs('csv-imports', 'products-' . $shopId . '-' . time() . '.csv', 'local');
-        $csvData = $this->csvToArray(storage_path('app/' . $path));
-        
+        $path = $file->storeAs('csv-imports', 'products-'.$shopId.'-'.time().'.csv', 'local');
+        $csvData = $this->csvToArray(storage_path('app/'.$path));
+
         $settings = Settings::first();
         foreach ($csvData as $row) {
             if (empty($row['type_id'])) {
                 throw new \Exception('Invalid CSV: type_id is required');
             }
-            
+
             $data = ProductData::fromRequest($row);
             // Override shop_id
             $data = new ProductData(
@@ -373,10 +376,10 @@ class ProductController extends Controller
                 product_update_message: null,
                 is_rental: $row['is_rental'] ?? false,
             );
-            
+
             $this->productService->createProduct($data, $settings);
         }
-        
+
         return response()->json(['message' => 'Products imported successfully']);
     }
 
@@ -385,14 +388,14 @@ class ProductController extends Controller
      */
     private function csvToArray(string $filename, string $delimiter = ','): array
     {
-        if (!file_exists($filename) || !is_readable($filename)) {
+        if (! file_exists($filename) || ! is_readable($filename)) {
             return [];
         }
         $header = null;
         $data = [];
         if (($handle = fopen($filename, 'r')) !== false) {
             while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
-                if (!$header) {
+                if (! $header) {
                     $header = $row;
                 } else {
                     $data[] = array_combine($header, $row);
@@ -400,6 +403,7 @@ class ProductController extends Controller
             }
             fclose($handle);
         }
+
         return $data;
     }
 }

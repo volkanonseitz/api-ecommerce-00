@@ -8,57 +8,63 @@ use App\Http\Requests\UpdateShippingRequest;
 use App\Http\Resources\ShippingResource;
 use App\DTO\ShippingData;
 use App\Models\Shipping;
+use App\Enums\Permission;
+use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 
-class ShippingController extends Controller
+class ShippingController extends BaseController
 {
     public function __construct(private ShippingService $shippingService) {}
 
-    /**
-     * GET /shippings
-     */
     public function index()
     {
-        $shippings = $this->shippingService->getAll();
-        return ShippingResource::collection($shippings);
+        $shippings = Cache::rememberForever('shippings_all', function () {
+            return $this->shippingService->getAll();
+        });
+        return $this->sendSuccess(ShippingResource::collection($shippings), 'Shippings retrieved');
     }
 
-    /**
-     * POST /shippings
-     */
     public function store(CreateShippingRequest $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = ShippingData::fromRequest($request->validated());
         $shipping = $this->shippingService->create($data);
-        return new ShippingResource($shipping);
+        Cache::forget('shippings_all');
+        return $this->sendSuccess(new ShippingResource($shipping), 'Shipping created', 201);
     }
 
-    /**
-     * GET /shippings/{id}
-     */
     public function show($id)
     {
         $shipping = $this->shippingService->findOrFail($id);
-        return new ShippingResource($shipping);
+        return $this->sendSuccess(new ShippingResource($shipping), 'Shipping detail');
     }
 
-    /**
-     * PUT /shippings/{id}
-     */
     public function update(UpdateShippingRequest $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $shipping = Shipping::findOrFail($id);
         $data = ShippingData::fromRequest($request->validated());
         $updated = $this->shippingService->update($shipping, $data);
-        return new ShippingResource($updated);
+        Cache::forget('shippings_all');
+        return $this->sendSuccess(new ShippingResource($updated), 'Shipping updated');
     }
 
-    /**
-     * DELETE /shippings/{id}
-     */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $shipping = Shipping::findOrFail($id);
         $this->shippingService->delete($shipping);
-        return response()->json(['message' => 'Shipping deleted successfully']);
+        Cache::forget('shippings_all');
+        return $this->sendSuccess(null, 'Shipping deleted');
     }
 }

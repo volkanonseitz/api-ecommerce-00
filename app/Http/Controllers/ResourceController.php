@@ -8,61 +8,68 @@ use App\Http\Requests\ResourceUpdateRequest;
 use App\Http\Resources\ResourceResource;
 use App\DTO\ResourceData;
 use App\Models\Resource;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 
-class ResourceController extends Controller
+class ResourceController extends BaseController
 {
     public function __construct(private ResourceService $resourceService) {}
 
-    /**
-     * GET /resources
-     */
     public function index(Request $request)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
-        $resources = $this->resourceService->getResources($language, $limit);
-        return ResourceResource::collection($resources);
+        $cacheKey = "resources_{$language}_{$limit}";
+        $resources = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->resourceService->getResources($language, $limit);
+        });
+        return $this->sendPaginated($resources, 'Resources retrieved');
     }
 
-    /**
-     * POST /resources
-     */
     public function store(ResourceCreateRequest $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = ResourceData::fromRequest($request->validated());
         $resource = $this->resourceService->create($data);
-        return new ResourceResource($resource);
+        Cache::forget("resources_{$data->language}_*");
+        return $this->sendSuccess(new ResourceResource($resource), 'Resource created', 201);
     }
 
-    /**
-     * GET /resources/{params}
-     */
     public function show(Request $request, $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $resource = $this->resourceService->find($params, $language);
-        return new ResourceResource($resource);
+        return $this->sendSuccess(new ResourceResource($resource), 'Resource detail');
     }
 
-    /**
-     * PUT /resources/{id}
-     */
     public function update(ResourceUpdateRequest $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $resource = Resource::findOrFail($id);
         $data = ResourceData::fromRequest($request->validated());
         $updated = $this->resourceService->update($resource, $data);
-        return new ResourceResource($updated);
+        Cache::forget("resources_{$data->language}_*");
+        return $this->sendSuccess(new ResourceResource($updated), 'Resource updated');
     }
 
-    /**
-     * DELETE /resources/{id}
-     */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $resource = Resource::findOrFail($id);
+        $language = $resource->language;
         $this->resourceService->delete($resource);
-        return response()->json(['message' => 'Resource deleted successfully']);
+        Cache::forget("resources_{$language}_*");
+        return $this->sendSuccess(null, 'Resource deleted');
     }
 }

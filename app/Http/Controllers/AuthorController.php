@@ -11,106 +11,81 @@ use App\Services\AuthorService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
-class AuthorController extends Controller
+class AuthorController extends BaseController
 {
     public function __construct(private AuthorService $authorService) {}
 
-    /**
-     * GET /authors
-     */
     public function index(Request $request)
     {
         $limit = $request->limit ?? 15;
         $language = $request->language ?? config('shop.default_language', 'id');
-        $authors = $this->authorService->getAuthorsByLanguage($language, $limit);
-        $data = AuthorResource::collection($authors)->response()->getData(true);
-
-        return formatAPIResourcePaginate($data);
+        $cacheKey = "authors_{$language}_{$limit}";
+        $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->authorService->getAuthorsByLanguage($language, $limit);
+        });
+        return $this->sendPaginated($authors, 'Authors retrieved');
     }
 
-    /**
-     * POST /authors
-     */
     public function store(AuthorRequest $request)
     {
         $user = $request->user();
-        $shopId = $request->shop_id; // asumsikan ada shop_id di request
-        if (! $this->authorService->hasPermission($user, $shopId)) {
+        $shopId = $request->shop_id;
+        if (!$this->authorService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = AuthorData::fromRequest($request->validated());
         $author = $this->authorService->createAuthor($data);
-
-        return new AuthorResource($author);
+        Cache::forget("authors_{$data->language}_*");
+        return $this->sendSuccess(new AuthorResource($author), 'Author created', 201);
     }
 
-    /**
-     * GET /authors/{slug}
-     */
     public function show(Request $request, string $slug)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         try {
             $author = $this->authorService->getAuthorBySlug($slug, $language);
-
-            return new AuthorResource($author);
+            return $this->sendSuccess(new AuthorResource($author), 'Author detail');
         } catch (ModelNotFoundException $e) {
-            throw new ModelNotFoundException(config('notice.NOT_FOUND'));
+            return $this->sendError('Author not found', 404);
         }
     }
 
-    /**
-     * PUT /authors/{id}
-     */
     public function update(AuthorRequest $request, int $id)
     {
         $user = $request->user();
         $author = Author::findOrFail($id);
-
-        if (
-            ! $this->authorService->hasPermission(
-                $user,
-                $author->shop_id
-            )
-        ) {
-            throw new AuthorizationException(
-                config('notice.NOT_AUTHORIZED')
-            );
+        if (!$this->authorService->hasPermission($user, $author->shop_id)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-
-        $author = Author::findOrFail($id);
         $data = AuthorData::fromRequest($request->validated());
         $updated = $this->authorService->updateAuthor($author, $data);
-
-        return new AuthorResource($updated);
+        Cache::forget("authors_{$data->language}_*");
+        return $this->sendSuccess(new AuthorResource($updated), 'Author updated');
     }
 
-    /**
-     * DELETE /authors/{id}
-     */
     public function destroy(Request $request, int $id)
     {
         $user = $request->user();
-        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-
         $author = Author::findOrFail($id);
+        $language = $author->language;
         $this->authorService->deleteAuthor($author);
-
-        return response()->json(['message' => 'Author deleted successfully']);
+        Cache::forget("authors_{$language}_*");
+        return $this->sendSuccess(null, 'Author deleted');
     }
 
-    /**
-     * GET /authors/top
-     */
     public function topAuthor(Request $request)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 10;
-        $authors = $this->authorService->getTopAuthors($language, $limit);
-
-        return AuthorResource::collection($authors);
+        $cacheKey = "top_authors_{$language}_{$limit}";
+        $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->authorService->getTopAuthors($language, $limit);
+        });
+        return $this->sendSuccess(AuthorResource::collection($authors), 'Top authors');
     }
 }

@@ -6,77 +6,72 @@ use App\Services\BecameSellerService;
 use App\Services\CommissionService;
 use App\Http\Requests\BecameSellersRequest;
 use App\DTO\BecameSellerData;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Auth\Access\AuthorizationException;
 
-class BecameSellerController extends Controller
+class BecameSellerController extends BaseController
 {
     public function __construct(
         private BecameSellerService $becameSellerService,
         private CommissionService $commissionService
     ) {}
 
-    /**
-     * GET /became-sellers
-     */
     public function index(Request $request)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = 'cached_became_seller_' . $language;
-        return Cache::rememberForever($cacheKey, function () use ($language) {
+        $data = Cache::rememberForever($cacheKey, function () use ($language) {
             return [
                 'page_options' => $this->becameSellerService->getData($language),
                 'commissions' => $this->commissionService->getAll(),
             ];
         });
+        return $this->sendSuccess($data, 'Became seller data');
     }
 
-    /**
-     * POST /became-sellers
-     */
     public function store(BecameSellersRequest $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = 'cached_became_seller_' . $language;
         Cache::forget($cacheKey);
 
-        // Store commissions
         if ($request->has('commissions')) {
             $this->commissionService->storeCommissions($request->commissions, $language);
         }
 
-        // Store/update became seller page options
         $data = BecameSellerData::fromRequest($request->only(['page_options', 'language']));
         $becomeSeller = $this->becameSellerService->storeOrUpdate($data);
-        return response()->json($becomeSeller);
+        return $this->sendSuccess($becomeSeller, 'Became seller data saved', 201);
     }
 
-    /**
-     * GET /became-sellers/{id}
-     */
     public function show($id)
     {
         $settings = $this->becameSellerService->getFirst();
         if (!$settings) {
-            abort(404, config('notice.NOT_FOUND'));
+            return $this->sendError('Settings not found', 404);
         }
-        return response()->json($settings);
+        return $this->sendSuccess($settings, 'Became seller detail');
     }
 
-    /**
-     * PUT /became-sellers/{id}
-     */
     public function update(BecameSellersRequest $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $language = $request->language ?? config('shop.default_language', 'id');
         $data = BecameSellerData::fromRequest($request->only(['page_options', 'language']));
         $updated = $this->becameSellerService->storeOrUpdate($data);
-        return response()->json($updated);
+        Cache::forget('cached_became_seller_' . $language);
+        return $this->sendSuccess($updated, 'Became seller data updated');
     }
 
-    /**
-     * DELETE /became-sellers/{id}
-     */
     public function destroy($id)
     {
         throw new \Exception(config('notice.ACTION_NOT_VALID'));

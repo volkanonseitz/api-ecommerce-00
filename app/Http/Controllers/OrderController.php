@@ -59,11 +59,16 @@ class OrderController extends Controller
     }
 
     public function update(OrderUpdateRequest $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $updated = $this->orderService->updateOrderStatus($order, $request->order_status, $request->user());
-        return new OrderResource($updated);
+{
+    $order = Order::findOrFail($id);
+    $user = $request->user();
+    // Hanya super admin atau pemilik shop yang bisa update status
+    if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && !$this->orderService->hasPermission($user, $order->shop_id)) {
+        throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
     }
+    $updated = $this->orderService->updateOrderStatus($order, $request->order_status, $user);
+    return $this->sendSuccess(new OrderResource($updated), 'Order updated');
+}
 
     public function destroy($id)
     {
