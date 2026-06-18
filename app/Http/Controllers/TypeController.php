@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\TypeService;
+use App\DTO\TypeData;
+use App\Enums\Permission;
 use App\Http\Requests\TypeRequest;
 use App\Http\Resources\TypeResource;
-use App\DTO\TypeData;
+use App\Models\Type;
+use App\Services\TypeService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
-class TypeController extends Controller
+class TypeController extends BaseController
 {
     public function __construct(private TypeService $typeService) {}
 
@@ -17,17 +20,29 @@ class TypeController extends Controller
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
+        $cacheKey = "types_{$language}_{$limit}";
+        $types = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->typeService->getTypesByLanguage($language, $limit);
+        });
 
-        $types = $this->typeService->getTypesByLanguage($language, $limit);
-        return TypeResource::collection($types);
+        return $this->sendPaginated(
+            $types,
+            TypeResource::collection($types->getCollection()),
+            'Daftar type berhasil diambil.'
+        );
     }
 
     public function store(TypeRequest $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = TypeData::fromRequest($request->validated());
         $type = $this->typeService->createType($data);
+        Cache::forget("types_{$data->language}_*");
 
-        return new TypeResource($type->load('banners'));
+        return $this->sendSuccess(new TypeResource($type->load('banners')), 'Type created', 201);
     }
 
     public function show(Request $request, $params)
@@ -35,23 +50,34 @@ class TypeController extends Controller
         $language = $request->language ?? config('shop.default_language', 'id');
         $type = $this->typeService->getTypeByIdOrSlug($params, $language);
 
-        return new TypeResource($type);
+        return $this->sendSuccess(new TypeResource($type), 'Type detail');
     }
 
     public function update(TypeRequest $request, int $id)
     {
-        $type = \App\Models\Type::findOrFail($id);
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
+        $type = Type::findOrFail($id);
         $data = TypeData::fromRequest($request->validated());
         $updated = $this->typeService->updateType($type, $data);
+        Cache::forget("types_{$data->language}_*");
 
-        return new TypeResource($updated);
+        return $this->sendSuccess(new TypeResource($updated), 'Type updated');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id)
     {
-        $type = \App\Models\Type::findOrFail($id);
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
+        $type = Type::findOrFail($id);
+        $language = $type->language;
         $this->typeService->deleteType($type);
+        Cache::forget("types_{$language}_*");
 
-        return response()->json(['message' => 'Type deleted successfully']);
+        return $this->sendSuccess(null, 'Type deleted');
     }
 }

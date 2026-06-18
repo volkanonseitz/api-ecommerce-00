@@ -1,56 +1,63 @@
 <?php
 
 use App\Enums\Permission;
+use App\Http\Controllers\AbusiveReportController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\AiController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\AttributeValueController;
+use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\BecameSellerController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\DeliveryTimeController;
+use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\FaqsController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\FlashSaleController;
+use App\Http\Controllers\FlashSaleVendorController;
+use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\ManufacturerController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotifyLogsController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OwnershipTransferController;
+use App\Http\Controllers\PaymentIntentController;
+use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\RefundController;
+use App\Http\Controllers\RefundPolicyController;
+use App\Http\Controllers\RefundReasonController;
+use App\Http\Controllers\ResourceController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\StoreNoticeController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\TaxController;
+use App\Http\Controllers\TermsAndConditionsController;
+use App\Http\Controllers\TypeController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WebHookController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\WithdrawController;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{
-    AbusiveReportController,
-    AddressController,
-    AiController,
-    AnalyticsController,
-    AttachmentController,
-    AttributeController,
-    AttributeValueController,
-    AuthorController,
-    BecameSellerController,
-    CategoryController,
-    CheckoutController,
-    ConversationController,
-    CouponController,
-    DeliveryTimeController,
-    DownloadController,
-    FaqsController,
-    FeedbackController,
-    FlashSaleController,
-    FlashSaleVendorController,
-    LanguageController,
-    ManufacturerController,
-    MessageController,
-    NotifyLogsController,
-    OrderController,
-    OwnershipTransferController,
-    PaymentIntentController,
-    PaymentMethodController,
-    ProductController,
-    QuestionController,
-    RefundController,
-    RefundPolicyController,
-    RefundReasonController,
-    ResourceController,
-    ReviewController,
-    SettingsController,
-    ShippingController,
-    ShopController,
-    StoreNoticeController,
-    TagController,
-    TaxController,
-    TermsAndConditionsController,
-    TypeController,
-    UserController,
-    WebHookController,
-    WishlistController,
-    WithdrawController,
-};
+
+RateLimiter::for('login', function (Request $request) {
+    return Limit::perMinute(5)->by(
+        $request->ip().'|'.$request->input('provider')
+    );
+});
 
 // Broadcast routes
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
@@ -62,22 +69,19 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // UserController (public)
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmail'])->name('verification.verify');
 Route::post('/register', [UserController::class, 'register']);
-Route::post('/token', [UserController::class, 'token'])
-    ->middleware('throttle:login');
-Route::post('/logout', [UserController::class, 'logout']);
-Route::post('/forget-password', [UserController::class, 'forgetPassword']);
+Route::post('/token', [UserController::class, 'token'])->middleware('throttle:login');
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/forget-password', [UserController::class, 'forgetPassword'])->middleware('throttle:password-reset');
 Route::post('/verify-forget-password-token', [UserController::class, 'verifyForgetPasswordToken']);
-Route::post('/reset-password', [UserController::class, 'resetPassword']);
+Route::post('/reset-password', [UserController::class, 'resetPassword'])->middleware('throttle:password-reset');
 Route::post('/contact-us', [UserController::class, 'contactAdmin']);
 Route::post('/social-login-token', [UserController::class, 'socialLogin']);
-Route::post('/send-otp-code', [UserController::class, 'sendOtpCode']);
+Route::post('/send-otp-code', [UserController::class, 'sendOtpCode'])->middleware('throttle:otp');
 Route::post('/verify-otp-code', [UserController::class, 'verifyOtpCode']);
-Route::post('/otp-login', [UserController::class, 'otpLogin']);
+Route::post('/otp-login', [UserController::class, 'otpLogin'])->middleware('throttle:otp');
 Route::post('/subscribe-to-newsletter', [UserController::class, 'subscribeToNewsletter'])->name('subscribeToNewsletter');
 Route::post('/license-key/verify', [UserController::class, 'verifyLicenseKey']);
-Route::post('/email/verification-notification', [UserController::class, 'sendVerificationEmail'])
-    ->middleware(['auth:sanctum', 'throttle:6,1'])
-    ->name('verification.send');
+Route::post('/email/verification-notification', [UserController::class, 'sendVerificationEmail'])->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
 
 // ProductController (public)
 Route::get('/popular-products', [ProductController::class, 'popularProducts']);
@@ -276,7 +280,7 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
 // ========================
 // STAFF & STORE OWNER (permission:STAFF|STORE_OWNER)
 // ========================
-Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']],function () {
+Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']], function () {
     // ProductController
     Route::apiResource('/products', ProductController::class)->only(['store', 'update', 'destroy']);
     Route::get('/draft-products', [ProductController::class, 'draftedProducts']);

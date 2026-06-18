@@ -25,15 +25,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)
-                ->by(
-                    strtolower($request->input('email')).'|'.$request->ip()
-                )
-                ->response(function () {
-                    return response()->json([
-                        'message' => 'Terlalu banyak percobaan login. Coba lagi dalam 1 menit.',
-                    ], 429);
-                });
+            return Limit::perMinute(5)->by(
+                $request->ip().'|'.$request->input('email')
+            );
+        });
+
+        RateLimiter::for('otp', function (Request $request) {
+            return Limit::perMinute(3)->by(
+                $request->ip().'|'.$request->input('phone_number')
+            );
+        });
+
+        RateLimiter::for('password-reset', function (Request $request) {
+            return Limit::perMinute(3)->by(
+                $request->ip().'|'.$request->input('email')
+            );
         });
     }
 }

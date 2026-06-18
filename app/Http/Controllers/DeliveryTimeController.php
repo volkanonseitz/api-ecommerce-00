@@ -6,45 +6,67 @@ use App\Services\DeliveryTimeService;
 use App\Http\Requests\DeliveryTimeRequest;
 use App\DTO\DeliveryTimeData;
 use App\Models\DeliveryTime;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 
-class DeliveryTimeController extends Controller
+class DeliveryTimeController extends BaseController
 {
     public function __construct(private DeliveryTimeService $deliveryTimeService) {}
 
     public function index(Request $request)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        $deliveryTimes = $this->deliveryTimeService->getAll($language);
-        return response()->json($deliveryTimes);
+        $cacheKey = "delivery_times_{$language}";
+        $deliveryTimes = Cache::rememberForever($cacheKey, function () use ($language) {
+            return $this->deliveryTimeService->getAll($language);
+        });
+        return $this->sendSuccess($deliveryTimes, 'Delivery times retrieved');
     }
 
     public function store(DeliveryTimeRequest $request)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = DeliveryTimeData::fromRequest($request->validated());
         $deliveryTime = $this->deliveryTimeService->create($data);
-        return response()->json($deliveryTime);
+        Cache::forget("delivery_times_{$data->language}");
+        return $this->sendSuccess($deliveryTime, 'Delivery time created', 201);
     }
 
     public function show(Request $request, $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $deliveryTime = $this->deliveryTimeService->find($params, $language);
-        return response()->json($deliveryTime);
+        return $this->sendSuccess($deliveryTime, 'Delivery time detail');
     }
 
     public function update(DeliveryTimeRequest $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $deliveryTime = DeliveryTime::findOrFail($id);
         $data = DeliveryTimeData::fromRequest($request->validated());
         $updated = $this->deliveryTimeService->update($deliveryTime, $data);
-        return response()->json($updated);
+        Cache::forget("delivery_times_{$data->language}");
+        return $this->sendSuccess($updated, 'Delivery time updated');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $deliveryTime = DeliveryTime::findOrFail($id);
+        $language = $deliveryTime->language;
         $this->deliveryTimeService->delete($deliveryTime);
-        return response()->json(['message' => 'Delivery time deleted successfully']);
+        Cache::forget("delivery_times_{$language}");
+        return $this->sendSuccess(null, 'Delivery time deleted');
     }
 }

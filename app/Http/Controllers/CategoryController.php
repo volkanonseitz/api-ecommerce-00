@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CategoryService;
+use App\DTO\CategoryData;
+use App\Enums\Permission;
 use App\Http\Requests\CategoryCreateRequest;
 use App\Http\Requests\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
-use App\DTO\CategoryData;
 use App\Models\Category;
+use App\Services\CategoryService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
     public function __construct(private CategoryService $categoryService) {}
 
@@ -21,40 +23,63 @@ class CategoryController extends Controller
         $selfId = $request->self ?? null;
         $limit = $request->limit ?? 15;
         $categories = $this->categoryService->getCategories($language, $parent, $selfId, $limit);
-        return CategoryResource::collection($categories);
+
+        return $this->sendPaginated(
+            $categories,
+            CategoryResource::collection($categories->getCollection()),
+            'Daftar category berhasil diambil.'
+        );
     }
 
     public function store(CategoryCreateRequest $request)
     {
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $data = CategoryData::fromRequest($request->validated());
         $category = $this->categoryService->createCategory($data);
-        return new CategoryResource($category);
+
+        return $this->sendSuccess(new CategoryResource($category), 'Category created', 201);
     }
 
     public function show(Request $request, $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $category = $this->categoryService->getCategoryByIdOrSlug($params, $language);
-        return new CategoryResource($category);
+
+        return $this->sendSuccess(new CategoryResource($category), 'Category detail');
     }
 
     public function update(CategoryUpdateRequest $request, $id)
     {
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $category = Category::findOrFail($id);
         $data = CategoryData::fromRequest($request->validated());
         $updated = $this->categoryService->updateCategory($category, $data);
-        return new CategoryResource($updated);
+
+        return $this->sendSuccess(new CategoryResource($updated), 'Category updated');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $category = Category::findOrFail($id);
         $this->categoryService->deleteCategory($category);
-        return response()->json(['message' => 'Category deleted']);
+
+        return $this->sendSuccess(null, 'Category deleted');
     }
 
     public function fetchFeaturedCategories(Request $request)
     {
-        return $this->categoryService->fetchFeaturedCategories();
+        $categories = $this->categoryService->fetchFeaturedCategories();
+
+        return $this->sendSuccess($categories, 'Featured categories');
     }
 }

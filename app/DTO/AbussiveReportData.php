@@ -2,6 +2,8 @@
 
 namespace App\DTO;
 
+use App\enums\AbusiveReportTypes;
+
 class AbusiveReportData
 {
     public function __construct(
@@ -21,6 +23,12 @@ class AbusiveReportData
         );
     }
 
+    public function getModelClass(): string
+{
+    return AbusiveReportType::from($this->model_type)
+        ->modelClass();
+}
+
     public function toArray(): array
     {
         return [
@@ -29,16 +37,5 @@ class AbusiveReportData
             'message' => $this->message,
             'user_id' => $this->user_id,
         ];
-    }
-
-    public function getModelClass(): string
-    {
-        // mapping dari string "Review" ke App\Models\Review
-        $map = [
-            'Review' => \App\Models\Review::class,
-            'Question' => \App\Models\Question::class,
-            // tambah lain jika perlu
-        ];
-        return $map[$this->model_type] ?? 'App\\Models\\' . $this->model_type;
     }
 }

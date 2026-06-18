@@ -7,15 +7,16 @@ use App\Enums\Permission;
 use App\Enums\Role;
 use App\Events\ProcessUserData;
 use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\SocialLoginRequest;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
+use App\Http\Resources\UserResource;
 use App\Mail\ContactAdmin;
 use App\Models\Product;
 use App\Models\Profile;
 use App\Models\Settings;
 use App\Models\Shop;
 use App\Models\User;
-use App\Models\Wallet;
 use App\Services\AuthService;
 use App\Services\OtpService;
 use App\Services\PasswordService;
@@ -30,7 +31,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
     private UserService $userService;
 
@@ -78,19 +79,12 @@ class UserController extends Controller
     public function sendVerificationEmail(Request $request): JsonResponse
     {
         $user = $request->user();
-
         if (! $user) {
-            throw new AuthorizationException(
-                config('notice.NOT_AUTHORIZED')
-            );
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-
         $user->sendEmailVerificationNotification();
 
-        return response()->json([
-            'message' => 'Email verification link sent on your email id',
-            'success' => true,
-        ]);
+        return $this->sendSuccess(null, 'Email verification link sent on your email id');
     }
 
     // ==================== USER LISTS ====================
@@ -102,14 +96,23 @@ class UserController extends Controller
             ->whereHas('permissions', fn ($q) => $q->where('name', Permission::SUPER_ADMIN->value))
             ->paginate($limit);
 
-        return $admins;
+        return $this->sendPaginated(
+            $admins,
+            UserResource::collection($admins->getCollection()),
+            'Daftar admin berhasil diambil.'
+        );
     }
 
     public function vendors(Request $request)
     {
         $limit = $request->limit ?? 15;
+        $vendors = $this->fetchVendors($request)->paginate($limit);
 
-        return $this->fetchVendors($request)->paginate($limit);
+        return $this->sendPaginated(
+            $vendors,
+            UserResource::collection($vendors->getCollection()),
+            'Daftar vendor berhasil diambil.'
+        );
     }
 
     public function fetchVendors(Request $request)
@@ -137,17 +140,34 @@ class UserController extends Controller
             $q->whereIn('name', [Permission::SUPER_ADMIN->value, Permission::STORE_OWNER->value, Permission::STAFF->value]);
         })->pluck('id')->toArray();
 
-        return User::with(['profile', 'address'])
+        $customers = User::with(['profile', 'address'])
             ->whereHas('permissions', fn ($q) => $q->where('name', Permission::CUSTOMER->value))
             ->whereNotIn('id', $excludeIds)
             ->paginate($limit);
+
+        return $this->sendPaginated(
+            $customers,
+            UserResource::collection($customers->getCollection()),
+            'Daftar laporan berhasil diambil.'
+        );
     }
 
     public function index(Request $request)
     {
         $limit = $request->limit ?? 15;
+        // Hanya super admin yang bisa melihat semua user? Sesuai asumsi, kita batasi.
+        // Tapi di kode asli tidak dibatasi, kita tambahkan pengecekan.
+        $user = $request->user();
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
+        $users = User::with(['profile', 'address'])->paginate($limit);
 
-        return User::with(['profile', 'address'])->paginate($limit);
+        return $this->sendPaginated(
+            $users,
+            UserResource::collection($users->getCollection()),
+            'Daftar user berhasil diambil.'
+        );
     }
 
     // ==================== CRUD ====================
@@ -157,18 +177,20 @@ class UserController extends Controller
             $data = UserData::fromRequest($request->validated());
             $user = $this->userService->createUser($data);
 
-            return $user;
+            return $this->sendSuccess($user, 'User created', 201);
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.NOT_FOUND'));
+            return $this->sendError($e->getMessage(), 400);
         }
     }
 
     public function show($id)
     {
         try {
-            return User::with(['profile', 'address', 'shops', 'managed_shop'])->findOrFail($id);
+            $user = User::with(['profile', 'address', 'shops', 'managed_shop'])->findOrFail($id);
+
+            return $this->sendSuccess($user, 'User detail');
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.NOT_FOUND'));
+            return $this->sendError('User not found', 404);
         }
     }
 
@@ -184,8 +206,9 @@ class UserController extends Controller
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = UserData::fromRequest($request->validated());
+        $updated = $this->userService->updateUser($user, $data);
 
-        return $this->userService->updateUser($user, $data);
+        return $this->sendSuccess($updated, 'User updated');
     }
 
     public function destroy($id)
@@ -194,25 +217,22 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $user->delete();
 
-            return response()->json(['success' => true]);
+            return $this->sendSuccess(null, 'User deleted');
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.NOT_FOUND'));
+            return $this->sendError('User not found', 404);
         }
     }
 
     // ==================== PROFILE ====================
     public function me(Request $request)
     {
-        try {
-            $user = $request->user();
-            if (! $user) {
-                throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-            }
-
-            return $user->load(['profile', 'wallet', 'address', 'shops.balance', 'managed_shop.balance'])->loadLastOrder();
-        } catch (\Exception $e) {
-            throw new \Exception(config('notice.NOT_AUTHORIZED'));
+        $user = $request->user();
+        if (! $user) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
+        $user->load(['profile', 'wallet', 'address', 'shops.balance', 'managed_shop.balance'])->loadLastOrder();
+
+        return $this->sendSuccess($user, 'Profile data');
     }
 
     // ==================== AUTH ====================
@@ -231,32 +251,27 @@ class UserController extends Controller
         );
 
         if (! $result) {
-            return response()->json([
-                'message' => 'Email atau password tidak valid.',
-            ], 401);
+            return $this->sendError('Email atau password tidak valid.', 401);
         }
 
         if (! empty($result['locked'])) {
-            return response()->json([
-                'message' => 'Akun dikunci sementara.',
+            return $this->sendError('Akun dikunci sementara.', 423, [
                 'locked_until' => $result['locked_until'],
-            ], 423);
+            ]);
         }
 
         if (! ($result['email_verified'] ?? true)) {
-            return response()->json([
-                'message' => 'Silakan verifikasi email Anda terlebih dahulu.',
-            ], 403);
+            return $this->sendError('Silakan verifikasi email Anda terlebih dahulu.', 403);
         }
 
         event(new ProcessUserData);
 
-        return response()->json([
+        return $this->sendSuccess([
             'token' => $result['token'],
             'permissions' => $result['permissions'],
             'email_verified' => true,
             'role' => $result['role'],
-        ]);
+        ], 'Login successful');
     }
 
     public function logout(Request $request)
@@ -266,7 +281,7 @@ class UserController extends Controller
             $this->authService->logout($user);
         }
 
-        return response()->json(true);
+        return $this->sendSuccess(true, 'Logged out');
     }
 
     public function register(UserCreateRequest $request)
@@ -278,22 +293,21 @@ class UserController extends Controller
         }
 
         $payload = $request->validated();
-
         $payload['permission'] = $permissionInput === Permission::STORE_OWNER->value ? Permission::STORE_OWNER->value : null;
 
         $data = UserData::fromRequest($payload);
 
         $settings = Settings::getData();
-        $mustVerify = data_get($settings, 'options.useMustVerifyEmail', true); // false untuk noaktifkan kirim email
+        $mustVerify = data_get($settings, 'options.useMustVerifyEmail', true);
 
         $result = $this->authService->register($data, $mustVerify);
         $this->userService->giveSignupPoints($result['user']->id);
 
-        return [
+        return $this->sendSuccess([
             'token' => $result['token'],
             'permissions' => $result['permissions'],
             'role' => $result['role'],
-        ];
+        ], 'Registration successful', 201);
     }
 
     // ==================== BAN/ACTIVE ====================
@@ -304,17 +318,17 @@ class UserController extends Controller
             if ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->id != $request->id) {
                 $banUser = User::find($request->id);
                 if (! $banUser) {
-                    throw new \Exception('User not found');
+                    return $this->sendError('User not found', 404);
                 }
                 $banUser->is_active = false;
                 $banUser->save();
                 $this->inactiveUserShops($banUser->id);
 
-                return $banUser;
+                return $this->sendSuccess($banUser, 'User banned');
             }
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         } catch (\Exception $th) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($th->getMessage(), 400);
         }
     }
 
@@ -335,16 +349,16 @@ class UserController extends Controller
             if ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->id != $request->id) {
                 $activeUser = User::find($request->id);
                 if (! $activeUser) {
-                    throw new \Exception('User not found');
+                    return $this->sendError('User not found', 404);
                 }
                 $activeUser->is_active = true;
                 $activeUser->save();
 
-                return $activeUser;
+                return $this->sendSuccess($activeUser, 'User activated');
             }
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         } catch (\Exception $th) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($th->getMessage(), 400);
         }
     }
 
@@ -354,7 +368,7 @@ class UserController extends Controller
         $request->validate(['email' => 'required|email']);
         $result = $this->passwordService->forgetPassword($request->email);
 
-        return response()->json($result);
+        return $this->sendSuccess($result, 'Password reset link sent');
     }
 
     public function verifyForgetPasswordToken(Request $request)
@@ -365,7 +379,7 @@ class UserController extends Controller
         ]);
         $result = $this->passwordService->verifyToken($request->email, $request->token);
 
-        return response()->json($result);
+        return $this->sendSuccess($result, 'Token verification result');
     }
 
     public function resetPassword(Request $request)
@@ -377,10 +391,10 @@ class UserController extends Controller
         ]);
         $result = $this->passwordService->resetPassword($request->email, $request->token, $request->password);
         if (! $result['success']) {
-            return response()->json($result, 400);
+            return $this->sendError($result['message'] ?? 'Reset failed', 400);
         }
 
-        return response()->json($result);
+        return $this->sendSuccess($result, 'Password reset successful');
     }
 
     public function changePassword(ChangePasswordRequest $request)
@@ -389,9 +403,9 @@ class UserController extends Controller
             $user = $request->user();
             $result = $this->passwordService->changePassword($user, $request->oldPassword, $request->newPassword);
 
-            return response()->json($result);
+            return $this->sendSuccess($result, 'Password changed');
         } catch (\Exception $th) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($th->getMessage(), 400);
         }
     }
 
@@ -405,9 +419,9 @@ class UserController extends Controller
             $emailTo = $request->emailTo ?? $adminEmails;
             Mail::to($emailTo)->send(new ContactAdmin($details));
 
-            return ['message' => config('notice.EMAIL_SENT_SUCCESSFUL'), 'success' => true];
+            return $this->sendSuccess(null, 'Email sent successfully');
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($e->getMessage(), 500);
         }
     }
 
@@ -423,7 +437,7 @@ class UserController extends Controller
             }
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($e->getMessage(), 400);
         }
     }
 
@@ -431,15 +445,25 @@ class UserController extends Controller
     {
         $query = $this->fetchStaff($request);
         $limit = $request->limit ?? 15;
+        $staffs = $query->paginate($limit);
 
-        return $query->paginate($limit);
+        return $this->sendPaginated(
+            $staffs,
+            UserResource::collection($staffs->getCollection()),
+            'Daftar staff berhasil diambil.'
+        );
     }
 
     public function myStaffs(Request $request)
     {
         $limit = $request->limit ?? 15;
+        $staffs = $this->fetchMyStaffs($request)->paginate($limit);
 
-        return $this->fetchMyStaffs($request)->paginate($limit);
+        return $this->sendPaginated(
+            $staffs,
+            UserResource::collection($staffs->getCollection()),
+            'Daftar staff saya berhasil diambil.'
+        );
     }
 
     public function fetchMyStaffs(Request $request)
@@ -457,27 +481,33 @@ class UserController extends Controller
         $user = $request->user();
         $limit = $request->limit ?? 15;
         if ($this->userService->hasPermission($user)) {
-            return User::whereHas('permissions', fn ($q) => $q->where('name', Permission::STAFF->value))->paginate($limit);
+            $staffs = User::whereHas('permissions', fn ($q) => $q->where('name', Permission::STAFF->value))->paginate($limit);
+
+            return $this->sendPaginated(
+                $staffs,
+                UserResource::collection($staffs->getCollection()),
+                'Daftar semua staff berhasil diambil.'
+            );
         }
 
-        return User::where('id', -1)->paginate($limit);
+        return $this->sendPaginated(User::where('id', -1)->paginate($limit), 'No staffs'); // {urgent cek}
     }
 
     // ==================== SOCIAL LOGIN ====================
-    public function socialLogin(Request $request)
+    public function socialLogin(SocialLoginRequest $request)
     {
-        $request->validate([
-            'provider' => 'required|string',
-            'access_token' => 'required|string',
-        ]);
-        $result = $this->authService->socialLogin($request->provider, $request->access_token);
+        $result = $this->authService->socialLogin(
+            $request->validated('provider'),
+            $request->validated('access_token')
+        );
+
         event(new ProcessUserData);
 
-        return [
+        return $this->sendSuccess([
             'token' => $result['token'],
             'permissions' => $result['permissions'],
             'role' => $result['role'],
-        ];
+        ], 'Social login successful');
     }
 
     // ==================== OTP ====================
@@ -500,24 +530,22 @@ class UserController extends Controller
         $phoneNumber = $request->phone_number;
         try {
             if (empty($phoneNumber)) {
-                return ['message' => config('shop.app_notice_domain').'ERROR.EMPTY_MOBILE_NUMBER', 'success' => false];
+                return $this->sendError('Mobile number is required', 400);
             }
             $result = $this->otpService->startVerification($phoneNumber);
             if (! $result->isValid()) {
-                return ['message' => config('notice.OTP_SEND_FAIL'), 'success' => false];
+                return $this->sendError('OTP send failed', 400);
             }
             $profile = Profile::where('contact', $phoneNumber)->first();
 
-            return [
-                'message' => config('notice.OTP_SEND_SUCCESSFUL'),
-                'success' => true,
+            return $this->sendSuccess([
                 'provider' => config('auth.active_otp_gateway', 'twilio'),
                 'id' => $result->getId(),
                 'phone_number' => $phoneNumber,
                 'is_contact_exist' => $profile ? true : false,
-            ];
+            ], 'OTP sent');
         } catch (\Exception $e) {
-            throw new \Exception(config('notice.INVALID_GATEWAY'));
+            return $this->sendError($e->getMessage(), 400);
         }
     }
 
@@ -525,14 +553,12 @@ class UserController extends Controller
     {
         try {
             if ($this->verifyOtp($request)) {
-                return [
-                    'message' => config('notice.OTP_SEND_SUCCESSFUL'),
-                    'success' => true,
-                ];
+                return $this->sendSuccess(null, 'OTP verified');
             }
-            throw new \Exception(config('notice.OTP_VERIFICATION_FAILED'));
+
+            return $this->sendError('OTP verification failed', 400);
         } catch (\Throwable $e) {
-            throw new \Exception(config('notice.OTP_VERIFICATION_FAILED'));
+            return $this->sendError('OTP verification failed', 400);
         }
     }
 
@@ -562,26 +588,26 @@ class UserController extends Controller
                             $this->userService->giveSignupPoints($user->id);
                         }
                     } else {
-                        return ['message' => config('notice.REQUIRED_INFO_MISSING'), 'success' => false];
+                        return $this->sendError('Name and email are required', 400);
                     }
                 } else {
                     $user = User::where('id', $profile->customer_id)->first();
                 }
                 if (! $user) {
-                    return ['message' => config('notice.NOT_FOUND'), 'success' => false];
+                    return $this->sendError('User not found', 404);
                 }
                 event(new ProcessUserData);
 
-                return [
+                return $this->sendSuccess([
                     'token' => $user->createToken('auth_token')->plainTextToken,
                     'permissions' => $user->getPermissionNames(),
                     'role' => $user->getRoleNames()->first(),
-                ];
+                ], 'OTP login successful');
             }
 
-            return ['message' => config('notice.OTP_VERIFICATION_FAILED'), 'success' => false];
+            return $this->sendError('OTP verification failed', 400);
         } catch (\Throwable $e) {
-            return response()->json(['error' => config('notice.INVALID_GATEWAY')], 422);
+            return $this->sendError('OTP login failed', 422);
         }
     }
 
@@ -594,18 +620,12 @@ class UserController extends Controller
         ]);
 
         $user = $request->user();
-
         if (! $user) {
-            throw new AuthorizationException(
-                config('notice.NOT_AUTHORIZED')
-            );
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         if (! $this->verifyOtp($request)) {
-            return [
-                'message' => config('notice.CONTACT_UPDATE_FAILED'),
-                'success' => false,
-            ];
+            return $this->sendError('OTP verification failed', 400);
         }
 
         $user->profile()->updateOrCreate(
@@ -613,26 +633,15 @@ class UserController extends Controller
             ['contact' => $request->phone_number]
         );
 
-        return [
-            'message' => config('notice.CONTACT_UPDATE_SUCCESSFUL'),
-            'success' => true,
-        ];
+        return $this->sendSuccess(null, 'Contact updated');
     }
 
     // ==================== WALLET & POINTS ====================
     public function addPoints(Request $request)
     {
         $user = $request->user();
-
-        if (
-            ! $user ||
-            ! $user->hasPermissionTo(
-                Permission::SUPER_ADMIN->value
-            )
-        ) {
-            throw new AuthorizationException(
-                config('notice.NOT_AUTHORIZED')
-            );
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $request->validate([
@@ -640,14 +649,9 @@ class UserController extends Controller
             'customer_id' => 'required|exists:users,id',
         ]);
 
-        $this->walletService->addPoints(
-            $request->customer_id,
-            (int) $request->points
-        );
+        $this->walletService->addPoints($request->customer_id, (int) $request->points);
 
-        return response()->json([
-            'success' => true,
-        ]);
+        return $this->sendSuccess(null, 'Points added');
     }
 
     // ==================== PERMISSIONS ====================
@@ -661,20 +665,22 @@ class UserController extends Controller
                 if ($targetUser->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
                     $targetUser->revokePermissionTo(Permission::SUPER_ADMIN->value);
                     $targetUser->removeRole(Role::SUPER_ADMIN->value);
+                    Cache::forget('cached_admin');
 
-                    return response()->json(true);
+                    return $this->sendSuccess(true, 'Admin revoked');
                 } else {
                     $targetUser->givePermissionTo(Permission::SUPER_ADMIN->value);
                     $targetUser->assignRole(Role::SUPER_ADMIN->value);
                     Cache::forget('cached_admin');
 
-                    return response()->json(true);
+                    return $this->sendSuccess(true, 'Admin granted');
                 }
             } catch (\Exception $e) {
-                throw new \Exception(config('notice.USER_NOT_FOUND'));
+                return $this->sendError('User not found', 404);
             }
         }
-        throw new \Exception(config('notice.NOT_AUTHORIZED'));
+
+        return $this->sendError('Unauthorized', 403);
     }
 
     // ==================== NEWSLETTER ====================
@@ -683,10 +689,10 @@ class UserController extends Controller
         try {
             $email = $request->email;
 
-            // Newsletter::subscribeOrUpdate($email); // optional, jika paket Spatie Newsletter diinstall
-            return response()->json(true);
+            // Newsletter::subscribeOrUpdate($email);
+            return $this->sendSuccess(true, 'Subscribed');
         } catch (\Exception $th) {
-            throw new \Exception(config('notice.SOMETHING_WENT_WRONG'));
+            return $this->sendError($th->getMessage(), 500);
         }
     }
 
@@ -697,10 +703,12 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
         ]);
         if ($validator->fails()) {
-            throw new \Exception($validator->errors()->first());
+            return $this->sendError('Validation failed', 422, $validator->errors());
         }
 
-        return $this->userService->updateEmail($request->user(), $request->email);
+        $result = $this->userService->updateEmail($request->user(), $request->email);
+
+        return $this->sendSuccess($result, 'Email updated');
     }
 
     // ==================== FETCH BY PERMISSION ====================
@@ -742,6 +750,6 @@ class UserController extends Controller
                 break;
         }
 
-        return $query;
+        return $this->sendSuccess($query->get(), 'Users fetched by permission');
     }
 }
