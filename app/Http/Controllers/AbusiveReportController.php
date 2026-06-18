@@ -2,79 +2,113 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\AbusiveReportService;
-use App\Http\Requests\AbusiveReportCreateRequest;
-use App\Http\Requests\AbusiveReportAcceptOrRejectRequest;
-use App\Http\Resources\AbusiveReportResource;
 use App\DTO\AbusiveReportData;
+use App\Http\Requests\AbusiveReportAcceptOrRejectRequest;
+use App\Http\Requests\AbusiveReportCreateRequest;
+use App\Http\Resources\AbusiveReportResource;
+use App\Services\AbusiveReportService;
+use Illuminate\Http\Request;
 
-class AbusiveReportController extends Controller
+class AbusiveReportController extends BaseController
 {
-    public function __construct(private AbusiveReportService $service) {}
+    public function __construct(
+        private readonly AbusiveReportService $service
+    ) {}
 
-    /**
-     * GET /abusive-reports
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $reports = $this->service->getReports();
-        return AbusiveReportResource::collection($reports);
+        $limit = max(
+            1,
+            min((int) $request->input('limit', 15), 100)
+        );
+
+        $reports = $this->service->getReports($limit);
+
+        return $this->sendPaginated(
+            $reports,
+            AbusiveReportResource::collection($reports->getCollection()),
+            'Daftar laporan berhasil diambil.'
+        );
     }
 
-    /**
-     * POST /abusive-reports
-     */
     public function store(AbusiveReportCreateRequest $request)
     {
-        $data = AbusiveReportData::fromRequest($request->validated(), $request->user()->id);
+        $data = AbusiveReportData::fromRequest(
+            $request->validated(),
+            $request->user()->id
+        );
+
         $report = $this->service->createReport($data);
-        return new AbusiveReportResource($report);
+
+        return $this->sendSuccess(
+            new AbusiveReportResource($report),
+            'Laporan berhasil dibuat.',
+            201
+        );
     }
 
-    /**
-     * GET /abusive-reports/{id}
-     */
-    public function show($id)
+    public function show(int $id)
     {
         $report = $this->service->findOrFail($id);
-        return new AbusiveReportResource($report);
+
+        return $this->sendSuccess(
+            new AbusiveReportResource($report),
+            'Data laporan berhasil diambil.'
+        );
     }
 
-    /**
-     * DELETE /abusive-reports/{id}
-     */
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $this->service->deleteReport($id);
-        return response()->json(['message' => 'Report deleted successfully']);
+
+        return $this->sendSuccess(
+            null,
+            'Laporan berhasil dihapus.'
+        );
     }
 
-    /**
-     * POST /abusive-reports/accept
-     */
     public function accept(AbusiveReportAcceptOrRejectRequest $request)
     {
-        $this->service->acceptReport($request->model_type, $request->model_id);
-        return response()->json(['message' => 'Report accepted and content deleted']);
+        $this->service->acceptReport(
+            $request->model_type,
+            $request->model_id
+        );
+
+        return $this->sendSuccess(
+            null,
+            'Laporan berhasil diterima.'
+        );
     }
 
-    /**
-     * POST /abusive-reports/reject
-     */
     public function reject(AbusiveReportAcceptOrRejectRequest $request)
     {
-        $this->service->rejectReport($request->model_type, $request->model_id);
-        return response()->json(['message' => 'Report rejected']);
+        $this->service->rejectReport(
+            $request->model_type,
+            $request->model_id
+        );
+
+        return $this->sendSuccess(
+            null,
+            'Laporan berhasil ditolak.'
+        );
     }
 
-    /**
-     * GET /my-reports
-     */
     public function myReports(Request $request)
     {
-        $limit = $request->limit ?? 15;
-        $reports = $this->service->getUserReports($request->user()->id, $limit);
-        return AbusiveReportResource::collection($reports);
+        $limit = max(
+            1,
+            min((int) $request->input('limit', 15), 100)
+        );
+
+        $reports = $this->service->getUserReports(
+            $request->user()->id,
+            $limit
+        );
+
+        return $this->sendPaginated(
+            $reports,
+            AbusiveReportResource::collection($reports->getCollection()),
+            'Daftar laporan berhasil diambil.'
+        );
     }
 }

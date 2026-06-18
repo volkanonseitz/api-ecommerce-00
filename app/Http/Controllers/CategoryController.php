@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CategoryService;
+use App\DTO\CategoryData;
+use App\Enums\Permission;
 use App\Http\Requests\CategoryCreateRequest;
 use App\Http\Requests\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
-use App\DTO\CategoryData;
 use App\Models\Category;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\CategoryService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class CategoryController extends BaseController
 {
@@ -23,17 +23,23 @@ class CategoryController extends BaseController
         $selfId = $request->self ?? null;
         $limit = $request->limit ?? 15;
         $categories = $this->categoryService->getCategories($language, $parent, $selfId, $limit);
-        return $this->sendPaginated($categories, 'Categories retrieved');
+
+        return $this->sendPaginated(
+            $categories,
+            CategoryResource::collection($categories->getCollection()),
+            'Daftar category berhasil diambil.'
+        );
     }
 
     public function store(CategoryCreateRequest $request)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = CategoryData::fromRequest($request->validated());
         $category = $this->categoryService->createCategory($data);
+
         return $this->sendSuccess(new CategoryResource($category), 'Category created', 201);
     }
 
@@ -41,35 +47,39 @@ class CategoryController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $category = $this->categoryService->getCategoryByIdOrSlug($params, $language);
+
         return $this->sendSuccess(new CategoryResource($category), 'Category detail');
     }
 
     public function update(CategoryUpdateRequest $request, $id)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $category = Category::findOrFail($id);
         $data = CategoryData::fromRequest($request->validated());
         $updated = $this->categoryService->updateCategory($category, $data);
+
         return $this->sendSuccess(new CategoryResource($updated), 'Category updated');
     }
 
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $category = Category::findOrFail($id);
         $this->categoryService->deleteCategory($category);
+
         return $this->sendSuccess(null, 'Category deleted');
     }
 
     public function fetchFeaturedCategories(Request $request)
     {
         $categories = $this->categoryService->fetchFeaturedCategories();
+
         return $this->sendSuccess($categories, 'Featured categories');
     }
 }

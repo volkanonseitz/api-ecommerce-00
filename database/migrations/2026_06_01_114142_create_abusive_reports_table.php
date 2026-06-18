@@ -12,12 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('abusive_reports', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->id();
+
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->morphs('model');
-            $table->text('message');
+
+            $table->string('message', 1000);
+
             $table->timestamps();
+
+            $table->unique(
+                ['user_id', 'model_type', 'model_id'],
+                'abusive_reports_unique_user_target'
+            );
         });
     }
 

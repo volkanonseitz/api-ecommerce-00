@@ -25,19 +25,25 @@ class AuthorController extends BaseController
         $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
             return $this->authorService->getAuthorsByLanguage($language, $limit);
         });
-        return $this->sendPaginated($authors, 'Authors retrieved');
+
+        return $this->sendPaginated(
+            $authors,
+            AuthorResource::collection($authors->getCollection()),
+            'Daftar author berhasil diambil.'
+        );
     }
 
     public function store(AuthorRequest $request)
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        if (!$this->authorService->hasPermission($user, $shopId)) {
+        if (! $this->authorService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = AuthorData::fromRequest($request->validated());
         $author = $this->authorService->createAuthor($data);
         Cache::forget("authors_{$data->language}_*");
+
         return $this->sendSuccess(new AuthorResource($author), 'Author created', 201);
     }
 
@@ -46,6 +52,7 @@ class AuthorController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         try {
             $author = $this->authorService->getAuthorBySlug($slug, $language);
+
             return $this->sendSuccess(new AuthorResource($author), 'Author detail');
         } catch (ModelNotFoundException $e) {
             return $this->sendError('Author not found', 404);
@@ -56,25 +63,27 @@ class AuthorController extends BaseController
     {
         $user = $request->user();
         $author = Author::findOrFail($id);
-        if (!$this->authorService->hasPermission($user, $author->shop_id)) {
+        if (! $this->authorService->hasPermission($user, $author->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = AuthorData::fromRequest($request->validated());
         $updated = $this->authorService->updateAuthor($author, $data);
         Cache::forget("authors_{$data->language}_*");
+
         return $this->sendSuccess(new AuthorResource($updated), 'Author updated');
     }
 
     public function destroy(Request $request, int $id)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $author = Author::findOrFail($id);
         $language = $author->language;
         $this->authorService->deleteAuthor($author);
         Cache::forget("authors_{$language}_*");
+
         return $this->sendSuccess(null, 'Author deleted');
     }
 
@@ -86,6 +95,7 @@ class AuthorController extends BaseController
         $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
             return $this->authorService->getTopAuthors($language, $limit);
         });
+
         return $this->sendSuccess(AuthorResource::collection($authors), 'Top authors');
     }
 }

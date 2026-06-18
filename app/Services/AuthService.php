@@ -7,11 +7,11 @@ use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\Settings;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Auth\Events\Registered;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthService
@@ -35,7 +35,7 @@ class AuthService
             return null;
         }
 
-        if ($user->locked_until && $user->locked_until->isFuture()) {
+        if ($user->locked_until?->isFuture()) {
             return [
                 'locked' => true,
                 'locked_until' => $user->locked_until,
@@ -47,20 +47,25 @@ class AuthService
             ! Hash::check($password, $user->password) ||
             ! $appValid
         ) {
-            $user->increment('failed_login_attempts');
+            DB::transaction(function () use ($user, $request, $email) {
 
-            if ($user->failed_login_attempts >= 5) {
-                $user->update([
-                    'locked_until' => now()->addMinutes(15),
+                $user->increment('failed_login_attempts');
+
+                $user->refresh();
+
+                if ($user->failed_login_attempts >= 5) {
+                    $user->update([
+                        'locked_until' => now()->addMinutes(15),
+                    ]);
+                }
+
+                Log::warning('Login gagal', [
+                    'user_id' => $user->id,
+                    'email' => $email,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
                 ]);
-            }
-
-            Log::warning('Login gagal', [
-                'user_id' => $user->id,
-                'email' => $email,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+            });
 
             return null;
         }
@@ -76,12 +81,23 @@ class AuthService
             'locked_until' => null,
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
+            'last_login_user_agent' => substr(
+                $request->userAgent() ?? 'Unknown',
+                0,
+                1000
+            ),
         ]);
 
-        $user->tokens()->delete();
+        $token = $user->createToken(
+            substr(
+                $request->userAgent() ?? 'Unknown Device',
+                0,
+                255
+            )
+        );
 
         return [
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token->plainTextToken,
             'permissions' => $user->getPermissionNames(),
             'email_verified' => true,
             'role' => $user->getRoleNames()->first(),
@@ -96,8 +112,6 @@ class AuthService
             event(new Registered($user));
         }
 
-        $user->tokens()->delete();
-
         return [
             'token' => $user->createToken('auth_token')->plainTextToken,
             'permissions' => $user->getPermissionNames(),
@@ -110,7 +124,9 @@ class AuthService
     {
         $this->validateProvider($provider);
 
-        $socialUser = Socialite::driver($provider)->userFromToken($accessToken);
+        $socialUser = Socialite::driver($provider)
+            ->stateless()
+            ->userFromToken($accessToken);
 
         $email = $socialUser->getEmail();
 
@@ -142,7 +158,7 @@ class AuthService
         ];
 
         $user->profile()->updateOrCreate(
-            [],
+            ['customer_id' => $user->id],
             ['avatar' => $avatar]
         );
 
@@ -179,10 +195,26 @@ class AuthService
             }
         }
 
-        $user->tokens()->delete();
+        $user->update([
+            'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
+            'last_login_user_agent' => substr(
+                request()->userAgent() ?? 'Unknown',
+                0,
+                1000
+            ),
+        ]);
+
+        $token = $user->createToken(
+            substr(
+                request()->userAgent() ?? "{$provider}-login",
+                0,
+                255
+            )
+        )->plainTextToken;
 
         return [
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token,
             'permissions' => $user->getPermissionNames(),
             'role' => $user->getRoleNames()->first(),
             'user' => $user,

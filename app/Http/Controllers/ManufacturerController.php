@@ -6,12 +6,14 @@ use App\Services\ManufacturerService;
 use App\Http\Requests\ManufacturerRequest;
 use App\Http\Resources\ManufacturerResource;
 use App\DTO\ManufacturerData;
+use App\Models\Manufacturer;
+use App\Enums\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\Manufacturer;
+use Illuminate\Support\Facades\Cache;
 
-class ManufacturerController extends Controller
+class ManufacturerController extends BaseController
 {
     public function __construct(private ManufacturerService $manufacturerService) {}
 
@@ -23,10 +25,16 @@ class ManufacturerController extends Controller
         $limit = $request->limit ?? 15;
         $language = $request->language ?? config('shop.default_language', 'id');
         
-        $manufacturers = $this->manufacturerService->getManufacturersByLanguage($language, $limit);
-        $data = ManufacturerResource::collection($manufacturers)->response()->getData(true);
-        
-        return formatAPIResourcePaginate($data);
+        $cacheKey = "manufacturers_{$language}_{$limit}";
+        $manufacturers = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->manufacturerService->getManufacturersByLanguage($language, $limit);
+        });
+
+        return $this->sendPaginated(
+            $manufacturers,
+            ManufacturerResource::collection($manufacturers->getCollection()),
+            'Daftar manufakturer berhasil diambil.'
+        );
     }
 
     /**
@@ -44,7 +52,7 @@ class ManufacturerController extends Controller
         $validated = $request->validated();
         
         // Atur status persetujuan berdasarkan hak akses user
-        if ($user && $user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value)) {
+        if ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             $validated['is_approved'] = true;
         } else {
             $validated['is_approved'] = false;
@@ -53,7 +61,14 @@ class ManufacturerController extends Controller
         $data = ManufacturerData::fromRequest($validated);
         $manufacturer = $this->manufacturerService->createManufacturer($data);
         
-        return new ManufacturerResource($manufacturer->load('type'));
+        // Hapus cache untuk bahasa yang sama
+        Cache::forget("manufacturers_{$data->language}_*");
+
+        return $this->sendSuccess(
+            new ManufacturerResource($manufacturer->load('type')),
+            'Manufacturer created',
+            201
+        );
     }
 
     /**
@@ -62,11 +77,15 @@ class ManufacturerController extends Controller
     public function show(Request $request, string $slug)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
+        
         try {
             $manufacturer = $this->manufacturerService->getManufacturerByIdOrSlug($slug, $language);
-            return new ManufacturerResource($manufacturer);
+            return $this->sendSuccess(
+                new ManufacturerResource($manufacturer),
+                'Manufacturer detail'
+            );
         } catch (ModelNotFoundException $e) {
-            throw new ModelNotFoundException(config('notice.NOT_FOUND'));
+            return $this->sendError('Manufacturer not found', 404);
         }
     }
 
@@ -85,15 +104,21 @@ class ManufacturerController extends Controller
         $manufacturer = Manufacturer::findOrFail($id);
         $validated = $request->validated();
 
-        // Non-admin tidak boleh mengubah is_approved, kunci ke status lama jika bukan admin
-        if (!($user && $user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value))) {
+        // Non-admin tidak boleh mengubah is_approved, kunci ke status lama
+        if (!($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value))) {
             $validated['is_approved'] = $manufacturer->is_approved;
         }
 
         $data = ManufacturerData::fromRequest($validated);
         $updated = $this->manufacturerService->updateManufacturer($manufacturer, $data);
         
-        return new ManufacturerResource($updated);
+        // Hapus cache
+        Cache::forget("manufacturers_{$data->language}_*");
+
+        return $this->sendSuccess(
+            new ManufacturerResource($updated),
+            'Manufacturer updated'
+        );
     }
 
     /**
@@ -109,9 +134,12 @@ class ManufacturerController extends Controller
         }
 
         $manufacturer = Manufacturer::findOrFail($id);
+        $language = $manufacturer->language;
         $this->manufacturerService->deleteManufacturer($manufacturer);
-        
-        return response()->json(['message' => 'Manufacturer deleted successfully']);
+
+        Cache::forget("manufacturers_{$language}_*");
+
+        return $this->sendSuccess(null, 'Manufacturer deleted successfully');
     }
 
     /**
@@ -122,7 +150,14 @@ class ManufacturerController extends Controller
         $limit = $request->limit ?? 10;
         $language = $request->language ?? config('shop.default_language', 'id');
         
-        $manufacturers = $this->manufacturerService->getTopManufacturers($language, $limit);
-        return ManufacturerResource::collection($manufacturers);
+        $cacheKey = "top_manufacturers_{$language}_{$limit}";
+        $manufacturers = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
+            return $this->manufacturerService->getTopManufacturers($language, $limit);
+        });
+
+        return $this->sendSuccess(
+            ManufacturerResource::collection($manufacturers),
+            'Top manufacturers'
+        );
     }
 }

@@ -10,50 +10,55 @@ class BaseController extends Controller
     /**
      * Success response tanpa paginasi
      */
-    protected function sendSuccess($data = null, string $message = 'Success', int $code = 200): JsonResponse
-    {
+    protected function sendSuccess(
+        mixed $data = null,
+        string $message = 'Success',
+        int $code = 200
+    ): JsonResponse {
         return response()->json([
             'success' => true,
-            'code'    => $code,
+            'code' => $code,
             'message' => $message,
-            'data'    => $data,
+            'data' => $data,
         ], $code);
     }
 
     /**
      * Error response
      */
-    protected function sendError(string $message, int $code = 400, $errors = null): JsonResponse
-    {
+    protected function sendError(
+        string $message,
+        int $code = 400,
+        mixed $errors = null
+    ): JsonResponse {
         return response()->json([
             'success' => false,
-            'code'    => $code,
+            'code' => $code,
             'message' => $message,
-            'errors'  => $errors,
+            'errors' => $errors,
         ], $code);
     }
 
     /**
-     * Response dengan paginasi (otomatis deteksi jika $data adalah LengthAwarePaginator)
+     * Response dengan paginasi
      */
-    protected function sendPaginated($data, string $message = 'Data retrieved successfully', int $code = 200): JsonResponse
-    {
-        if ($data instanceof LengthAwarePaginator) {
-            return response()->json([
-                'success' => true,
-                'code'    => $code,
-                'message' => $message,
-                'data'    => $data->items(),
-                'meta'    => [
-                    'currentPage' => $data->currentPage(),
-                    'totalPages'  => $data->lastPage(),
-                    'totalItems'  => $data->total(),
-                    'itemsPerPage'=> $data->perPage(),
-                ],
-            ], $code);
-        }
-
-        // Jika tidak paginasi, fallback ke sendSuccess
-        return $this->sendSuccess($data, $message, $code);
+    protected function sendPaginated(
+        LengthAwarePaginator $paginator,
+        mixed $data,
+        string $message = 'Data berhasil diambil.',
+        int $code = 200
+    ): JsonResponse {
+        return response()->json([
+            'success' => true,
+            'code' => $code,
+            'message' => $message,
+            'data' => $data,
+            'meta' => [
+                'currentPage' => $paginator->currentPage(),
+                'totalPages' => $paginator->lastPage(),
+                'totalItems' => $paginator->total(),
+                'itemsPerPage' => $paginator->perPage(),
+            ],
+        ], $code);
     }
 }

@@ -20,6 +20,11 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->boolean('is_active')->default(1);
+            $table->unsignedTinyInteger('failed_login_attempts')->default(0);
+            $table->timestamp('locked_until')->nullable();
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_ip', 45)->nullable();
+            $table->text('last_login_user_agent')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
