@@ -2,9 +2,9 @@
 
 namespace App\Services\Payment;
 
-use Stripe\Stripe;
-use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\Customer;
+use Stripe\PaymentIntent as StripePaymentIntent;
+use Stripe\Stripe;
 
 class StripeProvider implements PaymentProviderInterface
 {
@@ -21,6 +21,7 @@ class StripeProvider implements PaymentProviderInterface
             'metadata' => ['order_tracking_number' => $data['order_tracking_number']],
             'customer' => $data['customer'] ?? null,
         ]);
+
         return ['client_secret' => $intent->client_secret, 'id' => $intent->id];
     }
 
@@ -30,6 +31,7 @@ class StripeProvider implements PaymentProviderInterface
             'email' => $data['email'],
             'name' => $data['name'] ?? null,
         ]);
+
         return ['customer_id' => $customer->id];
     }
 

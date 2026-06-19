@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Type;
 use App\DTO\TypeData;
+use App\Models\Type;
 use Illuminate\Support\Str;
 
 class CreateTypeAction
@@ -11,7 +11,7 @@ class CreateTypeAction
     public function execute(TypeData $data): Type
     {
         $slug = $data->slug ?? Str::slug($data->name);
-        
+
         // Proteksi duplikasi slug manual di bahasa yang sama
         $count = Type::where('slug', 'like', "{$slug}%")->where('language', $data->language)->count();
         $finalSlug = $count > 0 ? "{$slug}-{$count}" : $slug;
@@ -24,7 +24,7 @@ class CreateTypeAction
             'promotional_sliders' => $data->promotional_sliders,
             'images' => $data->images,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $type = Type::create($attributes);
 

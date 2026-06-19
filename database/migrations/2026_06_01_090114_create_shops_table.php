@@ -34,7 +34,7 @@ return new class extends Migration
             $table->dropForeign(['shop_id']);
             $table->dropColumn('shop_id');
         });
-        
+
         Schema::dropIfExists('shops');
     }
 };

@@ -1,12 +1,12 @@
 <?php
 
+use App\Enums\ProductStatus;
+use App\Enums\ProductType;
+use App\Enums\ProductVisibilityStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Config;
-use App\Enums\ProductType;
-use App\Enums\ProductStatus;
-use App\Enums\ProductVisibilityStatus;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {

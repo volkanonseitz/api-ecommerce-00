@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AttachmentService;
+use App\DTO\AttachmentData;
 use App\Http\Requests\AttachmentRequest;
 use App\Http\Resources\AttachmentResource;
-use App\DTO\AttachmentData;
+use App\Services\AttachmentService;
 use Illuminate\Http\Request;
 
 class AttachmentController extends Controller
@@ -15,6 +15,7 @@ class AttachmentController extends Controller
     public function index(Request $request)
     {
         $attachments = $this->attachmentService->getAll();
+
         return AttachmentResource::collection($attachments);
     }
 
@@ -22,12 +23,14 @@ class AttachmentController extends Controller
     {
         $data = AttachmentData::fromRequest($request->validated());
         $results = $this->attachmentService->upload($data);
+
         return response()->json($results);
     }
 
     public function show($id)
     {
         $attachment = $this->attachmentService->find($id);
+
         return new AttachmentResource($attachment);
     }
 
@@ -40,6 +43,7 @@ class AttachmentController extends Controller
     public function destroy($id)
     {
         $this->attachmentService->delete($id);
+
         return response()->json(['message' => 'Attachment deleted successfully']);
     }
 }

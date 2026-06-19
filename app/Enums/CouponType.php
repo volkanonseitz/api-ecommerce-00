@@ -21,7 +21,7 @@ enum CouponType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::FIXED_COUPON => 'Fixed Coupon',
             self::PERCENTAGE_COUPON => 'Percentage Coupon',
             self::FREE_SHIPPING_COUPON => 'Free Shipping Coupon',

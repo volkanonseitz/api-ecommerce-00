@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Category;
-use App\DTO\CategoryData;
 use App\Actions\CreateCategoryAction;
 use App\Actions\UpdateCategoryAction;
+use App\DTO\CategoryData;
+use App\Models\Category;
 
 class CategoryService
 {
@@ -35,12 +35,14 @@ class CategoryService
         if (is_numeric($param)) {
             return Category::with(['type', 'parentCategory', 'children'])->where('id', $param)->firstOrFail();
         }
+
         return Category::with(['type', 'parentCategory', 'children'])->where('slug', $param)->firstOrFail();
     }
 
     public function fetchFeaturedCategories(int $perPage = 3)
     {
         $query = Category::with('products');
+
         return $query->paginate($perPage);
     }
 

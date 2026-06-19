@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Review;
 use App\DTO\ReviewData;
+use App\Models\Review;
 
 class CreateReviewAction
 {

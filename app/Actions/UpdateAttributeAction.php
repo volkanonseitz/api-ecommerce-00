@@ -2,9 +2,9 @@
 
 namespace App\Actions;
 
+use App\DTO\AttributeData;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
-use App\DTO\AttributeData;
 use Illuminate\Support\Str;
 
 class UpdateAttributeAction
@@ -19,14 +19,14 @@ class UpdateAttributeAction
                 if (isset($value['id']) && in_array($value['id'], $existingIds)) {
                     AttributeValue::where('id', $value['id'])->update($value);
                     $newIds[] = $value['id'];
-                } elseif (!isset($value['id'])) {
+                } elseif (! isset($value['id'])) {
                     $value['attribute_id'] = $attribute->id;
                     $newVal = AttributeValue::create($value);
                     $newIds[] = $newVal->id;
                 }
             }
             $toDelete = array_diff($existingIds, $newIds);
-            if (!empty($toDelete)) {
+            if (! empty($toDelete)) {
                 AttributeValue::whereIn('id', $toDelete)->delete();
             }
         }
@@ -36,9 +36,10 @@ class UpdateAttributeAction
             'slug' => ($data->slug && $data->slug !== $attribute->slug) ? $data->slug : ($data->name ? Str::slug($data->name) : null),
             'shop_id' => $data->shop_id,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $attribute->update($updateData);
+
         return $attribute->load('values');
     }
 }

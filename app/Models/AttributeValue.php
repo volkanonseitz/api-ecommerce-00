@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 class AttributeValue extends Model
 {
     protected $table = 'attribute_values';
+
     protected $guarded = [];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -20,7 +22,7 @@ class AttributeValue extends Model
                 $model->slug = Str::slug($model->value);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

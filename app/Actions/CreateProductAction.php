@@ -2,9 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Product;
-use App\Models\Variation;
 use App\DTO\ProductData;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class CreateProductAction
@@ -14,16 +13,16 @@ class CreateProductAction
         return DB::transaction(function () use ($data, $settings) {
             $attributes = $this->prepareAttributes($data);
             $attributes['status'] = $this->determineStatus($data, $settings);
-            
+
             $product = Product::create($attributes);
-            
+
             if ($data->product_type === 'simple') {
                 $product->update([
                     'min_price' => $product->price,
                     'max_price' => $product->price,
                 ]);
             }
-            
+
             // Amankan dari looping jika metas bukan array
             if (is_array($data->metas)) {
                 foreach ($data->metas as $meta) {
@@ -32,21 +31,21 @@ class CreateProductAction
                     }
                 }
             }
-            
+
             $this->syncRelations($product, $data);
-            
+
             if ($data->variation_options && isset($data->variation_options['upsert'])) {
                 $this->handleVariationOptions($product, $data->variation_options['upsert']);
             }
-            
+
             if ($data->is_digital && $data->digital_file) {
                 $product->digital_file()->create($data->digital_file);
             }
-            
+
             return $product->fresh();
         });
     }
-    
+
     private function prepareAttributes(ProductData $data): array
     {
         // Untuk CREATE, kita mengambil semua properti dari DTO direct ke array
@@ -86,31 +85,48 @@ class CreateProductAction
         // Memanfaatkan helper fungsi generateUniqueSlug yang kamu buat
         $nameForSlug = $data->slug ?: $data->name;
         $attributes['slug'] = generateUniqueSlug(Product::class, $nameForSlug, $data->language);
-        
+
         return $attributes;
     }
-    
+
     private function determineStatus(ProductData $data, $settings): string
     {
         $needsReview = $settings->options['isProductReview'] ?? false;
         if ($needsReview) {
             return $data->status === 'draft' ? 'draft' : 'under_review';
         }
+
         return $data->status ?? 'publish';
     }
-    
+
     private function syncRelations(Product $product, ProductData $data): void
     {
-        if (is_array($data->categories)) $product->categories()->sync($data->categories);
-        if (is_array($data->tags)) $product->tags()->sync($data->tags);
-        if (is_array($data->dropoff_locations)) $product->dropoff_locations()->sync($data->dropoff_locations);
-        if (is_array($data->pickup_locations)) $product->pickup_locations()->sync($data->pickup_locations);
-        if (is_array($data->persons)) $product->persons()->sync($data->persons);
-        if (is_array($data->features)) $product->features()->sync($data->features);
-        if (is_array($data->deposits)) $product->deposits()->sync($data->deposits);
-        if (is_array($data->variations)) $product->variations()->sync($data->variations);
+        if (is_array($data->categories)) {
+            $product->categories()->sync($data->categories);
+        }
+        if (is_array($data->tags)) {
+            $product->tags()->sync($data->tags);
+        }
+        if (is_array($data->dropoff_locations)) {
+            $product->dropoff_locations()->sync($data->dropoff_locations);
+        }
+        if (is_array($data->pickup_locations)) {
+            $product->pickup_locations()->sync($data->pickup_locations);
+        }
+        if (is_array($data->persons)) {
+            $product->persons()->sync($data->persons);
+        }
+        if (is_array($data->features)) {
+            $product->features()->sync($data->features);
+        }
+        if (is_array($data->deposits)) {
+            $product->deposits()->sync($data->deposits);
+        }
+        if (is_array($data->variations)) {
+            $product->variations()->sync($data->variations);
+        }
     }
-    
+
     private function handleVariationOptions(Product $product, array $variations): void
     {
         foreach ($variations as $variationData) {

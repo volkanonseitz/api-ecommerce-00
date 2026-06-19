@@ -23,10 +23,10 @@ class TermsAndConditionsUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string'],
+            'title' => ['required', 'string'],
             'description' => ['required', 'string', 'max:10000'],
-            'slug'        => ['nullable', 'string'],
-            'language'    => ['nullable', 'string'],
+            'slug' => ['nullable', 'string'],
+            'language' => ['nullable', 'string'],
         ];
     }
 }

@@ -9,15 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Manufacturer extends Model
 {
     protected $table = 'manufacturers';
+
     protected $guarded = [];
-    
+
     protected $casts = [
         'image' => 'json',
         'cover_image' => 'json',
         'socials' => 'json',
         'is_approved' => 'boolean',
     ];
-    
+
     protected $appends = ['products_count', 'translated_languages'];
 
     public function getProductsCountAttribute(): int

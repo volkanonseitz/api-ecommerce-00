@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Order;
 use App\DTO\OrderData;
+use App\Models\Order;
 
 class CreateOrderAction
 {
@@ -33,7 +33,7 @@ class CreateOrderAction
             'customer_name' => $data->customer_name,
             'note' => $data->note,
             'parent_id' => $data->parent_id,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return Order::create($attributes);
     }

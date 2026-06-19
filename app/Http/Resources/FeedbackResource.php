@@ -15,7 +15,7 @@ class FeedbackResource extends JsonResource
             'positive' => $this->positive,
             'negative' => $this->negative,
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', fn() => [
+            'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,

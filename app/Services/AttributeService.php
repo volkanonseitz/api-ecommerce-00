@@ -2,13 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Attribute;
-use App\Models\AttributeValue;
-use App\DTO\AttributeData;
-use App\DTO\AttributeValueData;
 use App\Actions\CreateAttributeAction;
 use App\Actions\UpdateAttributeAction;
+use App\DTO\AttributeData;
 use App\Enums\Permission;
+use App\Models\Attribute;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Arr;
 
@@ -21,17 +19,24 @@ class AttributeService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop || !$shop->is_active) {
+        if (! $shop || ! $shop->is_active) {
             throw new \Exception(config('notice.SHOP_NOT_APPROVED'));
         }
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
         }
+
         // Staff tidak diizinkan untuk attribute? Bisa disesuaikan
         return false;
     }
@@ -46,6 +51,7 @@ class AttributeService
         if (is_numeric($identifier)) {
             return Attribute::with('values')->where('id', $identifier)->firstOrFail();
         }
+
         return Attribute::with('values')->where('slug', $identifier)->where('language', $language)->firstOrFail();
     }
 
@@ -78,14 +84,15 @@ class AttributeService
             }
             unset($attr['id'], $attr['created_at'], $attr['updated_at'], $attr['slug'], $attr['translated_languages']);
         }
+
         return $list;
     }
 
     public function importAttributes(array $attributesData, int $shopId, $user): void
     {
         foreach ($attributesData as $attributeData) {
-            if (!isset($attributeData['name'])) {
-                throw new \Exception("WRONG_CSV");
+            if (! isset($attributeData['name'])) {
+                throw new \Exception('WRONG_CSV');
             }
             unset($attributeData['id']);
             $attributeData['shop_id'] = $shopId;

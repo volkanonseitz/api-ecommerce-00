@@ -12,9 +12,10 @@ class Attachment extends Model implements HasMedia
     use InteractsWithMedia;
 
     protected $table = 'attachments';
+
     protected $guarded = [];
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumbnail')
             ->width(368)

@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Tag;
 use App\DTO\TagData;
+use App\Models\Tag;
 use Illuminate\Support\Str;
 
 class UpdateTagAction
@@ -18,9 +18,10 @@ class UpdateTagAction
             'image' => $data->image,
             'details' => $data->details,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $tag->update($attributes);
+
         return $tag->fresh();
     }
 }

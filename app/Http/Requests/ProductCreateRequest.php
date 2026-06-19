@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\ProductStatus;
 use App\Enums\ProductType;
+use Illuminate\Foundation\Http\FormRequest;
 
 class ProductCreateRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -21,7 +24,7 @@ class ProductCreateRequest extends FormRequest
             'shop_id' => ['required', 'exists:shops,id'],
             'manufacturer_id' => ['nullable', 'exists:manufacturers,id'],
             'author_id' => ['nullable', 'exists:authors,id'],
-            'product_type' => ['required', 'in:' . implode(',', array_column(ProductType::cases(), 'value'))],
+            'product_type' => ['required', 'in:'.implode(',', array_column(ProductType::cases(), 'value'))],
             'categories' => ['array'],
             'tags' => ['array'],
             'language' => ['nullable', 'string'],
@@ -37,7 +40,7 @@ class ProductCreateRequest extends FormRequest
             'image' => ['array'],
             'gallery' => ['array'],
             'video' => ['array'],
-            'status' => ['string', 'in:' . implode(',', array_column(ProductStatus::cases(), 'value'))],
+            'status' => ['string', 'in:'.implode(',', array_column(ProductStatus::cases(), 'value'))],
             'height' => ['nullable', 'string'],
             'length' => ['nullable', 'string'],
             'width' => ['nullable', 'string'],

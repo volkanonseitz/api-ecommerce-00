@@ -20,7 +20,7 @@ enum RefundPolicyTarget: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::VENDOR => 'Vendor',
             self::CUSTOMER => 'Customer',
         };

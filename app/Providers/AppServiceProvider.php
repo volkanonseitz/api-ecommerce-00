@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Address;
+use App\Policies\AddressPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -41,5 +44,7 @@ class AppServiceProvider extends ServiceProvider
                 $request->ip().'|'.$request->input('email')
             );
         });
+
+        Gate::policy(Address::class, AddressPolicy::class);
     }
 }

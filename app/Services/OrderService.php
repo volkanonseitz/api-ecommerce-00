@@ -2,33 +2,34 @@
 
 namespace App\Services;
 
-use App\Models\Order;
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Variation;
-use App\Models\Coupon;
-use App\Models\Wallet;
-use App\Models\Balance;
-use App\Models\OrderWalletPoint;
-use App\Models\OrderedFile;
-use App\Models\Settings;
-use App\DTO\OrderData;
 use App\Actions\CreateOrderAction;
-use App\Enums\Permission;
+use App\DTO\OrderData;
+use App\Enums\CouponType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGatewayType;
 use App\Enums\PaymentStatus;
-use App\Enums\CouponType;
+use App\Enums\Permission;
 use App\Enums\ProductType;
-use App\Events\OrderCreated;
 use App\Events\OrderProcessed;
 use App\Events\OrderReceived;
+use App\Models\Coupon;
+use App\Models\DownloadToken;
+use App\Models\Order;
+use App\Models\OrderedFile;
+use App\Models\OrderWalletPoint;
+use App\Models\PaymentIntent;
+use App\Models\Product;
+use App\Models\Settings;
+use App\Models\Shop;
+use App\Models\User;
+use App\Models\Variation;
+use App\Models\Wallet;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\Request;
 
 class OrderService
 {
@@ -42,24 +43,34 @@ class OrderService
     {
         $today = date('Ymd');
         do {
-            $trackingNumber = $today . random_int(100000, 999999);
+            $trackingNumber = $today.random_int(100000, 999999);
         } while (Order::where('tracking_number', $trackingNumber)->exists());
+
         return $trackingNumber;
     }
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
-        $shop = \App\Models\Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
+        $shop = Shop::find($shopId);
+        if (! $shop) {
+            return false;
+        }
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
         }
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -88,7 +99,7 @@ class OrderService
     {
         $order = Order::where('language', $language)
             ->with(['products', 'shop', 'children.shop', 'wallet_point'])
-            ->where(function($q) use ($param) {
+            ->where(function ($q) use ($param) {
                 $q->where('id', $param)->orWhere('tracking_number', $param);
             })->firstOrFail();
 
@@ -102,7 +113,7 @@ class OrderService
             if ($user->id == $order->customer_id) {
                 return $order;
             }
-        } elseif (!$order->customer_id) {
+        } elseif (! $order->customer_id) {
             return $order;
         }
         throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
@@ -112,11 +123,11 @@ class OrderService
     {
         return DB::transaction(function () use ($data, $settings, $user) {
             // Set tracking number jika belum
-            if (!$data->tracking_number) {
+            if (! $data->tracking_number) {
                 $data->tracking_number = $this->generateTrackingNumber();
             }
             // Set customer_id dari user jika tidak ada
-            if (!$data->customer_id && $user) {
+            if (! $data->customer_id && $user) {
                 $data->customer_id = $user->id;
             }
             // Set default order status & payment status berdasarkan payment gateway
@@ -124,7 +135,7 @@ class OrderService
             $data->payment_status = $this->determineInitialPaymentStatus($data->payment_gateway);
 
             // Hitung subtotal jika tidak diberikan
-            if (!$data->amount && $data->products) {
+            if (! $data->amount && $data->products) {
                 $data->amount = $this->calculateSubtotal($data->products);
             }
             // Proses coupon jika ada
@@ -137,7 +148,7 @@ class OrderService
                 $data->discount = $this->calculateDiscount($coupon, $data->amount);
             }
             // Hitung paid_total jika belum
-            if (!$data->paid_total) {
+            if (! $data->paid_total) {
                 $data->paid_total = $data->amount + $data->sales_tax + $data->delivery_fee - $data->discount;
                 $data->total = $data->paid_total;
             }
@@ -176,12 +187,12 @@ class OrderService
             }
 
             // Create payment intent if needed
-            if (!in_array($order->payment_gateway, [
-                PaymentGatewayType::CASH, PaymentGatewayType::CASH_ON_DELIVERY, PaymentGatewayType::FULL_WALLET_PAYMENT
+            if (! in_array($order->payment_gateway, [
+                PaymentGatewayType::CASH, PaymentGatewayType::CASH_ON_DELIVERY, PaymentGatewayType::FULL_WALLET_PAYMENT,
             ])) {
                 $intent = $this->paymentService->createPaymentIntent($order, $settings, $order->payment_gateway);
                 // Simpan payment intent (misal ke PaymentIntent model)
-                \App\Models\PaymentIntent::create([
+                PaymentIntent::create([
                     'order_id' => $order->id,
                     'tracking_number' => $order->tracking_number,
                     'payment_gateway' => ucfirst($order->payment_gateway),
@@ -190,6 +201,7 @@ class OrderService
             }
 
             event(new OrderProcessed($order));
+
             return $order;
         });
     }
@@ -199,12 +211,13 @@ class OrderService
         if (in_array($gateway, [PaymentGatewayType::CASH_ON_DELIVERY, PaymentGatewayType::CASH])) {
             return OrderStatus::PROCESSING;
         }
+
         return OrderStatus::PENDING;
     }
 
     private function determineInitialPaymentStatus(?string $gateway): string
     {
-        return match($gateway) {
+        return match ($gateway) {
             PaymentGatewayType::CASH_ON_DELIVERY => PaymentStatus::CASH_ON_DELIVERY,
             PaymentGatewayType::CASH => PaymentStatus::CASH,
             PaymentGatewayType::FULL_WALLET_PAYMENT => PaymentStatus::SUCCESS,
@@ -219,11 +232,14 @@ class OrderService
 
     private function calculateDiscount(?Coupon $coupon, float $amount): float
     {
-        if (!$coupon) return 0;
+        if (! $coupon) {
+            return 0;
+        }
         // Implementasi sederhana: jika coupon type percentage atau fixed
         if ($coupon->type === 'percentage') {
             return ($coupon->amount / 100) * $amount;
         }
+
         return min($coupon->amount, $amount);
     }
 
@@ -247,9 +263,13 @@ class OrderService
     private function handleDigitalFiles(array $product, Order $order): void
     {
         $productModel = Product::find($product['product_id']);
-        if (!$productModel || !$productModel->is_digital) return;
+        if (! $productModel || ! $productModel->is_digital) {
+            return;
+        }
         $digitalFile = $productModel->digital_file;
-        if (!$digitalFile) return;
+        if (! $digitalFile) {
+            return;
+        }
         for ($i = 0; $i < $product['order_quantity']; $i++) {
             OrderedFile::create([
                 'purchase_key' => Str::random(16),
@@ -263,7 +283,9 @@ class OrderService
     private function handleRentalProduct(array $product, Order $order): void
     {
         $productModel = Product::find($product['product_id']);
-        if (!$productModel || !$productModel->is_rental) return;
+        if (! $productModel || ! $productModel->is_rental) {
+            return;
+        }
         $availabilityData = [
             'from' => Carbon::parse($product['from']),
             'to' => Carbon::parse($product['to']),
@@ -273,7 +295,9 @@ class OrderService
         ];
         if (isset($product['variation_option_id'])) {
             $variation = Variation::find($product['variation_option_id']);
-            if ($variation) $variation->availabilities()->create($availabilityData);
+            if ($variation) {
+                $variation->availabilities()->create($availabilityData);
+            }
         } else {
             $productModel->availabilities()->create($availabilityData);
         }
@@ -324,7 +348,7 @@ class OrderService
 
     public function updateOrderStatus(Order $order, string $newStatus, Authenticatable $user): Order
     {
-        if ($order->shop_id && !$this->hasPermission($user, $order->shop_id) && !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if ($order->shop_id && ! $this->hasPermission($user, $order->shop_id) && ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $oldStatus = $order->order_status;
@@ -355,7 +379,9 @@ class OrderService
             $product->increment('quantity', $quantity);
             if ($product->product_type === ProductType::VARIABLE && $product->pivot->variation_option_id) {
                 $variation = Variation::find($product->pivot->variation_option_id);
-                if ($variation) $variation->increment('quantity', $quantity);
+                if ($variation) {
+                    $variation->increment('quantity', $quantity);
+                }
             }
         }
     }
@@ -364,11 +390,12 @@ class OrderService
     public function getExportToken(int $userId, ?int $shopId): string
     {
         $token = Str::random(16);
-        \App\Models\DownloadToken::create([
+        DownloadToken::create([
             'user_id' => $userId,
             'token' => $token,
             'payload' => $shopId,
         ]);
+
         return route('export_order.token', ['token' => $token]);
     }
 
@@ -382,11 +409,12 @@ class OrderService
             'is_rtl' => $isRtl,
         ]);
         $token = Str::random(16);
-        \App\Models\DownloadToken::create([
+        DownloadToken::create([
             'user_id' => $userId,
             'token' => $token,
             'payload' => $payload,
         ]);
+
         return route('download_invoice.token', ['token' => $token]);
     }
 }

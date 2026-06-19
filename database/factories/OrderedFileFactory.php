@@ -22,4 +22,3 @@ class OrderedFileFactory extends Factory
         ];
     }
 }
-

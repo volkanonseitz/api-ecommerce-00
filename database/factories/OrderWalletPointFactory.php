@@ -7,7 +7,7 @@ use App\Models\OrderWalletPoint;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\OrderWalletPoint>
+ * @extends Factory<OrderWalletPoint>
  */
 class OrderWalletPointFactory extends Factory
 {

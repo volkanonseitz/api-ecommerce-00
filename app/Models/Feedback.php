@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Feedback extends Model
 {
     protected $table = 'feedbacks';
+
     protected $guarded = [];
 
     public function user(): BelongsTo

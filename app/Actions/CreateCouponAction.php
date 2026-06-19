@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Coupon;
 use App\DTO\CouponData;
+use App\Models\Coupon;
 
 class CreateCouponAction
 {

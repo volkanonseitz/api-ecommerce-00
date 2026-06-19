@@ -22,7 +22,7 @@ enum StoreNoticeType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ALL_VENDOR => 'All Vendors',
             self::SPECIFIC_VENDOR => 'Specific Vendor',
             self::ALL_SHOP => 'All Shops',

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CouponService;
+use App\DTO\CouponData;
+use App\Enums\Permission;
 use App\Http\Requests\CouponCreateRequest;
 use App\Http\Requests\CouponUpdateRequest;
 use App\Http\Resources\CouponResource;
-use App\DTO\CouponData;
 use App\Models\Coupon;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\CouponService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class CouponController extends Controller
 {
@@ -25,6 +25,7 @@ class CouponController extends Controller
         $query = $this->couponService->getCouponsQuery($request, $request->user());
         $coupons = $query->paginate($limit);
         $data = CouponResource::collection($coupons)->response()->getData(true);
+
         return formatAPIResourcePaginate($data);
     }
 
@@ -37,12 +38,13 @@ class CouponController extends Controller
         $isSuperAdmin = $user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
 
         // Validasi permission jika ada shop_id
-        if ($request->shop_id && !$this->couponService->hasPermission($user, $request->shop_id)) {
+        if ($request->shop_id && ! $this->couponService->hasPermission($user, $request->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = CouponData::fromRequest($request->validated(), $user?->id);
         $coupon = $this->couponService->createCoupon($data, $isSuperAdmin);
+
         return new CouponResource($coupon);
     }
 
@@ -53,6 +55,7 @@ class CouponController extends Controller
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $coupon = $this->couponService->findCoupon($params, $language);
+
         return new CouponResource($coupon);
     }
 
@@ -71,6 +74,7 @@ class CouponController extends Controller
             $request->item,
             $request->user()
         );
+
         return response()->json($result);
     }
 
@@ -84,12 +88,13 @@ class CouponController extends Controller
         $isSuperAdmin = $user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
 
         // Permission: hanya super admin atau pemilik shop yang bisa update
-        if (!$isSuperAdmin && !$this->couponService->hasPermission($user, $coupon->shop_id)) {
+        if (! $isSuperAdmin && ! $this->couponService->hasPermission($user, $coupon->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = CouponData::fromRequest($request->validated(), $user?->id);
         $updated = $this->couponService->updateCoupon($coupon, $data, $isSuperAdmin);
+
         return new CouponResource($updated);
     }
 
@@ -100,6 +105,7 @@ class CouponController extends Controller
     {
         $coupon = Coupon::findOrFail($id);
         $this->couponService->deleteCoupon($coupon);
+
         return response()->json(['message' => 'Coupon deleted successfully']);
     }
 
@@ -109,11 +115,12 @@ class CouponController extends Controller
     public function approveCoupon(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $coupon = Coupon::findOrFail($request->id);
         $this->couponService->approveCoupon($coupon);
+
         return new CouponResource($coupon);
     }
 
@@ -123,11 +130,12 @@ class CouponController extends Controller
     public function disApproveCoupon(Request $request)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $coupon = Coupon::findOrFail($request->id);
         $this->couponService->disapproveCoupon($coupon);
+
         return new CouponResource($coupon);
     }
 }

@@ -4,12 +4,13 @@ namespace App\Services\Otp\Gateways;
 
 use App\Services\Otp\OtpInterface;
 use App\Services\Otp\Results;
-use Twilio\Rest\Client;
 use Twilio\Exceptions\TwilioException;
+use Twilio\Rest\Client;
 
 class TwilioGateway implements OtpInterface
 {
     private Client $client;
+
     private string $verificationSid;
 
     public function __construct()
@@ -25,6 +26,7 @@ class TwilioGateway implements OtpInterface
         try {
             $verification = $this->client->verify->v2->services($this->verificationSid)
                 ->verifications->create($phoneNumber, 'sms');
+
             return new Results($verification->sid);
         } catch (TwilioException $e) {
             return new Results(["Verification failed: {$e->getMessage()}"]);
@@ -39,6 +41,7 @@ class TwilioGateway implements OtpInterface
             if ($check->status === 'approved') {
                 return new Results($check->sid);
             }
+
             return new Results(['Invalid code']);
         } catch (TwilioException $e) {
             return new Results(["Verification check failed: {$e->getMessage()}"]);
@@ -52,6 +55,7 @@ class TwilioGateway implements OtpInterface
                 $phoneNumber,
                 ['from' => config('services.twilio.from'), 'body' => $messageBody]
             );
+
             return new Results($message->sid);
         } catch (TwilioException $e) {
             return new Results(["SMS failed: {$e->getMessage()}"]);

@@ -8,8 +8,11 @@ use Illuminate\Support\Str;
 class Resource extends Model
 {
     protected $table = 'resources';
+
     protected $guarded = [];
+
     protected $casts = ['image' => 'json'];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -20,7 +23,7 @@ class Resource extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });
@@ -29,7 +32,7 @@ class Resource extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->where('id', '!=', $model->id)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

@@ -24,7 +24,7 @@ class UserUpdateRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('id'); // atau dari user yang login jika update sendiri
-        if (!$userId && $this->user()) {
+        if (! $userId && $this->user()) {
             $userId = $this->user()->id;
         }
 

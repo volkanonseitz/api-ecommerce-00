@@ -23,11 +23,11 @@ class StoredOrderNotifyLogsListener
         foreach ($admins as $admin) {
             NotifyLogs::create([
                 'receiver' => $admin->id,
-                'sender'   => $event->user?->id ?? $event->order->customer_id,
+                'sender' => $event->user?->id ?? $event->order->customer_id,
                 'notify_type' => 'order',
                 'notify_receiver_type' => 'admin',
                 'is_read' => false,
-                'notify_text' => 'One new order created. Order ID : ' . $event->order->tracking_number,
+                'notify_text' => 'One new order created. Order ID : '.$event->order->tracking_number,
                 'notify_tracker' => $event->order->tracking_number,
             ]);
         }
@@ -38,11 +38,11 @@ class StoredOrderNotifyLogsListener
             if ($shop && $shop->owner_id) {
                 NotifyLogs::create([
                     'receiver' => $shop->owner_id,
-                    'sender'   => $childOrder->customer_id,
+                    'sender' => $childOrder->customer_id,
                     'notify_type' => 'order',
                     'notify_receiver_type' => 'vendor',
                     'is_read' => false,
-                    'notify_text' => 'One new order created. Order ID : ' . $childOrder->tracking_number,
+                    'notify_text' => 'One new order created. Order ID : '.$childOrder->tracking_number,
                     'notify_tracker' => $childOrder->tracking_number,
                 ]);
             }

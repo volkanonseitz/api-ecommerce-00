@@ -15,6 +15,7 @@ class FlashSaleFactory extends Factory
     public function definition(): array
     {
         $startDate = $this->faker->dateTimeBetween('now', '+1 week');
+
         return [
             'title' => $this->faker->sentence(),
             'slug' => null,

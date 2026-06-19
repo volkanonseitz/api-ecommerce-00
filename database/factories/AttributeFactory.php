@@ -15,6 +15,7 @@ class AttributeFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->word();
+
         return [
             'slug' => Str::slug($name),
             'language' => Config::get('app.locale'),

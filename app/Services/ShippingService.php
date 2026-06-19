@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Shipping;
-use App\DTO\ShippingData;
 use App\Actions\CreateShippingAction;
 use App\Actions\UpdateShippingAction;
+use App\DTO\ShippingData;
+use App\Models\Shipping;
 
 class ShippingService
 {

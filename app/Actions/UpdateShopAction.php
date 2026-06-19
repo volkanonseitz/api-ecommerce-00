@@ -2,9 +2,9 @@
 
 namespace App\Actions;
 
-use App\Models\Shop;
-use App\Models\Balance;
 use App\DTO\ShopData;
+use App\Models\Balance;
+use App\Models\Shop;
 use Illuminate\Support\Str;
 
 class UpdateShopAction
@@ -21,7 +21,7 @@ class UpdateShopAction
             'address' => $data->address,
             'settings' => $data->settings,
             'notifications' => $data->notifications,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $shop->update($attributes);
 

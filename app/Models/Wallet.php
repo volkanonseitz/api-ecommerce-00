@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Wallet extends Model
 {
     protected $table = 'wallets';
+
     protected $guarded = [];
 
     public function customer(): BelongsTo

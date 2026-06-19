@@ -2,26 +2,33 @@
 
 namespace App\Services;
 
-use App\Models\AttributeValue;
 use App\DTO\AttributeValueData;
 use App\Enums\Permission;
+use App\Models\AttributeValue;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 class AttributeValueService
 {
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop || !$shop->is_active) {
+        if (! $shop || ! $shop->is_active) {
             throw new \Exception(config('notice.SHOP_NOT_APPROVED'));
         }
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
         }
+
         return false;
     }
 
@@ -44,7 +51,8 @@ class AttributeValueService
             'shop_id' => $data->shop_id,
             'attribute_id' => $data->attribute_id,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
+
         return AttributeValue::create($attributes);
     }
 
@@ -57,8 +65,9 @@ class AttributeValueService
             'shop_id' => $data->shop_id,
             'attribute_id' => $data->attribute_id,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
         $value->update($updateData);
+
         return $value->fresh();
     }
 

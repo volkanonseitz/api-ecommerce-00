@@ -2,8 +2,6 @@
 
 namespace App\DTO;
 
-use Carbon\Carbon;
-
 class CouponData
 {
     public function __construct(
@@ -57,6 +55,6 @@ class CouponData
             'is_approve' => $this->is_approve,
             'user_id' => $this->user_id,
             'shop_id' => $this->shop_id,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

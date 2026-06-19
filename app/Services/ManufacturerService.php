@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Manufacturer;
-use App\Models\Shop;
-use App\DTO\ManufacturerData;
 use App\Actions\CreateManufacturerAction;
 use App\Actions\UpdateManufacturerAction;
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\DTO\ManufacturerData;
 use App\Enums\Permission;
+use App\Models\Manufacturer;
+use App\Models\Shop;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 class ManufacturerService
 {
@@ -19,12 +19,18 @@ class ManufacturerService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop || !$shop->is_active) {
+        if (! $shop || ! $shop->is_active) {
             throw new \Exception(config('notice.SHOP_NOT_APPROVED'));
         }
 
@@ -47,6 +53,7 @@ class ManufacturerService
         if (is_numeric($identifier)) {
             return Manufacturer::with('type')->where('id', $identifier)->firstOrFail();
         }
+
         return Manufacturer::with('type')
             ->where('slug', $identifier)
             ->where('language', $language)

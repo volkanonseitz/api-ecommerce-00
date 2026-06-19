@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WishlistService;
-use App\Http\Requests\WishlistCreateRequest;
 use App\DTO\WishlistData;
+use App\Http\Requests\WishlistCreateRequest;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Services\WishlistService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class WishlistController extends Controller
@@ -21,11 +21,12 @@ class WishlistController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $limit = $request->limit ?? 15;
         $products = $this->wishlistService->getUserWishlistProducts($user, $limit);
+
         return response()->json($products);
     }
 
@@ -36,14 +37,15 @@ class WishlistController extends Controller
     public function store(WishlistCreateRequest $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = WishlistData::fromRequest($request->validated(), $user->id);
         $wishlist = $this->wishlistService->addToWishlist($data);
-        if (!$wishlist) {
+        if (! $wishlist) {
             throw new HttpException(400, config('notice.ALREADY_ADDED_TO_WISHLIST_FOR_THIS_PRODUCT'));
         }
+
         return response()->json($wishlist);
     }
 
@@ -54,11 +56,12 @@ class WishlistController extends Controller
     public function toggle(WishlistCreateRequest $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = WishlistData::fromRequest($request->validated(), $user->id);
         $result = $this->wishlistService->toggleWishlist($data);
+
         return response()->json($result);
     }
 
@@ -71,17 +74,18 @@ class WishlistController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             throw new HttpException(404, config('notice.NOT_FOUND'));
         }
         $deleted = $this->wishlistService->removeFromWishlist($user, $product->id);
-        if (!$deleted) {
+        if (! $deleted) {
             throw new HttpException(404, config('notice.NOT_FOUND'));
         }
+
         return response()->json(['message' => 'Wishlist item deleted']);
     }
 
@@ -92,10 +96,11 @@ class WishlistController extends Controller
     public function in_wishlist(Request $request, $product_id)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(false);
         }
-        $result = $this->wishlistService->isInWishlist($user, (int)$product_id);
+        $result = $this->wishlistService->isInWishlist($user, (int) $product_id);
+
         return response()->json($result);
     }
 }

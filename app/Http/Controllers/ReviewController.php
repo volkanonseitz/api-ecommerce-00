@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ReviewService;
-use App\Services\SettingsService;
+use App\DTO\ReviewData;
 use App\Http\Requests\ReviewCreateRequest;
 use App\Http\Requests\ReviewUpdateRequest;
 use App\Http\Resources\ReviewResource;
-use App\DTO\ReviewData;
 use App\Models\Review;
-use App\Models\Settings;
-use Illuminate\Http\Request;
+use App\Services\ReviewService;
+use App\Services\SettingsService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ReviewController extends Controller
@@ -28,6 +27,7 @@ class ReviewController extends Controller
     {
         $limit = $request->limit ?? 15;
         $reviews = $this->reviewService->getReviews($request)->paginate($limit);
+
         return ReviewResource::collection($reviews);
     }
 
@@ -45,7 +45,7 @@ class ReviewController extends Controller
         $variationOptionId = $request->variation_option_id ?? null;
 
         // Validasi: apakah produk ada dalam order?
-        if (!$this->reviewService->validateProductInOrder($orderId, $productId)) {
+        if (! $this->reviewService->validateProductInOrder($orderId, $productId)) {
             throw new ModelNotFoundException(config('notice.NOT_FOUND'));
         }
 
@@ -62,6 +62,7 @@ class ReviewController extends Controller
 
         $data = ReviewData::fromRequest($request->validated(), $userId);
         $review = $this->reviewService->createReview($data);
+
         return new ReviewResource($review);
     }
 
@@ -71,6 +72,7 @@ class ReviewController extends Controller
     public function show($id)
     {
         $review = $this->reviewService->findOrFail($id);
+
         return new ReviewResource($review);
     }
 
@@ -81,12 +83,13 @@ class ReviewController extends Controller
     {
         $review = $this->reviewService->findOrFail($id);
         // Cek permission: hanya pembuat review yang bisa update (atau admin? Sesuai asumsi)
-        if ($request->user()->id !== $review->user_id && !$request->user()->hasPermissionTo('super_admin')) {
+        if ($request->user()->id !== $review->user_id && ! $request->user()->hasPermissionTo('super_admin')) {
             abort(403, config('notice.NOT_AUTHORIZED'));
         }
 
         $data = ReviewData::fromRequest($request->validated(), $review->user_id);
         $updated = $this->reviewService->updateReview($review, $data);
+
         return new ReviewResource($updated);
     }
 
@@ -97,10 +100,11 @@ class ReviewController extends Controller
     {
         $review = $this->reviewService->findOrFail($id);
         // Cek permission: hanya pembuat review atau super admin yang bisa hapus
-        if ($request->user()->id !== $review->user_id && !$request->user()->hasPermissionTo('super_admin')) {
+        if ($request->user()->id !== $review->user_id && ! $request->user()->hasPermissionTo('super_admin')) {
             abort(403, config('notice.NOT_AUTHORIZED'));
         }
         $this->reviewService->deleteReview($review);
+
         return response()->json(['message' => 'Review deleted successfully']);
     }
 }

@@ -38,25 +38,25 @@ return [
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI')
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' => env('FACEBOOK_REDIRECT_URI')
+        'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
     'twilio' => [
-        'account_sid'      => env('TWILIO_ACCOUNT_SID'),
-        'auth_token'       => env('TWILIO_AUTH_TOKEN'),
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
         'verification_sid' => env('TWILIO_VERIFICATION_SID'),
-        'from'             => env('TWILIO_FROM_NUMBER'),
+        'from' => env('TWILIO_FROM_NUMBER'),
     ],
 
     'messagebird' => [
         'api_key' => env('MESSAGEBIRD_API_KEY'),
-        'originator' => env('MESSAGEBIRD_ORIGINATOR')
-    ]
+        'originator' => env('MESSAGEBIRD_ORIGINATOR'),
+    ],
 
 ];

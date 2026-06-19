@@ -17,6 +17,7 @@ class OwnershipTransferFactory extends Factory
         $from = User::factory()->create();
         $to = User::factory()->create();
         $shop = Shop::factory()->create(['owner_id' => $from->id]);
+
         return [
             'transaction_identifier' => '2026-06-14-0001', // akan dioverride boot
             'from' => $from->id,

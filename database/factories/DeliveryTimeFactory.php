@@ -15,6 +15,7 @@ class DeliveryTimeFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->unique()->word();
+
         return [
             'title' => $title,
             'slug' => null,

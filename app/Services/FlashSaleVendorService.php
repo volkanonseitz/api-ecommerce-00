@@ -2,27 +2,28 @@
 
 namespace App\Services;
 
-use App\Models\FlashSaleRequest;
-use App\Models\FlashSale;
-use App\DTO\FlashSaleRequestData;
 use App\Actions\CreateFlashSaleRequestAction;
 use App\Actions\UpdateFlashSaleRequestAction;
-use App\Events\FlashSaleProcessed;
+use App\DTO\FlashSaleRequestData;
 use App\Enums\Permission;
+use App\Events\FlashSaleProcessed;
+use App\Models\FlashSale;
+use App\Models\FlashSaleRequest;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class FlashSaleVendorRequestService
+class FlashSaleVendorService
 {
     public function __construct(
         private CreateFlashSaleRequestAction $createAction,
         private UpdateFlashSaleRequestAction $updateAction,
     ) {}
 
-    public function getRequestsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    public function getRequestsQuery(Request $request): Builder
     {
         $language = $request->language ?? config('shop.default_language', 'id');
+
         return FlashSaleRequest::where('language', $language);
     }
 
@@ -74,7 +75,7 @@ class FlashSaleVendorRequestService
         $attachedProducts = [];
 
         foreach ($flashSaleRequest->products as $product) {
-            if ($flashSale && !$flashSale->products->contains($product->id)) {
+            if ($flashSale && ! $flashSale->products->contains($product->id)) {
                 $flashSale->products()->attach($flashSale->id, ['product_id' => $product->id]);
                 $attachedProducts[] = $product->id;
             }
@@ -101,7 +102,9 @@ class FlashSaleVendorRequestService
                 $detachedProducts[] = $product->id;
             }
         }
-        if ($flashSale) $flashSale->save();
+        if ($flashSale) {
+            $flashSale->save();
+        }
         $flashSaleRequest->save();
 
         $eventData = [
@@ -120,12 +123,16 @@ class FlashSaleVendorRequestService
             ->join('products', 'flash_sale_requests_products.product_id', '=', 'products.id')
             ->select('products.id')
             ->pluck('id');
+
         return Product::whereIn('id', $productIds);
     }
 
     public function hasPermission(?Authenticatable $user): bool
     {
-        if (!$user) return false;
+        if (! $user) {
+            return false;
+        }
+
         // Untuk store dan update, bisa siapa saja (vendor). Untuk delete/approve/disapprove hanya super admin atau store owner/staff? Sesuai asli:
         // di destroy: super_admin atau store_owner atau staff
         // approve/disapprove: super_admin

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\QuestionService;
+use App\DTO\QuestionData;
 use App\Http\Requests\QuestionCreateRequest;
 use App\Http\Requests\QuestionUpdateRequest;
 use App\Http\Resources\QuestionResource;
-use App\DTO\QuestionData;
-use App\Models\Question;
-use Illuminate\Http\Request;
+use App\Services\QuestionService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class QuestionController extends Controller
@@ -23,6 +22,7 @@ class QuestionController extends Controller
     {
         $limit = $request->limit ?? 15;
         $questions = $this->questionService->getQuestionsQuery($request)->paginate($limit);
+
         return QuestionResource::collection($questions);
     }
 
@@ -44,6 +44,7 @@ class QuestionController extends Controller
 
         $data = QuestionData::fromRequest($request->validated(), $userId);
         $question = $this->questionService->createQuestion($data);
+
         return new QuestionResource($question);
     }
 
@@ -53,6 +54,7 @@ class QuestionController extends Controller
     public function show($id)
     {
         $question = $this->questionService->findOrFail($id);
+
         return new QuestionResource($question);
     }
 
@@ -64,12 +66,13 @@ class QuestionController extends Controller
         $question = $this->questionService->findOrFail($id);
         $shopId = $request->shop_id ?? $question->shop_id;
 
-        if (!$this->questionService->hasPermission($request->user(), $shopId)) {
+        if (! $this->questionService->hasPermission($request->user(), $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = QuestionData::fromRequest($request->validated(), $question->user_id);
         $updated = $this->questionService->updateQuestion($question, $data);
+
         return new QuestionResource($updated);
     }
 
@@ -80,6 +83,7 @@ class QuestionController extends Controller
     {
         $question = $this->questionService->findOrFail($id);
         $this->questionService->deleteQuestion($question);
+
         return response()->json(['message' => 'Question deleted successfully']);
     }
 
@@ -90,6 +94,7 @@ class QuestionController extends Controller
     {
         $limit = $request->limit ?? 15;
         $questions = $this->questionService->getUserQuestions($request->user()->id, $limit);
+
         return QuestionResource::collection($questions);
     }
 }

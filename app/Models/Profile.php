@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Profile extends Model
 {
     protected $table = 'user_profiles';
+
     protected $guarded = [];
+
     protected $casts = [
         'socials' => 'json',
         'avatar' => 'json',

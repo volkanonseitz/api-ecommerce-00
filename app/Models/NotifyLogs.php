@@ -11,7 +11,9 @@ class NotifyLogs extends Model
     use SoftDeletes;
 
     protected $table = 'notify_logs';
+
     protected $guarded = [];
+
     protected $hidden = ['updated_at', 'deleted_at'];
 
     public function receiverUser(): BelongsTo

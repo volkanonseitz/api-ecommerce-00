@@ -22,7 +22,7 @@ enum Permission: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SUPER_ADMIN => 'Super Admin',
             self::STORE_OWNER => 'Store Owner',
             self::STAFF => 'Staff',

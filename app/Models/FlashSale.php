@@ -12,7 +12,9 @@ class FlashSale extends Model
     use SoftDeletes;
 
     protected $table = 'flash_sales';
+
     protected $guarded = [];
+
     protected $casts = [
         'cover_image' => 'json',
         'sale_builder' => 'json',
@@ -20,6 +22,7 @@ class FlashSale extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
     ];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -30,7 +33,7 @@ class FlashSale extends Model
                 $model->slug = Str::slug($model->title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });
@@ -39,7 +42,7 @@ class FlashSale extends Model
                 $model->slug = Str::slug($model->title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->where('id', '!=', $model->id)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

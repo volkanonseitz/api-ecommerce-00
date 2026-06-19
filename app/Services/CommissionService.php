@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Commission;
 use App\DTO\CommissionData;
+use App\Models\Commission;
 
 class CommissionService
 {

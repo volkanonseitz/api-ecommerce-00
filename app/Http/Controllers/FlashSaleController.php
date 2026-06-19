@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\FlashSaleService;
+use App\DTO\FlashSaleData;
+use App\Events\FlashSaleProcessed;
 use App\Http\Requests\CreateFlashSaleRequest;
 use App\Http\Requests\UpdateFlashSaleRequest;
 use App\Http\Resources\FlashSaleResource;
-use App\DTO\FlashSaleData;
-use App\Events\FlashSaleProcessed;
-use App\Models\FlashSale;
-use Illuminate\Http\Request;
-use Illuminate\Auth\Access\AuthorizationException;
 use App\Http\Resources\ProductResource;
+use App\Models\FlashSale;
+use App\Services\FlashSaleService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class FlashSaleController extends Controller
 {
@@ -26,6 +26,7 @@ class FlashSaleController extends Controller
         $language = $request->language ?? config('shop.default_language', 'id');
         event(new FlashSaleProcessed('index', $language));
         $flashSales = $this->flashSaleService->getFlashSalesQuery($request)->paginate($limit);
+
         return FlashSaleResource::collection($flashSales);
     }
 
@@ -34,11 +35,12 @@ class FlashSaleController extends Controller
      */
     public function store(CreateFlashSaleRequest $request)
     {
-        if (!$this->flashSaleService->hasPermission($request->user())) {
+        if (! $this->flashSaleService->hasPermission($request->user())) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = FlashSaleData::fromRequest($request->validated());
         $flashSale = $this->flashSaleService->createFlashSale($data);
+
         return new FlashSaleResource($flashSale);
     }
 
@@ -49,9 +51,10 @@ class FlashSaleController extends Controller
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $flashSale = $this->flashSaleService->findFlashSaleBySlug($slug, $language);
-        if (!$flashSale) {
+        if (! $flashSale) {
             abort(404, config('notice.NOT_FOUND'));
         }
+
         return new FlashSaleResource($flashSale);
     }
 
@@ -60,12 +63,13 @@ class FlashSaleController extends Controller
      */
     public function update(UpdateFlashSaleRequest $request, $id)
     {
-        if (!$this->flashSaleService->hasPermission($request->user())) {
+        if (! $this->flashSaleService->hasPermission($request->user())) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $flashSale = FlashSale::findOrFail($id);
         $data = FlashSaleData::fromRequest($request->validated());
         $updated = $this->flashSaleService->updateFlashSale($flashSale, $data);
+
         return new FlashSaleResource($updated);
     }
 
@@ -74,11 +78,12 @@ class FlashSaleController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        if (!$this->flashSaleService->hasPermission($request->user())) {
+        if (! $this->flashSaleService->hasPermission($request->user())) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $flashSale = FlashSale::findOrFail($id);
         $this->flashSaleService->deleteFlashSale($flashSale);
+
         return response()->json(['message' => 'Flash sale deleted successfully']);
     }
 
@@ -91,6 +96,7 @@ class FlashSaleController extends Controller
         $limit = $request->limit ?? 10;
         $language = $request->language ?? config('shop.default_language', 'id');
         $products = $this->flashSaleService->getProductsByFlashSaleSlug($request->slug, $language, $limit);
+
         return ProductResource::collection($products);
     }
 
@@ -101,6 +107,7 @@ class FlashSaleController extends Controller
     {
         $request->validate(['id' => 'required|integer|exists:products,id']);
         $info = $this->flashSaleService->getFlashSaleInfoByProductId($request->id);
+
         return response()->json($info);
     }
 }

@@ -4,27 +4,30 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Coupon extends Model
 {
     use SoftDeletes;
 
     protected $table = 'coupons';
+
     protected $guarded = [];
+
     protected $casts = [
         'image' => 'json',
         'active_from' => 'datetime',
         'expire_at' => 'datetime',
         'is_approve' => 'boolean',
     ];
+
     protected $appends = ['is_valid', 'translated_languages'];
 
     protected static function boot()
     {
         parent::boot();
-        static::addGlobalScope('order', fn($q) => $q->orderBy('updated_at', 'desc'));
+        static::addGlobalScope('order', fn ($q) => $q->orderBy('updated_at', 'desc'));
     }
 
     public function getIsValidAttribute(): bool

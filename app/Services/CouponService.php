@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Coupon;
-use App\Models\Settings;
-use App\DTO\CouponData;
 use App\Actions\CreateCouponAction;
 use App\Actions\UpdateCouponAction;
+use App\DTO\CouponData;
 use App\Enums\CouponType;
 use App\Enums\Permission;
+use App\Models\Coupon;
+use App\Models\Settings;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CouponService
 {
@@ -26,12 +25,20 @@ class CouponService
      */
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
 
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
@@ -39,6 +46,7 @@ class CouponService
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -81,6 +89,7 @@ class CouponService
         if (is_numeric($params)) {
             return Coupon::where('id', $params)->firstOrFail();
         }
+
         return Coupon::where('code', $params)->where('language', $language)->firstOrFail();
     }
 
@@ -101,13 +110,14 @@ class CouponService
             user_id: $data->user_id,
             shop_id: $data->shop_id,
         );
+
         return $this->createCoupon->execute($data);
     }
 
     public function updateCoupon(Coupon $coupon, CouponData $data, bool $isSuperAdmin): Coupon
     {
         // Non-admin update harus mengatur is_approve menjadi false (kecuali admin)
-        if (!$isSuperAdmin) {
+        if (! $isSuperAdmin) {
             $data = new CouponData(
                 code: $data->code,
                 language: $data->language,
@@ -124,6 +134,7 @@ class CouponService
                 shop_id: $data->shop_id,
             );
         }
+
         return $this->updateCoupon->execute($coupon, $data);
     }
 
@@ -150,7 +161,7 @@ class CouponService
     public function verifyCoupon(string $code, float $subTotal, ?array $items = null, ?Authenticatable $user = null): array
     {
         $coupon = Coupon::where('code', $code)->first();
-        if (!$coupon) {
+        if (! $coupon) {
             return ['is_valid' => false, 'message' => config('notice.INVALID_COUPON_CODE')];
         }
 
@@ -160,8 +171,9 @@ class CouponService
         $useFreeShipping = $isFreeShippingEnabled && $freeShippingAmount <= $subTotal;
 
         // Approval & target check
-        if (!$coupon->is_approve || (!$user && $coupon->target)) {
+        if (! $coupon->is_approve || (! $user && $coupon->target)) {
             $message = $coupon->is_approve ? config('notice.THIS_COUPON_CODE_IS_ONLY_FOR_VERIFIED_USERS') : config('notice.THIS_COUPON_CODE_IS_NOT_APPROVED');
+
             return ['is_valid' => false, 'message' => $message];
         }
 
@@ -199,7 +211,7 @@ class CouponService
                     $isValidForShop = $isValidForShop && $useFreeShipping;
                     break;
             }
-            if (!$isValidForShop) {
+            if (! $isValidForShop) {
                 return ['is_valid' => false, 'message' => config('notice.COUPON_CODE_IS_NOT_APPLICABLE_IN_THIS_SHOP_PRODUCT')];
             }
         }

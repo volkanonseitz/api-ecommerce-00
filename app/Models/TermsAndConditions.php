@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 class TermsAndConditions extends Model
 {
     protected $table = 'terms_and_conditions';
+
     protected $guarded = [];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -20,7 +22,7 @@ class TermsAndConditions extends Model
                 $model->slug = Str::slug($model->title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

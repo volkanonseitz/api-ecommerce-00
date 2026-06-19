@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class StoreNoticeRead extends Pivot
 {
     protected $table = 'store_notice_read';
+
     protected $guarded = [];
+
     public $timestamps = false;
 
     public function user(): BelongsTo

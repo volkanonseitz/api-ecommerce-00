@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrderedFile extends Model
 {
     protected $table = 'ordered_files';
+
     protected $guarded = [];
 
     public function file(): BelongsTo

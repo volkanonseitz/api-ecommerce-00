@@ -208,7 +208,7 @@ Route::apiResource('/became-seller', BecameSellerController::class);
 // ========================
 // CUSTOMER (auth:sanctum, email.verified, permission:CUSTOMER)
 // ========================
-Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum', 'email.verified']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::CUSTOMER->value]], function () {
     // UserController
     Route::post('/update-email', [UserController::class, 'updateUserEmail']);
     Route::get('/me', [UserController::class, 'me']);
@@ -251,7 +251,7 @@ Route::group(['middleware' => ['can:'.Permission::CUSTOMER->value, 'auth:sanctum
     Route::apiResource('/attachments', AttachmentController::class)->only(['store', 'update', 'destroy']);
 
     // AddressController
-    Route::apiResource('/address', AddressController::class)->only(['destroy']);
+    Route::apiResource('addresses', AddressController::class)->middleware('throttle:60,1');
 
     // RefundController
     Route::apiResource('/refunds', RefundController::class)->only(['index', 'store', 'show']);

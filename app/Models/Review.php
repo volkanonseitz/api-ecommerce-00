@@ -3,19 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Review extends Model
 {
     use SoftDeletes;
 
     protected $table = 'reviews';
+
     protected $guarded = [];
+
     protected $casts = [
         'photos' => 'json',
         'rating' => 'integer',
     ];
+
     protected $appends = [
         'positive_feedbacks_count',
         'negative_feedbacks_count',
@@ -58,6 +61,7 @@ class Review extends Model
         if (auth()->check()) {
             return $this->feedbacks()->where('user_id', auth()->id())->first();
         }
+
         return null;
     }
 

@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Shipping extends Model
 {
     protected $table = 'shipping_classes';
+
     protected $guarded = [];
 
     protected static function boot()
     {
         parent::boot();
-        static::addGlobalScope('order', fn($q) => $q->orderBy('updated_at', 'desc'));
+        static::addGlobalScope('order', fn ($q) => $q->orderBy('updated_at', 'desc'));
     }
 
     public function products(): HasMany

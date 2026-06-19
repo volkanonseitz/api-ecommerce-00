@@ -23,7 +23,7 @@ enum PaymentGatewayType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::STRIPE => 'Stripe',
             self::PAYPAL => 'PayPal',
             self::CASH_ON_DELIVERY => 'Cash on Delivery',

@@ -9,7 +9,6 @@ class AddressData
         public readonly string $type,
         public readonly bool $default,
         public readonly array $address,
-        public readonly int $customer_id,
         public readonly ?array $location = null,
     ) {}
 
@@ -20,7 +19,6 @@ class AddressData
             type: $data['type'],
             default: $data['default'] ?? false,
             address: $data['address'],
-            customer_id: $data['customer_id'],
             location: $data['location'] ?? null,
         );
     }
@@ -32,8 +30,7 @@ class AddressData
             'type' => $this->type,
             'default' => $this->default,
             'address' => $this->address,
-            'customer_id' => $this->customer_id,
             'location' => $this->location,
-        ], fn($v) => !is_null($v));
+        ], static fn ($value) => $value !== null);
     }
 }

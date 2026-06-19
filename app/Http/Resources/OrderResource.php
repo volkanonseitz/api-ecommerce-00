@@ -33,8 +33,8 @@ class OrderResource extends JsonResource
             'note' => $this->note,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'products' => $this->whenLoaded('products', function() {
-                return $this->products->map(function($product) {
+            'products' => $this->whenLoaded('products', function () {
+                return $this->products->map(function ($product) {
                     return [
                         'id' => $product->id,
                         'name' => $product->name,
@@ -43,13 +43,13 @@ class OrderResource extends JsonResource
                             'unit_price' => $product->pivot->unit_price,
                             'subtotal' => $product->pivot->subtotal,
                             'variation_option_id' => $product->pivot->variation_option_id,
-                        ]
+                        ],
                     ];
                 });
             }),
             'children' => OrderResource::collection($this->whenLoaded('children')),
-            'shop' => $this->whenLoaded('shop', fn() => ['id' => $this->shop->id, 'name' => $this->shop->name]),
-            'customer' => $this->whenLoaded('customer', fn() => ['id' => $this->customer->id, 'name' => $this->customer->name]),
+            'shop' => $this->whenLoaded('shop', fn () => ['id' => $this->shop->id, 'name' => $this->shop->name]),
+            'customer' => $this->whenLoaded('customer', fn () => ['id' => $this->customer->id, 'name' => $this->customer->name]),
             'wallet_point' => $this->whenLoaded('wallet_point'),
             'payment_intent' => $this->whenLoaded('payment_intent'),
         ];

@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\StoreNotice;
 use App\DTO\StoreNoticeData;
+use App\Models\StoreNotice;
 
 class CreateStoreNoticeAction
 {
@@ -16,7 +16,7 @@ class CreateStoreNoticeAction
             'effective_from' => $data->effective_from,
             'expired_at' => $data->expired_at,
             'type' => $data->type,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return StoreNotice::create($attributes);
     }

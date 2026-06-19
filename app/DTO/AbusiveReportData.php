@@ -2,8 +2,6 @@
 
 namespace App\DTO;
 
-use App\enums\AbusiveReportTypes;
-
 class AbusiveReportData
 {
     public function __construct(
@@ -24,10 +22,10 @@ class AbusiveReportData
     }
 
     public function getModelClass(): string
-{
-    return AbusiveReportType::from($this->model_type)
-        ->modelClass();
-}
+    {
+        return AbusiveReportType::from($this->model_type)
+            ->modelClass();
+    }
 
     public function toArray(): array
     {

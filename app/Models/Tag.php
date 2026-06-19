@@ -10,8 +10,11 @@ use Illuminate\Support\Str;
 class Tag extends Model
 {
     protected $table = 'tags';
+
     protected $guarded = [];
+
     protected $casts = ['image' => 'json'];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -22,7 +25,7 @@ class Tag extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

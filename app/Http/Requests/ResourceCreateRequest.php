@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ResourceType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\ResourceType;
 
 class ResourceCreateRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {

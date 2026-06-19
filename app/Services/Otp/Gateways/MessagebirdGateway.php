@@ -20,10 +20,11 @@ class MessagebirdGateway implements OtpInterface
     public function startVerification(string $phoneNumber): Results
     {
         try {
-            $verify = new Verify();
+            $verify = new Verify;
             $verify->originator = config('services.messagebird.originator');
             $verify->recipient = $phoneNumber;
             $result = $this->client->verify->create($verify);
+
             return new Results($result->getId());
         } catch (\Exception $e) {
             return new Results(["Verification failed: {$e->getMessage()}"]);
@@ -34,6 +35,7 @@ class MessagebirdGateway implements OtpInterface
     {
         try {
             $this->client->verify->verify($id, $code);
+
             return new Results('success');
         } catch (\Exception $e) {
             return new Results(["Verification check failed: {$e->getMessage()}"]);

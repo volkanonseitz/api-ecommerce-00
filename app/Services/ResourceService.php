@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Resource;
 use App\DTO\ResourceData;
+use App\Models\Resource;
 use Illuminate\Support\Str;
 
 class ResourceService
@@ -18,6 +18,7 @@ class ResourceService
         if (is_numeric($params)) {
             return Resource::where('id', $params)->firstOrFail();
         }
+
         return Resource::where('slug', $params)->where('language', $language)->firstOrFail();
     }
 
@@ -33,7 +34,7 @@ class ResourceService
             'details' => $data->details,
             'language' => $data->language,
             'is_approved' => $data->is_approved ?? false,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return Resource::create($attributes);
     }
@@ -50,9 +51,10 @@ class ResourceService
             'details' => $data->details,
             'language' => $data->language,
             'is_approved' => $data->is_approved,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $resource->update($attributes);
+
         return $resource->fresh();
     }
 

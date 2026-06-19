@@ -20,7 +20,7 @@ enum ProductType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SIMPLE => 'Simple Product',
             self::VARIABLE => 'Variable Product',
         };

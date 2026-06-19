@@ -18,7 +18,7 @@ class PaymentIntentFactory extends Factory
             'order_id' => Order::factory(),
             'tracking_number' => fn (array $attrs) => Order::find($attrs['order_id'])?->tracking_number ?? Str::random(12),
             'payment_gateway' => $this->faker->randomElement(['stripe', 'paypal']),
-            'payment_intent_info' => json_encode(['intent_id' => 'pi_' . Str::random(24)]),
+            'payment_intent_info' => json_encode(['intent_id' => 'pi_'.Str::random(24)]),
         ];
     }
 }

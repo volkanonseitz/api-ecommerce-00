@@ -31,6 +31,6 @@ class FeedbackData
             'positive' => $this->positive,
             'negative' => $this->negative,
             'user_id' => $this->user_id,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

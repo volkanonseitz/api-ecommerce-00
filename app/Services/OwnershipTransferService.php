@@ -2,18 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\OwnershipTransfer;
-use App\Models\Order;
-use App\Models\Shop;
 use App\DTO\OwnershipTransferData;
-use App\Events\OwnershipTransferStatusControl;
-use App\Enums\Permission;
 use App\Enums\OrderStatus;
+use App\Enums\Permission;
+use App\Events\OwnershipTransferStatusControl;
+use App\Models\Order;
+use App\Models\OwnershipTransfer;
+use App\Models\Shop;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OwnershipTransferService
 {
@@ -22,12 +21,18 @@ class OwnershipTransferService
      */
     public function hasPermission(?Authenticatable $user, ?int $shopId = null): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
         if ($shopId) {
             $shop = Shop::find($shopId);
+
             return $shop && $shop->owner_id === $user->id;
         }
+
         return false;
     }
 
@@ -43,6 +48,7 @@ class OwnershipTransferService
             if ($request->type === 'from') {
                 return OwnershipTransfer::where('from', $user->id);
             }
+
             return OwnershipTransfer::where('to', $user->id);
         }
         // selain super admin dan store owner tidak boleh akses
@@ -79,7 +85,7 @@ class OwnershipTransferService
      */
     public function updateTransferStatus(int $id, string $status, Authenticatable $user): OwnershipTransfer
     {
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new \Exception(config('constants.NOT_AUTHORIZED'));
         }
 
@@ -113,7 +119,7 @@ class OwnershipTransferService
             ])->count();
 
         $currentBalance = $shop->balance?->current_balance ?? 0;
-        $pendingWithdrawals = $shop->withdraws->filter(fn($w) => $w->status !== 'approved')->count();
+        $pendingWithdrawals = $shop->withdraws->filter(fn ($w) => $w->status !== 'approved')->count();
 
         if ($incompleteOrders > 0 || $currentBalance > 1.00 || $pendingWithdrawals > 0) {
             throw new \Exception(config('constants.COULD_NOT_SETTLE_THE_TRANSITION'));
@@ -126,7 +132,7 @@ class OwnershipTransferService
     public function deleteTransfer(int $id, Authenticatable $user): void
     {
         $transfer = OwnershipTransfer::findOrFail($id);
-        if (!$this->hasPermission($user, $transfer->shop_id)) {
+        if (! $this->hasPermission($user, $transfer->shop_id)) {
             throw new \Exception(config('constants.NOT_AUTHORIZED'));
         }
         $transfer->delete();
@@ -145,13 +151,13 @@ class OwnershipTransferService
             ->toArray();
 
         return [
-            'pending'        => $query[OrderStatus::PENDING->value] ?? 0,
-            'processing'     => $query[OrderStatus::PROCESSING->value] ?? 0,
-            'complete'       => $query[OrderStatus::COMPLETED->value] ?? 0,
-            'cancelled'      => $query[OrderStatus::CANCELLED->value] ?? 0,
-            'refunded'       => $query[OrderStatus::REFUNDED->value] ?? 0,
-            'failed'         => $query[OrderStatus::FAILED->value] ?? 0,
-            'localFacility'  => $query[OrderStatus::AT_LOCAL_FACILITY->value] ?? 0,
+            'pending' => $query[OrderStatus::PENDING->value] ?? 0,
+            'processing' => $query[OrderStatus::PROCESSING->value] ?? 0,
+            'complete' => $query[OrderStatus::COMPLETED->value] ?? 0,
+            'cancelled' => $query[OrderStatus::CANCELLED->value] ?? 0,
+            'refunded' => $query[OrderStatus::REFUNDED->value] ?? 0,
+            'failed' => $query[OrderStatus::FAILED->value] ?? 0,
+            'localFacility' => $query[OrderStatus::AT_LOCAL_FACILITY->value] ?? 0,
             'outForDelivery' => $query[OrderStatus::OUT_FOR_DELIVERY->value] ?? 0,
         ];
     }

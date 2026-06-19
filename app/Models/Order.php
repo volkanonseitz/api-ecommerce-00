@@ -3,17 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
     use SoftDeletes;
 
     protected $table = 'orders';
+
     protected $guarded = [];
+
     protected $casts = [
         'shipping_address' => 'json',
         'billing_address' => 'json',
@@ -23,7 +25,7 @@ class Order extends Model
     protected static function boot()
     {
         parent::boot();
-        static::addGlobalScope('order', fn($q) => $q->orderBy('created_at', 'desc'));
+        static::addGlobalScope('order', fn ($q) => $q->orderBy('created_at', 'desc'));
     }
 
     public function products(): BelongsToMany

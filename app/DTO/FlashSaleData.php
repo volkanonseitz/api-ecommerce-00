@@ -52,6 +52,6 @@ class FlashSaleData
             'type' => $this->type,
             'sale_status' => $this->sale_status,
             'sale_builder' => $this->sale_builder,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

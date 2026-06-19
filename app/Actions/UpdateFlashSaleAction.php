@@ -2,9 +2,9 @@
 
 namespace App\Actions;
 
+use App\DTO\FlashSaleData;
 use App\Models\FlashSale;
 use App\Models\Product;
-use App\DTO\FlashSaleData;
 
 class UpdateFlashSaleAction
 {
@@ -13,16 +13,17 @@ class UpdateFlashSaleAction
         $oldProductIds = $flashSale->sale_builder['product_ids'] ?? [];
         $newProductIds = $data->sale_builder['product_ids'] ?? [];
 
-        if (!empty($newProductIds)) {
+        if (! empty($newProductIds)) {
             $flashSale->products()->sync($newProductIds);
             $this->setProductInFlashSale($newProductIds);
             $removedIds = array_diff($oldProductIds, $newProductIds);
-            if (!empty($removedIds)) {
+            if (! empty($removedIds)) {
                 $this->unsetProductFromFlashSale($removedIds);
             }
         }
 
         $flashSale->update($data->toArray());
+
         return $flashSale->fresh();
     }
 

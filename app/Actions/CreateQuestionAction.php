@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Question;
 use App\DTO\QuestionData;
+use App\Models\Question;
 
 class CreateQuestionAction
 {

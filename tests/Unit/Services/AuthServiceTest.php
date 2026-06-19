@@ -2,14 +2,17 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
+use App\Actions\CreateUserAction;
+use App\Actions\UpdateUserAction;
+use App\DTO\UserData;
+use App\Enums\Permission;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\UserService;
 use App\Services\WalletService;
-use App\Models\User;
-use App\Models\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 class AuthServiceTest extends TestCase
 {
@@ -21,8 +24,8 @@ class AuthServiceTest extends TestCase
     {
         parent::setUp();
         $this->authService = new AuthService(
-            new UserService(new \App\Actions\CreateUserAction(), new \App\Actions\UpdateUserAction(), new WalletService()),
-            new WalletService()
+            new UserService(new CreateUserAction, new UpdateUserAction, new WalletService),
+            new WalletService
         );
     }
 
@@ -51,7 +54,7 @@ class AuthServiceTest extends TestCase
 
     public function test_register_creates_user_with_customer_permission()
     {
-        $data = \App\DTO\UserData::fromRequest([
+        $data = UserData::fromRequest([
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'password',
@@ -59,6 +62,6 @@ class AuthServiceTest extends TestCase
         $result = $this->authService->register($data, false);
         $this->assertArrayHasKey('token', $result);
         $user = User::where('email', 'john@example.com')->first();
-        $this->assertTrue($user->hasPermissionTo(\App\Enums\Permission::CUSTOMER->value));
+        $this->assertTrue($user->hasPermissionTo(Permission::CUSTOMER->value));
     }
 }

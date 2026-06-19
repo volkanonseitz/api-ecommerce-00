@@ -20,7 +20,7 @@ enum FlashSaleType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::FIXED_RATE => 'Fixed Rate',
             self::PERCENTAGE => 'Percentage',
         };

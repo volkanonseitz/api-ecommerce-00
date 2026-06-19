@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\DTO\AbusiveReportData;
-use App\Models\AbusiveReport;
 use App\Enums\AbusiveReportTypes;
+use App\Models\AbusiveReport;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 

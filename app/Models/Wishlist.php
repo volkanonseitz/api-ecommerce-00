@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Wishlist extends Model
 {
     protected $table = 'wishlists';
+
     protected $guarded = [];
 
     public function product(): BelongsTo

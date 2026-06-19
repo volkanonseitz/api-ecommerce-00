@@ -361,8 +361,8 @@ class ProductService
         if (! $product->is_rental) {
             // throw new \Exception(config('notice.NOT_A_RENTAL_PRODUCT'));
             throw ValidationException::withMessages([
-    'product_id' => [config('notice.NOT_A_RENTAL_PRODUCT')]
-]);
+                'product_id' => [config('notice.NOT_A_RENTAL_PRODUCT')],
+            ]);
         }
 
         $from = Carbon::parse($request->from);

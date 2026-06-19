@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Attribute;
 use App\DTO\AttributeData;
+use App\Models\Attribute;
 use Illuminate\Support\Str;
 
 class CreateAttributeAction
@@ -15,7 +15,7 @@ class CreateAttributeAction
             'slug' => $data->slug ?? Str::slug($data->name),
             'shop_id' => $data->shop_id,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $attribute = Attribute::create($attributes);
 

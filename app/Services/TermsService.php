@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\TermsAndConditions;
-use App\Models\Shop;
 use App\DTO\TermsData;
 use App\Enums\Permission;
+use App\Models\Shop;
+use App\Models\TermsAndConditions;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -13,12 +13,20 @@ class TermsService
 {
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
 
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
@@ -26,6 +34,7 @@ class TermsService
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -42,6 +51,7 @@ class TermsService
             if ($request->shop_id && $this->hasPermission($user, $request->shop_id)) {
                 return $query->where('shop_id', $request->shop_id);
             }
+
             return $query->whereIn('shop_id', $user->shops->pluck('id'));
         }
 
@@ -49,6 +59,7 @@ class TermsService
             if ($request->shop_id && $this->hasPermission($user, $request->shop_id)) {
                 return $query->where('shop_id', $request->shop_id);
             }
+
             return $query->where('shop_id', $user->shop_id);
         }
 
@@ -56,6 +67,7 @@ class TermsService
         if ($request->shop_id) {
             return $query->where('shop_id', $request->shop_id)->where('is_approved', true);
         }
+
         return $query->where('is_approved', true);
     }
 
@@ -82,6 +94,7 @@ class TermsService
     public function update(TermsAndConditions $term, array $data): TermsAndConditions
     {
         $term->update($data);
+
         return $term->fresh();
     }
 

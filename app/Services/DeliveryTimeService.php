@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\DeliveryTime;
 use App\DTO\DeliveryTimeData;
+use App\Models\DeliveryTime;
 use Illuminate\Support\Str;
 
 class DeliveryTimeService
@@ -18,6 +18,7 @@ class DeliveryTimeService
         if (is_numeric($params)) {
             return DeliveryTime::where('id', $params)->where('language', $language)->firstOrFail();
         }
+
         return DeliveryTime::where('slug', $params)->where('language', $language)->firstOrFail();
     }
 
@@ -29,7 +30,7 @@ class DeliveryTimeService
             'language' => $data->language,
             'description' => $data->description,
             'icon' => $data->icon,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return DeliveryTime::create($attributes);
     }
@@ -42,9 +43,10 @@ class DeliveryTimeService
             'language' => $data->language,
             'description' => $data->description,
             'icon' => $data->icon,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $deliveryTime->update($attributes);
+
         return $deliveryTime->fresh();
     }
 

@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Faqs;
-use App\Models\Shop;
-use App\DTO\FaqsData;
 use App\Actions\CreateFaqsAction;
 use App\Actions\UpdateFaqsAction;
+use App\DTO\FaqsData;
 use App\Enums\Permission;
+use App\Models\Faqs;
+use App\Models\Shop;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -20,17 +20,26 @@ class FaqsService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
         }
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -39,10 +48,11 @@ class FaqsService
         $language = $request->language ?? config('shop.default_language', 'id');
         $query = Faqs::with('shop')->where('language', $language);
 
-        if (!$user) {
+        if (! $user) {
             if ($request->shop_id) {
                 $query->where('shop_id', $request->shop_id);
             }
+
             return $query;
         }
 
@@ -54,6 +64,7 @@ class FaqsService
             if ($request->shop_id && $this->hasPermission($user, $request->shop_id)) {
                 return $query->where('shop_id', $request->shop_id);
             }
+
             return $query->where('user_id', $user->id)->whereIn('shop_id', $user->shops->pluck('id'));
         }
 
@@ -61,6 +72,7 @@ class FaqsService
             if ($request->shop_id) {
                 return $query->where('shop_id', $request->shop_id);
             }
+
             return $query->where('shop_id', $user->shop_id);
         }
 

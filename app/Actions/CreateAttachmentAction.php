@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Attachment;
 use App\DTO\AttachmentData;
+use App\Models\Attachment;
 
 class CreateAttachmentAction
 {
@@ -26,6 +26,7 @@ class CreateAttachmentAction
                 ];
             }
         }
+
         return $results;
     }
 }

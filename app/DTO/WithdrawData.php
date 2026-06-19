@@ -34,6 +34,6 @@ class WithdrawData
             'details' => $this->details,
             'note' => $this->note,
             'status' => $this->status,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

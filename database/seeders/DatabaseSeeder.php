@@ -36,8 +36,6 @@ use App\Models\Profile;
 use App\Models\Provider;
 use App\Models\Question;
 use App\Models\Refund;
-use App\Models\RefundPolicy;
-use App\Models\RefundReason;
 use App\Models\Resource;
 use App\Models\Review;
 use App\Models\Settings;
@@ -69,7 +67,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 1. DATA DASAR (tanpa foreign key atau hanya self-reference)
         // ============================================================
-        
+
         // Language (jika translation diaktifkan)
         if (env('TRANSLATION_ENABLED', false)) {
             Language::factory(3)->create();
@@ -110,7 +108,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 2. USER & SHOP
         // ============================================================
-        
+
         // Admin user (untuk keperluan akses)
         $admin = User::factory()->create([
             'name' => 'Admin User',
@@ -147,7 +145,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 3. PRODUK DAN RELASINYA
         // ============================================================
-        
+
         Author::factory(10)->create();
         Manufacturer::factory(8)->create();
 
@@ -164,35 +162,35 @@ class DatabaseSeeder extends Seeder
                 ->withAuthor(Author::inRandomOrder()->first())
                 ->withManufacturer(Manufacturer::inRandomOrder()->first())
                 ->create();
-            
+
             foreach ($productsForShop as $product) {
                 // Attach categories
                 $categories = Category::inRandomOrder()->limit(rand(1, 3))->get();
                 $product->categories()->attach($categories);
-                
+
                 // Attach tags
                 $tags = Tag::inRandomOrder()->limit(rand(2, 5))->get();
                 $product->tags()->attach($tags);
-                
+
                 // Attach attribute values
                 $attrValues = AttributeValue::inRandomOrder()->limit(rand(1, 4))->get();
                 $product->variations()->attach($attrValues);
-                
+
                 // Digital file jika digital
                 if ($product->is_digital) {
                     DigitalFile::factory()->forProduct($product->id)->create();
                 }
-                
+
                 // Variation options jika variable
                 if ($product->product_type == 'variable') {
                     Variation::factory(rand(2, 5))->create(['product_id' => $product->id]);
                 }
-                
+
                 // Availabilities jika rental
                 if ($product->product_type == 'rental') {
                     Availability::factory(3)->forProduct($product)->create();
                 }
-                
+
                 // Hubungan dengan resources
                 $dropoff = Resource::where('type', 'dropoff')->inRandomOrder()->first();
                 if ($dropoff) {
@@ -215,7 +213,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 4. ORDER & PEMBAYARAN
         // ============================================================
-        
+
         $orders = collect();
         foreach ($users as $user) {
             $orderCount = rand(0, 5);
@@ -225,7 +223,7 @@ class DatabaseSeeder extends Seeder
                     ->for($user, 'customer')
                     ->for($shop)
                     ->create();
-                
+
                 $shopProducts = $products->where('shop_id', $shop->id)->random(min(3, $products->count()));
                 $total = 0;
                 foreach ($shopProducts as $product) {
@@ -244,13 +242,13 @@ class DatabaseSeeder extends Seeder
                     'total' => $total,
                     'paid_total' => $total,
                 ]);
-                
+
                 PaymentIntent::factory()->for($order)->create();
-                
+
                 if ($order->order_status == 'completed' && rand(0, 2) == 1) {
                     Refund::factory()->for($order)->create();
                 }
-                
+
                 $orders->push($order);
             }
         }
@@ -268,25 +266,25 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 6. KOMUNIKASI & NOTIFIKASI
         // ============================================================
-        
+
         foreach ($shops->random(5) as $shop) {
             $conversation = Conversation::factory()
                 ->for($shop)
                 ->for($users->random(), 'user')
                 ->create();
-            
+
             Message::factory(rand(3, 10))
                 ->for($conversation)
                 ->for($users->random(), 'user')
                 ->create();
         }
-        
+
         NotifyLogs::factory(30)->create();
-        
+
         // ============================================================
         // 7. REVIEW & FEEDBACK
         // ============================================================
-        
+
         foreach ($products->random(min(30, $products->count())) as $product) {
             $order = $orders->where('shop_id', $product->shop_id)->first();
             if ($order) {
@@ -296,11 +294,11 @@ class DatabaseSeeder extends Seeder
                     ->for($product->shop)
                     ->for($product)
                     ->create(['rating' => rand(3, 5)]);
-                
+
                 Feedback::factory()->for($review, 'model')->create();
             }
         }
-        
+
         foreach ($products->random(20) as $product) {
             Question::factory()
                 ->for($product)
@@ -308,7 +306,7 @@ class DatabaseSeeder extends Seeder
                 ->for($users->random(), 'user')
                 ->create();
         }
-        
+
         foreach ($users as $user) {
             $randomProducts = $products->random(rand(1, 5));
             foreach ($randomProducts as $product) {
@@ -318,11 +316,11 @@ class DatabaseSeeder extends Seeder
                     ->create();
             }
         }
-        
+
         // ============================================================
         // 8. FLASH SALE & COUPON
         // ============================================================
-        
+
         $flashSale = FlashSale::factory()->active()->create();
         $flashSaleProducts = $products->random(5);
         foreach ($flashSaleProducts as $product) {
@@ -331,7 +329,7 @@ class DatabaseSeeder extends Seeder
                 'product_id' => $product->id,
             ]);
         }
-        
+
         $flashSaleRequest = FlashSaleRequest::factory()
             ->for($flashSale)
             ->create();
@@ -341,16 +339,16 @@ class DatabaseSeeder extends Seeder
                 'product_id' => $product->id,
             ]);
         }
-        
+
         Coupon::factory(10)->create(['shop_id' => null]);
         foreach ($shops as $shop) {
             Coupon::factory(3)->forShop($shop)->create();
         }
-        
+
         // ============================================================
         // 9. STORE NOTICES
         // ============================================================
-        
+
         $storeNotices = StoreNotice::factory(5)->create();
         foreach ($storeNotices as $notice) {
             $notice->users()->attach($users->random(3));
@@ -363,15 +361,15 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-        
+
         // ============================================================
         // 10. WITHDRAW & OWNERSHIP TRANSFER
         // ============================================================
-        
+
         foreach ($shops as $shop) {
             Withdraw::factory(rand(0, 3))->for($shop)->create();
         }
-        
+
         foreach ($shops->random(3) as $shop) {
             OwnershipTransfer::factory()
                 ->for($shop)
@@ -380,65 +378,65 @@ class DatabaseSeeder extends Seeder
                     'to' => $users->whereNotIn('id', $shop->owner_id)->random()->id,
                 ]);
         }
-        
+
         // ============================================================
         // 11. FAQ, TERMS & CONDITIONS, BANNERS
         // ============================================================
-        
+
         Faqs::factory(5)->create();
         foreach ($shops->random(3) as $shop) {
             Faqs::factory(2)->forShop($shop)->create();
         }
-        
+
         TermsAndConditions::factory(3)->approved()->create();
         foreach ($shops->random(2) as $shop) {
             TermsAndConditions::factory(1)->forShop($shop)->create();
         }
-        
+
         foreach (Type::all() as $type) {
             Banner::factory(2)->for($type)->create();
         }
-        
+
         // ============================================================
         // 12. COMMISSION & ADDRESS
         // ============================================================
-        
+
         Commission::factory(4)->create();
-        
+
         foreach ($users as $user) {
             Address::factory(rand(1, 3))->for($user, 'customer')->create();
         }
-        
+
         // ============================================================
         // 13. PROVIDER, PAYMENT GATEWAY & METHOD
         // ============================================================
-        
+
         Provider::factory(5)->create();
-        
+
         foreach ($users->random(5) as $user) {
             $gateway = PaymentGateway::factory()->for($user)->create();
             PaymentMethod::factory(rand(1, 2))->for($gateway)->create();
         }
-        
+
         // ============================================================
         // 14. WALLET
         // ============================================================
-        
+
         foreach ($users as $user) {
             Wallet::factory()->for($user, 'customer')->create();
         }
-        
+
         // ============================================================
         // 15. DIGITAL FILES & ORDERED FILES
         // ============================================================
-        
+
         $digitalProducts = Product::where('is_digital', true)->get();
         foreach ($digitalProducts as $product) {
             $digitalFile = DigitalFile::where('fileable_type', 'App\Models\Product')
                 ->where('fileable_id', $product->id)
                 ->first();
             if ($digitalFile) {
-                $ordersWithProduct = Order::whereHas('products', fn($q) => $q->where('product_id', $product->id))->get();
+                $ordersWithProduct = Order::whereHas('products', fn ($q) => $q->where('product_id', $product->id))->get();
                 foreach ($ordersWithProduct as $order) {
                     OrderedFile::factory()->create([
                         'digital_file_id' => $digitalFile->id,
@@ -448,12 +446,12 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
-        
+
         DownloadToken::factory(20)->create();
-        
+
         // Aktifkan kembali foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        
+
         $this->command->info('Database seeding completed successfully!');
     }
 }

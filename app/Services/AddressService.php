@@ -2,58 +2,58 @@
 
 namespace App\Services;
 
-use App\Models\Address;
 use App\DTO\AddressData;
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\Address;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class AddressService
 {
-    /**
-     * Ambil semua address dengan relasi customer
-     */
-    public function getAll()
-    {
-        return Address::with('customer')->get();
+    public function getUserAddresses(
+        User $user,
+        int $perPage = 15
+    ): LengthAwarePaginator {
+        return Address::query()
+            ->where('customer_id', $user->id)
+            ->latest()
+            ->paginate($perPage);
     }
 
-    /**
-     * Find address by id
-     */
-    public function findOrFail(int $id): Address
+    public function create(User $user, AddressData $data): Address
     {
-        return Address::with('customer')->findOrFail($id);
+        return DB::transaction(function () use ($user, $data) {
+
+            if ($data->default) {
+                Address::where('customer_id', $user->id)
+                    ->update(['default' => false]);
+            }
+
+            return Address::create([
+                ...$data->toArray(),
+                'customer_id' => $user->id,
+            ]);
+        });
     }
 
-    /**
-     * Create address
-     */
-    public function create(AddressData $data): Address
-    {
-        return Address::create($data->toArray());
-    }
-
-    /**
-     * Update address
-     */
     public function update(Address $address, AddressData $data): Address
     {
-        $address->update($data->toArray());
-        return $address->fresh();
+        return DB::transaction(function () use ($address, $data) {
+
+            if ($data->default) {
+                Address::where('customer_id', $address->customer_id)
+                    ->where('id', '!=', $address->id)
+                    ->update(['default' => false]);
+            }
+
+            $address->update($data->toArray());
+
+            return $address->fresh();
+        });
     }
 
-    /**
-     * Delete address (dengan permission check)
-     */
-    public function delete(Address $address, Authenticatable $user): bool
+    public function delete(Address $address): bool
     {
-        // Super admin bisa hapus semua
-        if ($user->hasPermissionTo('super_admin')) {
-            return $address->delete();
-        }
-        // Customer hanya bisa hapus milik sendiri
-        if ($address->customer_id == $user->id) {
-            return $address->delete();
-        }
-        return false;
+        return $address->delete();
     }
 }

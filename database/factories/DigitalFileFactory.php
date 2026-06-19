@@ -17,7 +17,7 @@ class DigitalFileFactory extends Factory
         return [
             'attachment_id' => 1, // asumsi attachment id
             'url' => $this->faker->url(),
-            'file_name' => $this->faker->word() . '.pdf',
+            'file_name' => $this->faker->word().'.pdf',
             'fileable_type' => 'App\Models\Product',
             'fileable_id' => Product::factory(),
         ];

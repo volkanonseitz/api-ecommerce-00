@@ -37,6 +37,6 @@ class NotifyLogData
             'is_read' => $this->is_read,
             'notify_text' => $this->notify_text,
             'notify_tracker' => $this->notify_tracker,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }
