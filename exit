@@ -1,0 +1,18 @@
+* [33mb0e1fe4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Refactor migration files to improve import statements and code consistency
+* [33mc906c82[m chore: Add PHPStan configuration for static analysis
+[31m|[m * [33m9e7e16c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #3 from volkanonseitz/staging
+[31m|[m[31m/[m[33m|[m 
+[31m|[m * [33me880140[m[33m ([m[1;31morigin/staging[m[33m, [m[1;32mstaging[m[33m)[m Refactor AuthServiceTest and PasswordServiceTest; add new actions for refund policies and shipping; create DTOs and requests for abusive reports, products, and authors; implement OTP services with Messagebird and Twilio gateways; add resources for FAQs, flash sale vendors, and refund reasons; introduce AddressPolicy and base AI provider; configure PHPStan for static analysis.
+* [33m|[m [33m5dd3516[m Merge pull request #2 from volkanonseitz/staging
+[34m|[m[33m\[m[33m|[m 
+[34m|[m * [33mc04bd35[m Refactor abusive report handling and enhance user login security
+[34m|[m * [33m3f60416[m Refactor controllers to extend BaseController and implement consistent response handling
+[34m|[m[34m/[m  
+* [33mf7466bd[m feat: Enhance login security with throttling, account locking, and additional user fields
+* [33m414a69c[m Add factories for various models to streamline testing and seeding
+* [33m490c232[m Refactor code structure and remove redundant changes
+* [33m2d6e1ce[m feat: Refactor SettingsService and update app middleware configuration
+* [33mcdea85a[m feat: Add request and resource classes for Flash Sale, Shipping, and Withdraw functionalities
+* [33m7d2f407[m feat: Implement wishlist functionality and address management
+* [33m82bae2b[m feat: Add models and services for FAQs, Flash Sales, Messages, Participants, Payment Gateways, and Refund Policies
+* [33ma2242db[m feat: Add request validation and resource classes for questions, reviews, and coupons
