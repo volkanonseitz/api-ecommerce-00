@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Question;
-use App\Models\Settings;
-use App\DTO\QuestionData;
 use App\Actions\CreateQuestionAction;
 use App\Actions\UpdateQuestionAction;
-use App\Events\QuestionAnswered;
+use App\DTO\QuestionData;
 use App\Enums\Permission;
+use App\Events\QuestionAnswered;
+use App\Models\Question;
+use App\Models\Settings;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -25,12 +25,20 @@ class QuestionService
      */
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
 
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
@@ -38,6 +46,7 @@ class QuestionService
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -48,6 +57,7 @@ class QuestionService
         $productId = $request->input('product_id');
         if ($productId) {
             $query->where('product_id', $productId)->whereNotNull('answer');
+
             return $query;
         }
 
@@ -80,6 +90,7 @@ class QuestionService
     public function getMaximumQuestionLimit(): int
     {
         $settings = Settings::getData();
+
         return $settings->options['maximumQuestionLimit'] ?? 5;
     }
 
@@ -91,9 +102,10 @@ class QuestionService
     public function updateQuestion(Question $question, QuestionData $data): Question
     {
         $updated = $this->updateQuestion->execute($question, $data);
-        if (!empty($updated->answer)) {
+        if (! empty($updated->answer)) {
             event(new QuestionAnswered($updated));
         }
+
         return $updated;
     }
 

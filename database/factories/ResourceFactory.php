@@ -6,7 +6,7 @@ use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Resource>
+ * @extends Factory<resource>
  */
 class ResourceFactory extends Factory
 {
@@ -15,6 +15,7 @@ class ResourceFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->word();
+
         return [
             'name' => $name,
             'slug' => null,

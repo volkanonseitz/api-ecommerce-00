@@ -2,18 +2,21 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CouponType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\CouponType;
 
 class CouponCreateRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
         $language = $this->language ?? config('shop.default_language', 'id');
-        $amountRules = ($this->type === 'percentage') 
+        $amountRules = ($this->type === 'percentage')
             ? ['required', 'numeric', 'min:0', 'max:100']
             : ['required', 'numeric', 'min:0'];
 

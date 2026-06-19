@@ -40,6 +40,6 @@ class FaqsData
             'shop_id' => $this->shop_id,
             'faq_type' => $this->faq_type,
             'issued_by' => $this->issued_by,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

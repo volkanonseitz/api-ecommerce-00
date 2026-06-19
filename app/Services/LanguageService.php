@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Language;
 use App\DTO\LanguageData;
+use App\Models\Language;
 
 class LanguageService
 {
@@ -33,6 +33,7 @@ class LanguageService
             'language_code' => $data->language_code,
             'flag' => $data->flag,
         ]);
+
         return $language->fresh();
     }
 

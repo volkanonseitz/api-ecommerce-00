@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Withdraw extends Model
 {
     use SoftDeletes;
+
     protected $table = 'withdraws';
+
     protected $guarded = [];
 
     public function shop(): BelongsTo

@@ -25,6 +25,7 @@ class TaxService
     {
         $tax = Tax::findOrFail($id);
         $tax->update($data);
+
         return $tax->fresh();
     }
 

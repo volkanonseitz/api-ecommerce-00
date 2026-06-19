@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use App\Enums\StoreNoticePriority;
 use App\Enums\StoreNoticeType;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreNoticeUpdateRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -23,7 +26,7 @@ class StoreNoticeUpdateRequest extends FormRequest
             'effective_from' => ['nullable', 'date'],
             'expired_at' => ['required', 'date', 'after:effective_from'],
             'type' => ['required', 'string', Rule::in($typeValues)],
-            'received_by' => ['nullable', 'array', 'required_if:type,' . StoreNoticeType::SPECIFIC_VENDOR->value . ',' . StoreNoticeType::SPECIFIC_SHOP->value],
+            'received_by' => ['nullable', 'array', 'required_if:type,'.StoreNoticeType::SPECIFIC_VENDOR->value.','.StoreNoticeType::SPECIFIC_SHOP->value],
             'received_by.*' => ['nullable', 'integer'],
         ];
     }

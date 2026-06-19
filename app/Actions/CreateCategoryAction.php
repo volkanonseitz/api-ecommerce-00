@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Category;
 use App\DTO\CategoryData;
+use App\Models\Category;
 use Illuminate\Support\Str;
 
 class CreateCategoryAction
@@ -20,7 +20,7 @@ class CreateCategoryAction
             'banner_image' => $data->banner_image,
             'language' => $data->language,
             'parent' => $data->parent,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return Category::create($attributes);
     }

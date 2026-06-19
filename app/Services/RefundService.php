@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Refund;
-use App\Models\Order;
-use App\Models\Balance;
-use App\Models\Wallet;
 use App\DTO\RefundData;
 use App\Enums\Permission;
 use App\Enums\RefundStatus;
+use App\Models\Balance;
+use App\Models\Order;
+use App\Models\Refund;
+use App\Models\Wallet;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -18,27 +18,37 @@ class RefundService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId = null): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
         if ($shopId) {
             $shop = Shop::find($shopId);
+
             return $shop && $shop->owner_id === $user->id;
         }
+
         return false;
     }
 
     public function getRefundsQuery(Request $request, Authenticatable $user)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        $query = Refund::whereHas('order', fn($q) => $q->where('language', $language));
+        $query = Refund::whereHas('order', fn ($q) => $q->where('language', $language));
 
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            if (!$request->shop_id) return $query->whereNull('shop_id');
+            if (! $request->shop_id) {
+                return $query->whereNull('shop_id');
+            }
+
             return $query->where('shop_id', $request->shop_id);
         }
         if ($this->hasPermission($user, $request->shop_id)) {
             return $query->where('shop_id', $request->shop_id);
         }
+
         return $query->where('customer_id', $user->id)->whereNull('shop_id');
     }
 
@@ -53,6 +63,7 @@ class RefundService
         if ($refund->status === RefundStatus::APPROVED->value) {
             $this->processApprovedRefund($refund);
         }
+
         return $refund->fresh();
     }
 
@@ -76,5 +87,8 @@ class RefundService
         $wallet->save();
     }
 
-    public function deleteRefund(Refund $refund): void { $refund->delete(); }
+    public function deleteRefund(Refund $refund): void
+    {
+        $refund->delete();
+    }
 }

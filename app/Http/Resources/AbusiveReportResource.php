@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Enums\AbusiveReportTypes;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,11 +13,11 @@ class AbusiveReportResource extends JsonResource
             'id' => $this->id,
 
             'target' => [
-    'id' => $this->model_id,
-    'type' => AbusiveReportType::fromModelClass(
-        $this->model_type
-    ),
-],
+                'id' => $this->model_id,
+                'type' => AbusiveReportType::fromModelClass(
+                    $this->model_type
+                ),
+            ],
 
             'message' => $this->message,
 

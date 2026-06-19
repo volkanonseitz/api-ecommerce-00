@@ -2,20 +2,21 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Shop;
 use App\Enums\Permission;
 use App\Enums\Role;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 class UserManagementTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $admin;
+
     private User $vendor;
+
     private User $customer;
 
     protected function setUp(): void
@@ -45,7 +46,7 @@ class UserManagementTest extends TestCase
     public function test_admin_can_view_single_user()
     {
         Sanctum::actingAs($this->admin);
-        $response = $this->getJson('/api/users/' . $this->customer->id);
+        $response = $this->getJson('/api/users/'.$this->customer->id);
         $response->assertStatus(200);
         $response->assertJson(['id' => $this->customer->id]);
     }
@@ -53,7 +54,7 @@ class UserManagementTest extends TestCase
     public function test_admin_can_update_user()
     {
         Sanctum::actingAs($this->admin);
-        $response = $this->putJson('/api/users/' . $this->customer->id, [
+        $response = $this->putJson('/api/users/'.$this->customer->id, [
             'name' => 'Updated Name',
         ]);
         $response->assertStatus(200);
@@ -63,7 +64,7 @@ class UserManagementTest extends TestCase
     public function test_user_can_update_own_profile()
     {
         Sanctum::actingAs($this->customer);
-        $response = $this->putJson('/api/users/' . $this->customer->id, [
+        $response = $this->putJson('/api/users/'.$this->customer->id, [
             'name' => 'My New Name',
         ]);
         $response->assertStatus(200);
@@ -74,7 +75,7 @@ class UserManagementTest extends TestCase
     {
         Sanctum::actingAs($this->customer);
         $other = User::factory()->create();
-        $response = $this->putJson('/api/users/' . $other->id, [
+        $response = $this->putJson('/api/users/'.$other->id, [
             'name' => 'Hacked',
         ]);
         $response->assertStatus(403);

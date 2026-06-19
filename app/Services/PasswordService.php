@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class PasswordService
 {
@@ -15,12 +15,12 @@ class PasswordService
     public function forgetPassword(string $email): array
     {
         $user = User::where('email', $email)->first();
-        if (!$user) {
+        if (! $user) {
             return ['success' => false, 'message' => config('notice.NOT_FOUND')];
         }
 
         $tokenData = DB::table('password_resets')->where('email', $email)->first();
-        if (!$tokenData) {
+        if (! $tokenData) {
             $token = Str::random(16);
             DB::table('password_resets')->insert([
                 'email' => $email,
@@ -41,9 +41,10 @@ class PasswordService
     public function verifyToken(string $email, string $token): array
     {
         $tokenData = DB::table('password_resets')->where('token', $token)->first();
-        if (!$tokenData || $tokenData->email !== $email) {
+        if (! $tokenData || $tokenData->email !== $email) {
             return ['success' => false, 'message' => config('notice.INVALID_TOKEN')];
         }
+
         return ['success' => true, 'message' => config('notice.TOKEN_IS_VALID')];
     }
 
@@ -54,12 +55,12 @@ class PasswordService
             ->where('token', $token)
             ->first();
 
-        if (!$tokenData) {
+        if (! $tokenData) {
             return ['success' => false, 'message' => config('notice.INVALID_TOKEN')];
         }
 
         $user = User::where('email', $email)->first();
-        if (!$user) {
+        if (! $user) {
             return ['success' => false, 'message' => config('notice.NOT_FOUND')];
         }
 
@@ -73,11 +74,12 @@ class PasswordService
 
     public function changePassword(User $user, string $oldPassword, string $newPassword): array
     {
-        if (!Hash::check($oldPassword, $user->password)) {
+        if (! Hash::check($oldPassword, $user->password)) {
             return ['success' => false, 'message' => config('notice.OLD_PASSWORD_INCORRECT')];
         }
         $user->password = Hash::make($newPassword);
         $user->save();
+
         return ['success' => true, 'message' => config('notice.PASSWORD_RESET_SUCCESSFUL')];
     }
 }

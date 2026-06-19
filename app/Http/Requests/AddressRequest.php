@@ -3,20 +3,39 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AddressRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return auth()->check();
+    }
 
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:255'],
-            'default' => ['nullable', 'boolean'],
+            'title' => ['required', 'string', 'max:100'],
+
+            'type' => [
+                'required',
+                'string',
+                Rule::in(['home', 'office', 'other']),
+            ],
+
+            'default' => ['sometimes', 'boolean'],
+
             'address' => ['required', 'array'],
-            'customer_id' => ['required', 'exists:users,id'],
+
+            'address.street' => ['required', 'string', 'max:255'],
+            'address.city' => ['required', 'string', 'max:100'],
+            'address.province' => ['required', 'string', 'max:100'],
+            'address.postal_code' => ['required', 'string', 'max:20'],
+            'address.country' => ['required', 'string', 'max:100'],
+
             'location' => ['nullable', 'array'],
+            'location.lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'location.lng' => ['nullable', 'numeric', 'between:-180,180'],
         ];
     }
 }

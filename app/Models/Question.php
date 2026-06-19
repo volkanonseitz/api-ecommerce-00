@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Question extends Model
 {
     use SoftDeletes;
 
     protected $table = 'questions';
+
     protected $guarded = [];
+
     protected $appends = [
         'positive_feedbacks_count',
         'negative_feedbacks_count',
@@ -54,6 +56,7 @@ class Question extends Model
         if (auth()->check()) {
             return $this->feedbacks()->where('user_id', auth()->id())->first();
         }
+
         return null;
     }
 

@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PaymentMethod extends Model
 {
     use SoftDeletes;
+
     protected $table = 'payment_methods';
+
     protected $guarded = [];
 
     public function paymentGateway(): BelongsTo

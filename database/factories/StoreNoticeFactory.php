@@ -15,6 +15,7 @@ class StoreNoticeFactory extends Factory
     public function definition(): array
     {
         $effectiveFrom = $this->faker->dateTimeBetween('-1 week', 'now');
+
         return [
             'priority' => StoreNoticePriority::LOW,
             'notice' => $this->faker->sentence(),

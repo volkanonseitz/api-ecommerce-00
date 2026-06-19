@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\RefundReason;
 use App\DTO\RefundReasonData;
+use App\Models\RefundReason;
 use Illuminate\Support\Str;
 
 class RefundReasonService
@@ -18,6 +18,7 @@ class RefundReasonService
         if (is_numeric($params)) {
             return RefundReason::where('id', $params)->firstOrFail();
         }
+
         return RefundReason::where('slug', $params)->where('language', $language)->firstOrFail();
     }
 
@@ -27,7 +28,7 @@ class RefundReasonService
             'name' => $data->name,
             'slug' => $data->slug ?? Str::slug($data->name),
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         return RefundReason::create($attributes);
     }
@@ -38,9 +39,10 @@ class RefundReasonService
             'name' => $data->name,
             'slug' => ($data->slug && $data->slug !== $reason->slug) ? $data->slug : ($data->name ? Str::slug($data->name) : null),
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $reason->update($attributes);
+
         return $reason->fresh();
     }
 

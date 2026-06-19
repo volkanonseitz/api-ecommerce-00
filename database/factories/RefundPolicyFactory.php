@@ -15,6 +15,7 @@ class RefundPolicyFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->unique()->sentence(4);
+
         return [
             'title' => $title,
             'slug' => null,
@@ -26,4 +27,3 @@ class RefundPolicyFactory extends Factory
         ];
     }
 }
-

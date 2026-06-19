@@ -23,8 +23,8 @@ class ShopResource extends JsonResource
             'notifications' => $this->notifications,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'balance' => $this->whenLoaded('balance', fn() => $this->balance),
-            'categories' => $this->whenLoaded('categories', fn() => CategoryResource::collection($this->categories)),
+            'balance' => $this->whenLoaded('balance', fn () => $this->balance),
+            'categories' => $this->whenLoaded('categories', fn () => CategoryResource::collection($this->categories)),
             'orders_count' => $this->whenCounted('orders'),
             'products_count' => $this->whenCounted('products'),
         ];

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AiService;
 use App\Http\Requests\AiDescriptionRequest;
+use App\Services\Ai\AiService;
 
 class AiController extends Controller
 {

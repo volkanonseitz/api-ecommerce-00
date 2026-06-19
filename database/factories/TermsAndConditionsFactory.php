@@ -15,6 +15,7 @@ class TermsAndConditionsFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->sentence();
+
         return [
             'user_id' => User::factory(),
             'shop_id' => null,

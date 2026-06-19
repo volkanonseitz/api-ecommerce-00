@@ -7,7 +7,9 @@ use InvalidArgumentException;
 class Results
 {
     private bool $valid;
+
     private array $errors;
+
     private string $id;
 
     public function __construct($value)

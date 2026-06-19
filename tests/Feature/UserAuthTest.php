@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
+use App\Enums\Permission;
 use App\Models\Settings;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 class UserAuthTest extends TestCase
 {
@@ -28,7 +29,7 @@ class UserAuthTest extends TestCase
 
         $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
         $user = User::where('email', 'test@example.com')->first();
-        $this->assertTrue($user->hasPermissionTo(\App\Enums\Permission::CUSTOMER->value));
+        $this->assertTrue($user->hasPermissionTo(Permission::CUSTOMER->value));
     }
 
     public function test_user_cannot_register_with_existing_email()
@@ -50,7 +51,7 @@ class UserAuthTest extends TestCase
             'password' => Hash::make('secret'),
             'is_active' => true,
         ]);
-        $user->givePermissionTo(\App\Enums\Permission::CUSTOMER->value);
+        $user->givePermissionTo(Permission::CUSTOMER->value);
 
         $response = $this->postJson('/api/token', [
             'email' => 'login@example.com',
@@ -87,7 +88,7 @@ class UserAuthTest extends TestCase
     {
         $user = User::factory()->create();
         $token = $user->createToken('test')->plainTextToken;
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/logout');
         $response->assertStatus(200);
         $this->assertCount(0, $user->tokens);

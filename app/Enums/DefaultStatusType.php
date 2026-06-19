@@ -22,7 +22,7 @@ enum DefaultStatusType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PROCESSING => 'Processing',
             self::APPROVED => 'Approved',
             self::PENDING => 'Pending',

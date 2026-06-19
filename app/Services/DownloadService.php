@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\OrderedFile;
-use App\Models\DownloadToken;
-use App\Models\User;
 use App\Models\DigitalFile;
+use App\Models\DownloadToken;
+use App\Models\OrderedFile;
+use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class DownloadService
@@ -50,11 +50,12 @@ class DownloadService
     public function getFileByToken(string $token): ?DigitalFile
     {
         $downloadToken = DownloadToken::with('file')->where('token', $token)->first();
-        if (!$downloadToken) {
+        if (! $downloadToken) {
             return null;
         }
         $digitalFile = $downloadToken->file;
         $downloadToken->delete();
+
         return $digitalFile;
     }
 

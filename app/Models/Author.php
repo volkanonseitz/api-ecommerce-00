@@ -30,7 +30,7 @@ class Author extends Model
     {
         static::creating(function (Author $author) {
 
-            if (!$author->slug && $author->name) {
+            if (! $author->slug && $author->name) {
                 $author->slug = static::generateUniqueSlug(
                     $author->name,
                     $author->language

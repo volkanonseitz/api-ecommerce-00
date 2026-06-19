@@ -4,7 +4,6 @@ namespace App\Events;
 
 use App\Models\StoreNotice;
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,7 +15,9 @@ class StoreNoticeEvent implements ShouldQueue
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public StoreNotice $storeNotice;
+
     public string $action;
+
     public User $actor;
 
     public function __construct(StoreNotice $storeNotice, string $action, User $actor)
@@ -29,7 +30,7 @@ class StoreNoticeEvent implements ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('store-notice.' . $this->storeNotice->id),
+            new PrivateChannel('store-notice.'.$this->storeNotice->id),
         ];
     }
 

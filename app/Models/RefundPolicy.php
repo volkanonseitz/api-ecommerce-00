@@ -13,7 +13,9 @@ class RefundPolicy extends Model
     use SoftDeletes;
 
     protected $table = 'refund_policies';
+
     protected $guarded = [];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -24,7 +26,7 @@ class RefundPolicy extends Model
                 $model->slug = Str::slug($model->title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });
@@ -33,7 +35,7 @@ class RefundPolicy extends Model
                 $model->slug = Str::slug($model->title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->where('id', '!=', $model->id)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

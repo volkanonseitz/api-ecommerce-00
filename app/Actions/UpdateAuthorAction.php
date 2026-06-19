@@ -21,7 +21,7 @@ class UpdateAuthorAction
             'cover_image' => $data->cover_image,
             'is_approved' => $data->is_approved,
             'language' => $data->language,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
 
         $author->update($attributes);
 

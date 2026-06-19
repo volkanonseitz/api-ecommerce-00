@@ -23,7 +23,7 @@ enum WithdrawStatus: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::APPROVED => 'Approved',
             self::PENDING => 'Pending',
             self::ON_HOLD => 'On Hold',

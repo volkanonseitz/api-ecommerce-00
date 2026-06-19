@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\CategoryProduct;
 use App\Models\Model;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CategoryProductFactory extends Factory
 {
-    protected $model = \App\Models\CategoryProduct::class;
+    protected $model = CategoryProduct::class;
 
     public function definition(): array
     {

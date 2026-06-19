@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\FaqsService;
+use App\DTO\FaqsData;
+use App\Enums\Permission;
 use App\Http\Requests\FaqsCreateRequest;
 use App\Http\Requests\FaqsUpdateRequest;
 use App\Http\Resources\FaqResource;
-use App\DTO\FaqsData;
 use App\Models\Faqs;
 use App\Models\Shop;
-use Illuminate\Http\Request;
+use App\Services\FaqsService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class FaqsController extends Controller
 {
@@ -21,6 +22,7 @@ class FaqsController extends Controller
         $limit = $request->limit ?? 10;
         $faqs = $this->faqsService->getFaqsQuery($request, $request->user())->paginate($limit);
         $data = FaqResource::collection($faqs)->response()->getData(true);
+
         return formatAPIResourcePaginate($data);
     }
 
@@ -29,7 +31,7 @@ class FaqsController extends Controller
         $user = $request->user();
         $shopId = $request->shop_id;
         // Untuk store, hanya super admin, store owner, staff yang punya permission di shop tertentu bisa
-        if (!$user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value) && !$this->faqsService->hasPermission($user, $shopId)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->faqsService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         // Tentukan faq_type dan issued_by
@@ -54,12 +56,14 @@ class FaqsController extends Controller
             issued_by: $issuedBy,
         );
         $faq = $this->faqsService->store($data);
+
         return new FaqResource($faq);
     }
 
     public function show($id)
     {
         $faq = $this->faqsService->findOrFail($id);
+
         return new FaqResource($faq);
     }
 
@@ -68,11 +72,12 @@ class FaqsController extends Controller
         $faq = Faqs::findOrFail($id);
         $user = $request->user();
         // Cek permission: hanya super admin atau pemilik shop atau staff dengan shop yang sama
-        if (!$user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value) && !$this->faqsService->hasPermission($user, $faq->shop_id)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->faqsService->hasPermission($user, $faq->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = FaqsData::fromRequest($request->validated(), $faq->user_id);
         $updated = $this->faqsService->update($faq, $data);
+
         return new FaqResource($updated);
     }
 
@@ -80,10 +85,11 @@ class FaqsController extends Controller
     {
         $faq = Faqs::findOrFail($id);
         $user = $request->user();
-        if (!$user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value) && !$this->faqsService->hasPermission($user, $faq->shop_id)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->faqsService->hasPermission($user, $faq->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $this->faqsService->delete($faq);
+
         return response()->json(['message' => 'FAQ deleted successfully']);
     }
 }

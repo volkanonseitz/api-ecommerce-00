@@ -18,7 +18,7 @@ use App\Models\Settings;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\AuthService;
-use App\Services\OtpService;
+use App\Services\Otp\OtpService;
 use App\Services\PasswordService;
 use App\Services\UserService;
 use App\Services\WalletService;

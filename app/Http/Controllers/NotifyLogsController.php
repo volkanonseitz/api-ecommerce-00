@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\NotifyLogsService;
+use App\Enums\Permission;
 use App\Http\Resources\NotifyLogResource;
 use App\Models\NotifyLogs;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\NotifyLogsService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class NotifyLogsController extends Controller
 {
@@ -19,11 +19,12 @@ class NotifyLogsController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $limit = $request->limit ?? 10;
         $logs = $this->notifyService->getNotifyLogsQuery($request, $user)->paginate($limit);
+
         return NotifyLogResource::collection($logs);
     }
 
@@ -33,6 +34,7 @@ class NotifyLogsController extends Controller
     public function show(Request $request, $id)
     {
         $log = $this->notifyService->findOrFail($id);
+
         return new NotifyLogResource($log);
     }
 
@@ -42,11 +44,12 @@ class NotifyLogsController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $log = NotifyLogs::findOrFail($id);
         $this->notifyService->deleteNotifyLog($log);
+
         return response()->json(['message' => 'Notify log deleted']);
     }
 
@@ -58,6 +61,7 @@ class NotifyLogsController extends Controller
         $request->validate(['id' => 'required|exists:notify_logs,id']);
         $log = NotifyLogs::findOrFail($request->id);
         $updated = $this->notifyService->markAsRead($log);
+
         return new NotifyLogResource($updated);
     }
 
@@ -69,9 +73,10 @@ class NotifyLogsController extends Controller
         $request->validate([
             'receiver' => 'required|exists:users,id',
             'notify_type' => 'nullable|string',
-            'set_all_read' => 'required|boolean'
+            'set_all_read' => 'required|boolean',
         ]);
         $logs = $this->notifyService->markAllAsRead($request->notify_type, $request->receiver);
+
         return NotifyLogResource::collection($logs);
     }
 }

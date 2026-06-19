@@ -15,6 +15,7 @@ class AttributeValueFactory extends Factory
     public function definition(): array
     {
         $value = $this->faker->unique()->word();
+
         return [
             'slug' => Str::slug($value),
             'attribute_id' => Attribute::factory(),

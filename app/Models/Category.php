@@ -11,11 +11,14 @@ use Illuminate\Support\Str;
 class Category extends Model
 {
     protected $table = 'categories';
+
     protected $guarded = [];
+
     protected $casts = [
         'image' => 'json',
         'banner_image' => 'json',
     ];
+
     protected $appends = ['parent_id'];
 
     // Auto slug
@@ -27,7 +30,7 @@ class Category extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

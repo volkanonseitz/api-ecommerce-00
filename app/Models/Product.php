@@ -3,21 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use App\Models\Order;
 
 class Product extends Model
 {
     use SoftDeletes;
 
     protected $table = 'products';
+
     protected $guarded = [];
+
     protected $casts = [
         'image' => 'json',
         'gallery' => 'json',
@@ -29,6 +30,7 @@ class Product extends Model
         'is_taxable' => 'boolean',
         'in_flash_sale' => 'boolean',
     ];
+
     protected $appends = [
         'ratings',
         'total_reviews',
@@ -37,7 +39,7 @@ class Product extends Model
         'in_wishlist',
         'blocked_dates',
         'translated_languages',
-        'sold'
+        'sold',
     ];
 
     // Helper untuk slug (akan diisi oleh service)
@@ -153,6 +155,7 @@ class Product extends Model
         if (auth()->user()) {
             return $this->reviews()->where('user_id', auth()->id())->get();
         }
+
         return null;
     }
 
@@ -161,6 +164,7 @@ class Product extends Model
         if (auth()->user()) {
             return $this->wishlists()->where('user_id', auth()->id())->exists();
         }
+
         return false;
     }
 
@@ -184,7 +188,7 @@ class Product extends Model
             ->sum('order_quantity');
     }
 
-        public function orders(): BelongsToMany
+    public function orders(): BelongsToMany
     {
         return $this->belongsToMany(Order::class, 'order_product')
             ->withPivot('order_quantity', 'unit_price', 'subtotal', 'variation_option_id')

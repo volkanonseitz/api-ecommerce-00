@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Message;
 use App\DTO\MessageData;
+use App\Models\Message;
 
 class CreateMessageAction
 {

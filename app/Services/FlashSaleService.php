@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\FlashSale;
-use App\Models\Product;
-use App\DTO\FlashSaleData;
 use App\Actions\CreateFlashSaleAction;
 use App\Actions\UpdateFlashSaleAction;
-use App\Events\FlashSaleProcessed;
+use App\DTO\FlashSaleData;
 use App\Enums\Permission;
+use App\Models\FlashSale;
+use App\Models\Product;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -21,7 +20,10 @@ class FlashSaleService
 
     public function hasPermission(?Authenticatable $user): bool
     {
-        if (!$user) return false;
+        if (! $user) {
+            return false;
+        }
+
         return $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
     }
 
@@ -72,6 +74,7 @@ class FlashSaleService
     public function getFlashSaleInfoByProductId(int $productId): array
     {
         $product = Product::find($productId);
+
         return $product ? $product->flash_sales->toArray() : [];
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\NotifyLogs;
-use App\DTO\NotifyLogData;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class NotifyLogsService
 {
@@ -18,6 +18,7 @@ class NotifyLogsService
         if ($request->filled('notify_type')) {
             $query->where('notify_type', $request->notify_type);
         }
+
         return $query;
     }
 
@@ -30,10 +31,11 @@ class NotifyLogsService
     {
         $log->is_read = true;
         $log->save();
+
         return $log;
     }
 
-    public function markAllAsRead(?string $notifyType, int $receiverId): \Illuminate\Support\Collection
+    public function markAllAsRead(?string $notifyType, int $receiverId): Collection
     {
         $query = NotifyLogs::where('receiver', $receiverId);
         if ($notifyType) {
@@ -44,6 +46,7 @@ class NotifyLogsService
             $log->is_read = true;
             $log->save();
         }
+
         return $logs;
     }
 

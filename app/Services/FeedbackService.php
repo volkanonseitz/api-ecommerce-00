@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Feedback;
 use App\DTO\FeedbackData;
+use App\Models\Feedback;
+use App\Models\Question;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Model;
 
 class FeedbackService
@@ -14,11 +16,11 @@ class FeedbackService
     private function resolveModelClass(string $type): string
     {
         $map = [
-            'Review'   => \App\Models\Review::class,
-            'Question' => \App\Models\Question::class,
+            'Review' => Review::class,
+            'Question' => Question::class,
         ];
 
-        return $map[$type] ?? 'App\\Models\\' . $type;
+        return $map[$type] ?? 'App\\Models\\'.$type;
     }
 
     /**
@@ -27,6 +29,7 @@ class FeedbackService
     public function findTargetModel(string $type, int $id): Model
     {
         $class = $this->resolveModelClass($type);
+
         return $class::findOrFail($id);
     }
 
@@ -55,6 +58,7 @@ class FeedbackService
             'positive' => $positive ? true : null,
             'negative' => $negative ? true : null,
         ]);
+
         return $feedback->fresh();
     }
 

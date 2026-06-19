@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Refund;
 use App\DTO\RefundData;
+use App\Models\Refund;
 
 class CreateRefundAction
 {

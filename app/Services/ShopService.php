@@ -2,21 +2,24 @@
 
 namespace App\Services;
 
-use App\Models\Shop;
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Balance;
-use App\Models\OwnershipTransfer;
-use App\DTO\ShopData;
 use App\Actions\CreateShopAction;
 use App\Actions\UpdateShopAction;
-use App\Enums\Permission;
+use App\DTO\ShopData;
 use App\Enums\DefaultStatusType;
-use App\Events\ShopMaintenance;
+use App\Enums\Permission;
+use App\Enums\Role;
 use App\Events\ProcessOwnershipTransition;
+use App\Events\ShopMaintenance;
+use App\Models\Balance;
+use App\Models\OwnershipTransfer;
+use App\Models\Product;
+use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request; // FIX: Import ditambahkan disini
+use Illuminate\Http\Request;
+
+ // FIX: Import ditambahkan disini
 
 class ShopService
 {
@@ -27,12 +30,20 @@ class ShopService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
 
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
@@ -40,6 +51,7 @@ class ShopService
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $shop->staffs->contains($user->id);
         }
+
         return false;
     }
 
@@ -61,6 +73,7 @@ class ShopService
         if (is_numeric($identifier)) {
             return $query->where('id', $identifier)->firstOrFail();
         }
+
         return $query->where('slug', $identifier)->firstOrFail();
     }
 
@@ -87,7 +100,7 @@ class ShopService
         Product::where('shop_id', $shop->id)->update(['status' => 'publish']);
 
         $balance = Balance::firstOrNew(['shop_id' => $shop->id]);
-        if (!$isCustomCommission) {
+        if (! $isCustomCommission) {
             $defaultRate = $shop->getCommissionRate($balance->total_earnings ?? 0);
             $balance->admin_commission_rate = $defaultRate;
         } else {
@@ -113,7 +126,8 @@ class ShopService
             'shop_id' => $shop->id,
         ]);
         $user->givePermissionTo(Permission::CUSTOMER->value, Permission::STAFF->value);
-        $user->assignRole(\App\Enums\Role::STAFF->value);
+        $user->assignRole(Role::STAFF->value);
+
         return $user;
     }
 
@@ -154,9 +168,11 @@ class ShopService
         $followed = $user->follow_shops()->pluck('id')->toArray();
         if (in_array($shopId, $followed)) {
             $user->follow_shops()->detach($shopId);
+
             return false;
         } else {
             $user->follow_shops()->attach($shopId);
+
             return true;
         }
     }
@@ -174,6 +190,7 @@ class ShopService
     public function getFollowedShopsPopularProducts(User $user, int $limit = 10)
     {
         $followedIds = $user->follow_shops()->pluck('shops.id')->toArray();
+
         return Product::withCount('orders')
             ->with('shop')
             ->whereIn('shop_id', $followedIds)

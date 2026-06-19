@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\FeedbackService;
+use App\DTO\FeedbackData;
 use App\Http\Requests\FeedbackCreateRequest;
 use App\Http\Resources\FeedbackResource;
-use App\DTO\FeedbackData;
+use App\Services\FeedbackService;
 
 class FeedbackController extends Controller
 {
@@ -17,6 +17,7 @@ class FeedbackController extends Controller
     public function index()
     {
         $feedbacks = $this->feedbackService->getFeedbackWithUser();
+
         return FeedbackResource::collection($feedbacks);
     }
 
@@ -31,7 +32,7 @@ class FeedbackController extends Controller
         $target = $this->feedbackService->findTargetModel($data->model_type, $data->model_id);
         $existing = $this->feedbackService->getExistingFeedback($target, $userId);
 
-        if (!$existing) {
+        if (! $existing) {
             // create new feedback
             $feedback = $this->feedbackService->createFeedback($target, $data);
         } else {
@@ -58,6 +59,7 @@ class FeedbackController extends Controller
     public function show($id)
     {
         $feedback = $this->feedbackService->findFeedbackOrFail($id);
+
         return new FeedbackResource($feedback);
     }
 
@@ -75,6 +77,7 @@ class FeedbackController extends Controller
     public function destroy($id)
     {
         $this->feedbackService->deleteFeedback($id);
+
         return response()->json(['message' => 'Feedback deleted successfully']);
     }
 }

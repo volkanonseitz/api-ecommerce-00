@@ -21,7 +21,7 @@ enum ProductVisibilityStatus: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::VISIBILITY_PRIVATE => 'Private',
             self::VISIBILITY_PUBLIC => 'Public',
             self::VISIBILITY_PROTECTED => 'Protected',

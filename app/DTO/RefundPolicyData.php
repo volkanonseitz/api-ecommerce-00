@@ -37,6 +37,6 @@ class RefundPolicyData
             'description' => $this->description,
             'shop_id' => $this->shop_id,
             'language' => $this->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

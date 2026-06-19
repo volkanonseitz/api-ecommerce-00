@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\FlashSaleType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\FlashSaleType;
 
 return new class extends Migration
 {

@@ -42,8 +42,7 @@ class UserFactory extends Factory
 
     public function withProfile(): static
     {
-        return $this->afterCreating(fn (User $user) => 
-            Profile::factory()->for($user, 'customer')->create()
+        return $this->afterCreating(fn (User $user) => Profile::factory()->for($user, 'customer')->create()
         );
     }
 }

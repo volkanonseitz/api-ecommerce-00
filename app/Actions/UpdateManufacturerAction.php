@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Manufacturer;
 use App\DTO\ManufacturerData;
+use App\Models\Manufacturer;
 use Illuminate\Support\Str;
 
 class UpdateManufacturerAction
@@ -22,9 +22,10 @@ class UpdateManufacturerAction
             'language' => $data->language,
             'website' => $data->website,
             'socials' => $data->socials,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $manufacturer->update($attributes);
+
         return $manufacturer->fresh('type');
     }
 }

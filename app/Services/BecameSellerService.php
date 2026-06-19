@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\BecameSeller;
 use App\DTO\BecameSellerData;
+use App\Models\BecameSeller;
 
 class BecameSellerService
 {
@@ -17,6 +17,7 @@ class BecameSellerService
         $existing = BecameSeller::where('language', $data->language)->first();
         if ($existing) {
             $existing->update(['page_options' => $data->page_options]);
+
             return $existing->fresh();
         } else {
             return BecameSeller::create([

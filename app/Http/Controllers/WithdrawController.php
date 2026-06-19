@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WithdrawService;
-use App\Http\Requests\WithdrawRequest;
-use App\Http\Requests\UpdateWithdrawRequest;
-use App\Http\Resources\WithdrawResource;
 use App\DTO\WithdrawData;
 use App\Enums\WithdrawStatus;
-use Illuminate\Http\Request;
+use App\Http\Requests\UpdateWithdrawRequest;
+use App\Http\Requests\WithdrawRequest;
+use App\Http\Resources\WithdrawResource;
+use App\Services\WithdrawService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class WithdrawController extends Controller
@@ -22,11 +22,12 @@ class WithdrawController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
         }
         $limit = $request->limit ?? 15;
         $withdraws = $this->withdrawService->getWithdrawsQuery($request, $user)->paginate($limit);
+
         return WithdrawResource::collection($withdraws);
     }
 
@@ -36,11 +37,12 @@ class WithdrawController extends Controller
     public function store(WithdrawRequest $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
         }
         $data = WithdrawData::fromRequest($request->validated());
         $withdraw = $this->withdrawService->createWithdraw($data, $user);
+
         return new WithdrawResource($withdraw);
     }
 
@@ -50,10 +52,11 @@ class WithdrawController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
         }
-        $withdraw = $this->withdrawService->findWithdraw((int)$id, $user);
+        $withdraw = $this->withdrawService->findWithdraw((int) $id, $user);
+
         return new WithdrawResource($withdraw);
     }
 
@@ -71,10 +74,11 @@ class WithdrawController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
         }
-        $this->withdrawService->deleteWithdraw((int)$id, $user);
+        $this->withdrawService->deleteWithdraw((int) $id, $user);
+
         return response()->json(['message' => 'Withdraw deleted']);
     }
 
@@ -84,14 +88,15 @@ class WithdrawController extends Controller
     public function approveWithdraw(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
         }
         $request->validate([
             'id' => 'required|exists:withdraws,id',
-            'status' => 'required|string|in:' . implode(',', WithdrawStatus::values()),
+            'status' => 'required|string|in:'.implode(',', WithdrawStatus::values()),
         ]);
         $withdraw = $this->withdrawService->approveWithdraw($request->id, $request->status, $user);
+
         return new WithdrawResource($withdraw);
     }
 }

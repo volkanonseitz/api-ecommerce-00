@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\RefundPolicyService;
+use App\DTO\RefundPolicyData;
+use App\Enums\Permission;
 use App\Http\Requests\StoreRefundPolicyRequest;
 use App\Http\Requests\UpdateRefundPolicyRequest;
 use App\Http\Resources\RefundPolicyResource;
-use App\DTO\RefundPolicyData;
 use App\Models\RefundPolicy;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\RefundPolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class RefundPolicyController extends Controller
 {
@@ -24,6 +24,7 @@ class RefundPolicyController extends Controller
         $limit = $request->limit ?? 15;
         $policies = $this->policyService->getPoliciesQuery($request)->paginate($limit);
         $data = RefundPolicyResource::collection($policies)->response()->getData(true);
+
         return formatAPIResourcePaginate($data);
     }
 
@@ -35,12 +36,13 @@ class RefundPolicyController extends Controller
         $user = $request->user();
         $shopId = $request->shop_id;
 
-        if (!$this->policyService->hasPermission($user, $shopId)) {
+        if (! $this->policyService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = RefundPolicyData::fromRequest($request->validated());
         $policy = $this->policyService->createPolicy($data);
+
         return new RefundPolicyResource($policy);
     }
 
@@ -51,6 +53,7 @@ class RefundPolicyController extends Controller
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $policy = $this->policyService->findPolicy($slug, $language);
+
         return new RefundPolicyResource($policy);
     }
 
@@ -63,12 +66,13 @@ class RefundPolicyController extends Controller
         $user = $request->user();
         $shopId = $request->shop_id ?? $policy->shop_id;
 
-        if (!$this->policyService->hasPermission($user, $shopId)) {
+        if (! $this->policyService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = RefundPolicyData::fromRequest($request->validated());
         $updated = $this->policyService->updatePolicy($policy, $data);
+
         return new RefundPolicyResource($updated);
     }
 
@@ -78,12 +82,13 @@ class RefundPolicyController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $policy = RefundPolicy::findOrFail($id);
         $this->policyService->deletePolicy($policy);
+
         return response()->json(['message' => 'Refund policy deleted successfully']);
     }
 }

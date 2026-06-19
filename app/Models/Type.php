@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Type extends Model
 {
     protected $table = 'types';
+
     protected $guarded = [];
 
     protected $casts = [

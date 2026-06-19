@@ -10,6 +10,7 @@ class AttachmentResource extends JsonResource
     {
         $media = $this->getMedia()->first();
         $isImage = $media ? strpos($media->mime_type, 'image/') !== false : false;
+
         return [
             'id' => $this->id,
             'thumbnail' => $media && $isImage ? $media->getUrl('thumbnail') : '',

@@ -17,7 +17,7 @@ class TagResource extends JsonResource
             'details' => $this->details,
             'image' => $this->image,
             'icon' => $this->icon,
-            'type' => $this->whenLoaded('type', fn() => ['id' => $this->type->id, 'name' => $this->type->name]),
+            'type' => $this->whenLoaded('type', fn () => ['id' => $this->type->id, 'name' => $this->type->name]),
         ];
     }
 }

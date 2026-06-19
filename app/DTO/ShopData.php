@@ -27,7 +27,7 @@ class ShopData
             description: $data['description'] ?? null,
             cover_image: $data['cover_image'] ?? null,
             logo: $data['logo'] ?? null,
-            is_active: isset($data['is_active']) ? (bool)$data['is_active'] : null,
+            is_active: isset($data['is_active']) ? (bool) $data['is_active'] : null,
             address: $data['address'] ?? null,
             settings: $data['settings'] ?? null,
             notifications: $data['notifications'] ?? null,

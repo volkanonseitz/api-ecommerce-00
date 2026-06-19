@@ -34,6 +34,6 @@ class OwnershipTransferData
             'message' => $this->message,
             'created_by' => $this->created_by,
             'status' => $this->status,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

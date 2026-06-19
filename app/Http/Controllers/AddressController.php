@@ -2,67 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AddressService;
+use App\DTO\AddressData;
 use App\Http\Requests\AddressRequest;
 use App\Http\Resources\AddressResource;
-use App\DTO\AddressData;
 use App\Models\Address;
-use App\Enums\Permission;
+use App\Services\AddressService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AddressController extends Controller
 {
-    public function __construct(private AddressService $addressService) {}
+    public function __construct(
+        private readonly AddressService $addressService
+    ) {}
 
-    /**
-     * GET /addresses
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $addresses = $this->addressService->getAll();
+        $addresses = $this->addressService->getUserAddresses(
+            user: $request->user(),
+            perPage: min($request->integer('per_page', 15), 100)
+        );
+
         return AddressResource::collection($addresses);
     }
 
-    /**
-     * POST /addresses
-     */
     public function store(AddressRequest $request)
     {
-        $data = AddressData::fromRequest($request->validated());
-        $address = $this->addressService->create($data);
+        $address = $this->addressService->create(
+            $request->user(),
+            AddressData::fromRequest($request->validated())
+        );
+
+        return (new AddressResource($address))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
+    }
+
+    public function show(Address $address)
+    {
+        $this->authorize('view', $address);
+
         return new AddressResource($address);
     }
 
-    /**
-     * GET /addresses/{id}
-     */
-    public function show($id)
+    public function update(AddressRequest $request, Address $address)
     {
-        $address = $this->addressService->findOrFail($id);
+        $this->authorize('update', $address);
+
+        $address = $this->addressService->update(
+            $address,
+            AddressData::fromRequest($request->validated())
+        );
+
         return new AddressResource($address);
     }
 
-    /**
-     * PUT /addresses/{id}
-     */
-    public function update(AddressRequest $request, $id)
+    public function destroy(Address $address)
     {
-        $address = Address::findOrFail($id);
-        $data = AddressData::fromRequest($request->validated());
-        $updated = $this->addressService->update($address, $data);
-        return new AddressResource($updated);
-    }
+        $this->authorize('delete', $address);
 
-    /**
-     * DELETE /addresses/{id}
-     */
-    public function destroy(Request $request, $id)
-    {
-        $address = Address::findOrFail($id);
-        $deleted = $this->addressService->delete($address, $request->user());
-        if (!$deleted) {
-            abort(403, config('notice.NOT_AUTHORIZED'));
-        }
-        return response()->json(['message' => 'Address deleted successfully']);
+        $this->addressService->delete($address);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Address deleted successfully.',
+        ]);
     }
 }

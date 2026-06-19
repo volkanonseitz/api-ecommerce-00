@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CheckoutService;
-use App\Http\Requests\CheckoutVerifyRequest;
 use App\DTO\CheckoutVerifyData;
+use App\Http\Requests\CheckoutVerifyRequest;
+use App\Services\CheckoutService;
 
 class CheckoutController extends Controller
 {
@@ -17,6 +17,7 @@ class CheckoutController extends Controller
     {
         $data = CheckoutVerifyData::fromRequest($request->validated());
         $result = $this->checkoutService->verify($data, $request->user());
+
         return response()->json($result);
     }
 }

@@ -43,6 +43,6 @@ class RefundData
             'shop_id' => $this->shop_id,
             'amount' => $this->amount,
             'status' => $this->status,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

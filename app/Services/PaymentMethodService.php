@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\PaymentMethod;
 use App\DTO\PaymentMethodData;
 use App\Events\PaymentMethods;
+use App\Models\PaymentMethod;
 use App\Services\Payment\StripeProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
@@ -15,12 +15,12 @@ class PaymentMethodService
 
     public function __construct()
     {
-        $this->stripe = new StripeProvider();
+        $this->stripe = new StripeProvider;
     }
 
     public function getUserPaymentMethods(Authenticatable $user)
     {
-        return PaymentMethod::whereHas('paymentGateway', fn($q) => $q->where('user_id', $user->id)->where('gateway_name', 'stripe'))
+        return PaymentMethod::whereHas('paymentGateway', fn ($q) => $q->where('user_id', $user->id)->where('gateway_name', 'stripe'))
             ->with('paymentGateway')->get();
     }
 
@@ -28,9 +28,12 @@ class PaymentMethodService
     {
         $retrieved = $this->stripe->retrievePaymentMethod($data->method_key);
         $existing = PaymentMethod::where('fingerprint', $retrieved->card->fingerprint)->first();
-        if ($existing) return $existing;
+        if ($existing) {
+            return $existing;
+        }
 
         $attached = $this->stripe->attachPaymentMethodToCustomer($retrieved->id, $user);
+
         return $this->stripe->saveCard($attached, $user);
     }
 
@@ -47,6 +50,7 @@ class PaymentMethodService
         $method->default_card = true;
         $method->save();
         event(new PaymentMethods($method));
+
         return $method;
     }
 
@@ -60,6 +64,7 @@ class PaymentMethodService
     public function createSetupIntent(Authenticatable $user): array
     {
         $customer = $this->stripe->createCustomer($user);
+
         return $this->stripe->setIntent([
             'customer' => $customer['customer_id'],
             'payment_method_types' => ['card'],

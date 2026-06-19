@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Otp;
 
-use App\Services\Otp\OtpInterface;
-use App\Services\Otp\Results;
 use Illuminate\Support\Facades\Config;
 
 class OtpService

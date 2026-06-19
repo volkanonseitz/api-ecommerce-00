@@ -31,6 +31,6 @@ class QuestionData
             'user_id' => $this->user_id,
             'question' => $this->question,
             'answer' => $this->answer,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

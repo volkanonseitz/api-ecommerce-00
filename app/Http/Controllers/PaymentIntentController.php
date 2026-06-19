@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\PaymentService;
 use App\Models\Settings;
-use Illuminate\Http\Request;
+use App\Services\PaymentService;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
 
 class PaymentIntentController extends Controller
 {
@@ -14,8 +14,8 @@ class PaymentIntentController extends Controller
     public function getPaymentIntent(Request $request)
     {
         $settings = Settings::first();
-        if (!$request->user() && !($settings->options['guestCheckout'] ?? false)) {
-            throw new AuthenticationException();
+        if (! $request->user() && ! ($settings->options['guestCheckout'] ?? false)) {
+            throw new AuthenticationException;
         }
 
         return $this->paymentService->processPaymentIntent($request, $settings);

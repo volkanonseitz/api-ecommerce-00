@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\OrderService;
-use App\Services\PaymentService;
+use App\DTO\OrderData;
+use App\Exports\OrderExport;
 use App\Http\Requests\OrderCreateRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Http\Resources\OrderResource;
-use App\DTO\OrderData;
+use App\Models\DownloadToken;
 use App\Models\Order;
 use App\Models\Settings;
-use App\Models\DownloadToken;
-use Illuminate\Http\Request;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Services\OrderService;
+use App\Services\PaymentService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\OrderExport;
 
 class OrderController extends Controller
 {
@@ -27,9 +27,12 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        if (! $user) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
         $limit = $request->limit ?? 10;
         $orders = $this->orderService->getOrdersQuery($request, $user)->paginate($limit);
+
         return OrderResource::collection($orders);
     }
 
@@ -38,6 +41,7 @@ class OrderController extends Controller
         $settings = Settings::first();
         $data = OrderData::fromRequest($request->validated());
         $order = $this->orderService->createOrder($data, $settings, $request->user());
+
         return new OrderResource($order);
     }
 
@@ -46,44 +50,49 @@ class OrderController extends Controller
         $language = $request->language ?? config('shop.default_language', 'id');
         $order = $this->orderService->getOrderByTrackingOrId($params, $language, $request->user());
         // Attach payment intent jika perlu
-        if (!in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'])) {
+        if (! in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'])) {
             $order->payment_intent = $this->paymentService->attachPaymentIntent($order->tracking_number);
         }
+
         return new OrderResource($order);
     }
 
     public function findByTrackingNumber(Request $request, $tracking_number)
     {
         $order = $this->orderService->getOrderByTrackingOrId($tracking_number, $request->language ?? config('shop.default_language', 'id'), $request->user());
+
         return new OrderResource($order);
     }
 
     public function update(OrderUpdateRequest $request, $id)
-{
-    $order = Order::findOrFail($id);
-    $user = $request->user();
-    // Hanya super admin atau pemilik shop yang bisa update status
-    if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && !$this->orderService->hasPermission($user, $order->shop_id)) {
-        throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+    {
+        $order = Order::findOrFail($id);
+        $user = $request->user();
+        // Hanya super admin atau pemilik shop yang bisa update status
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->orderService->hasPermission($user, $order->shop_id)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
+        $updated = $this->orderService->updateOrderStatus($order, $request->order_status, $user);
+
+        return $this->sendSuccess(new OrderResource($updated), 'Order updated');
     }
-    $updated = $this->orderService->updateOrderStatus($order, $request->order_status, $user);
-    return $this->sendSuccess(new OrderResource($updated), 'Order updated');
-}
 
     public function destroy($id)
     {
         $order = Order::findOrFail($id);
         $order->delete();
+
         return response()->json(['success' => true]);
     }
 
     public function exportOrderUrl(Request $request, $shop_id = null)
     {
         $user = $request->user();
-        if (!$this->orderService->hasPermission($user, $request->shop_id)) {
+        if (! $this->orderService->hasPermission($user, $request->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $url = $this->orderService->getExportToken($user->id, $request->shop_id);
+
         return response()->json(['url' => $url]);
     }
 
@@ -92,13 +101,14 @@ class OrderController extends Controller
         $downloadToken = DownloadToken::where('token', $token)->firstOrFail();
         $shopId = $downloadToken->payload;
         $downloadToken->delete();
+
         return Excel::download(new OrderExport($shopId), 'orders.xlsx');
     }
 
     public function downloadInvoiceUrl(Request $request)
     {
         $user = $request->user();
-        if (!$this->orderService->hasPermission($user, $request->shop_id)) {
+        if (! $this->orderService->hasPermission($user, $request->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $request->validate(['order_id' => 'required']);
@@ -106,6 +116,7 @@ class OrderController extends Controller
         $isRtl = $request->is_rtl ?? false;
         $translatedText = $request->translated_text ?? [];
         $url = $this->orderService->getInvoiceToken($user->id, $request->order_id, $language, $translatedText, $isRtl);
+
         return response()->json(['url' => $url]);
     }
 
@@ -125,7 +136,8 @@ class OrderController extends Controller
             'language' => $payload['language'],
         ];
         $pdf = Pdf::loadView('pdf.order-invoice', $invoiceData);
-        return $pdf->download('invoice-order-' . $payload['order_id'] . '.pdf');
+
+        return $pdf->download('invoice-order-'.$payload['order_id'].'.pdf');
     }
 
     public function submitPayment(Request $request)

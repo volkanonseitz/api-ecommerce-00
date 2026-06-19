@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class StoreNotice extends Model
@@ -13,7 +13,9 @@ class StoreNotice extends Model
     use SoftDeletes;
 
     protected $table = 'store_notices';
+
     protected $guarded = [];
+
     protected $dates = ['effective_from', 'expired_at'];
 
     protected static function boot()
@@ -60,6 +62,7 @@ class StoreNotice extends Model
         if (in_array(Permission::SUPER_ADMIN->value, $permissions)) {
             return ucfirst(str_replace('_', ' ', Permission::SUPER_ADMIN->value));
         }
+
         return ucfirst(str_replace('_', ' ', Permission::STORE_OWNER->value));
     }
 
@@ -70,6 +73,7 @@ class StoreNotice extends Model
                 return true;
             }
         }
+
         return false;
     }
 }

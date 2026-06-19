@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 class Faqs extends Model
 {
     protected $table = 'faqs';
+
     protected $guarded = [];
+
     protected $appends = ['translated_languages'];
 
     public static function boot()
@@ -20,7 +22,7 @@ class Faqs extends Model
                 $model->slug = Str::slug($model->faq_title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });
@@ -29,7 +31,7 @@ class Faqs extends Model
                 $model->slug = Str::slug($model->faq_title);
                 $count = static::where('slug', $model->slug)->where('language', $model->language)->where('id', '!=', $model->id)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

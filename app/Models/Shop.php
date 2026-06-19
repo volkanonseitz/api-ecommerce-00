@@ -12,7 +12,9 @@ use Illuminate\Support\Str;
 class Shop extends Model
 {
     protected $table = 'shops';
+
     protected $guarded = [];
+
     protected $casts = [
         'logo' => 'json',
         'cover_image' => 'json',
@@ -30,7 +32,7 @@ class Shop extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });
@@ -39,7 +41,7 @@ class Shop extends Model
                 $model->slug = Str::slug($model->name);
                 $count = static::where('slug', $model->slug)->where('id', '!=', $model->id)->count();
                 if ($count > 0) {
-                    $model->slug = $model->slug . '-' . ($count + 1);
+                    $model->slug = $model->slug.'-'.($count + 1);
                 }
             }
         });

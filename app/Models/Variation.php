@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Variation extends Model
 {
     protected $table = 'variation_options';
+
     protected $guarded = [];
+
     protected $casts = [
         'options' => 'json',
         'blocked_dates' => 'json',

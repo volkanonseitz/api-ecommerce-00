@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Attachment;
-use App\DTO\AttachmentData;
 use App\Actions\CreateAttachmentAction;
+use App\DTO\AttachmentData;
+use App\Models\Attachment;
 
 class AttachmentService
 {

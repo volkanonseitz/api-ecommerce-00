@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Review;
-use App\Models\Order;
-use App\Models\Settings;
-use App\DTO\ReviewData;
 use App\Actions\CreateReviewAction;
 use App\Actions\UpdateReviewAction;
+use App\DTO\ReviewData;
 use App\Events\ReviewCreated;
+use App\Models\Order;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -22,9 +21,10 @@ class ReviewService
     public function getReviews(Request $request): Builder
     {
         $query = Review::query();
-        if ($request->has('product_id') && !empty($request->product_id)) {
+        if ($request->has('product_id') && ! empty($request->product_id)) {
             $query->where('product_id', $request->product_id);
         }
+
         return $query;
     }
 
@@ -39,7 +39,7 @@ class ReviewService
     public function validateProductInOrder(int $orderId, int $productId): bool
     {
         return Order::where('id', $orderId)
-            ->whereHas('products', fn($q) => $q->where('product_id', $productId))
+            ->whereHas('products', fn ($q) => $q->where('product_id', $productId))
             ->exists();
     }
 
@@ -64,6 +64,7 @@ class ReviewService
     {
         $review = $this->createReview->execute($data);
         event(new ReviewCreated($review));
+
         return $review;
     }
 

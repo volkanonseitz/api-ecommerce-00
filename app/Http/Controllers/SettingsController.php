@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SettingsService;
-use App\Http\Requests\SettingsRequest;
 use App\DTO\SettingsData;
-use App\Events\Maintenance;
-use App\Models\Settings;
 use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Events\Maintenance;
+use App\Http\Requests\SettingsRequest;
+use App\Models\Settings;
+use App\Services\SettingsService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends BaseController
@@ -23,19 +23,21 @@ class SettingsController extends BaseController
         $data = Cache::rememberForever($cacheKey, function () use ($language) {
             return $this->settingsService->getSettingsWithMaintenance($language);
         });
+
         return $this->sendSuccess($data, 'Settings retrieved');
     }
 
     public function store(SettingsRequest $request)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = SettingsData::fromRequest($request->validated());
         $settings = $this->settingsService->storeOrUpdate($data, true);
         event(new Maintenance($data->language));
         Cache::forget("settings_{$data->language}");
+
         return $this->sendSuccess($settings, 'Settings created', 201);
     }
 
@@ -43,21 +45,23 @@ class SettingsController extends BaseController
     {
         // Biasanya hanya mengambil settings pertama, tanpa otorisasi karena public
         $settings = $this->settingsService->getFirst();
-        if (!$settings) {
+        if (! $settings) {
             return $this->sendError('Settings not found', 404);
         }
+
         return $this->sendSuccess($settings, 'Settings detail');
     }
 
     public function update(SettingsRequest $request, $id)
     {
         $user = $request->user();
-        if (!$user || !$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+        if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = SettingsData::fromRequest($request->validated());
         $settings = $this->settingsService->storeOrUpdate($data, false);
         Cache::forget("settings_{$data->language}");
+
         return $this->sendSuccess($settings, 'Settings updated');
     }
 

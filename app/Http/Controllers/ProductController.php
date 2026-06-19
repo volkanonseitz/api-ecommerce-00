@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ProductService;
+use App\DTO\ProductData;
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductUpdateRequest;
-use App\Http\Resources\ProductResource;
 use App\Http\Resources\GetSingleProductResource;
-use App\DTO\ProductData;
-use App\Models\Settings;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\Settings;
 use App\Models\Variation;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\ProductService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ProductController extends BaseController
 {
@@ -32,11 +29,11 @@ class ProductController extends BaseController
         $limit = $request->limit ?? 15;
         // Gunakan cache hanya jika tidak ada filter yang dinamis
         // Karena request bisa berbeda, cache per URL query
-        $cacheKey = 'products_' . md5($request->fullUrl());
+        $cacheKey = 'products_'.md5($request->fullUrl());
         $products = Cache::remember($cacheKey, 300, function () use ($request, $limit) {
             return $this->productService->getProducts($request, $limit);
         });
-        
+
         return $this->sendPaginated(
             $products,
             ProductResource::collection($products->getCollection()),
@@ -51,18 +48,18 @@ class ProductController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        
-        if (!$this->productService->hasPermission($user, $shopId)) {
+
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $settings = Settings::first();
         $data = ProductData::fromRequest($request->validated());
         $product = $this->productService->createProduct($data, $settings);
-        
+
         // Hapus cache produk terkait
         Cache::forget('products_*');
-        
+
         return $this->sendSuccess(
             new ProductResource($product->load(['type', 'shop'])),
             'Product created',
@@ -76,10 +73,11 @@ class ProductController extends BaseController
     public function show(Request $request, string $slug)
     {
         try {
-            $cacheKey = 'product_detail_' . $slug . '_' . ($request->language ?? 'id');
+            $cacheKey = 'product_detail_'.$slug.'_'.($request->language ?? 'id');
             $product = Cache::remember($cacheKey, 600, function () use ($request, $slug) {
                 return $this->productService->getProductDetail($request, $slug);
             });
+
             return $this->sendSuccess(
                 new GetSingleProductResource($product),
                 'Product detail'
@@ -96,19 +94,19 @@ class ProductController extends BaseController
     {
         $user = $request->user();
         $product = Product::findOrFail($id);
-        
-        if (!$this->productService->hasPermission($user, $product->shop_id)) {
+
+        if (! $this->productService->hasPermission($user, $product->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $settings = Settings::first();
         $data = ProductData::fromRequest($request->validated());
         $updated = $this->productService->updateProduct($product, $data, $settings);
-        
+
         // Hapus cache
-        Cache::forget('product_detail_' . $product->slug . '_*');
+        Cache::forget('product_detail_'.$product->slug.'_*');
         Cache::forget('products_*');
-        
+
         return $this->sendSuccess(
             new ProductResource($updated->load(['type', 'shop', 'categories', 'tags'])),
             'Product updated'
@@ -122,17 +120,17 @@ class ProductController extends BaseController
     {
         $user = $request->user();
         $product = Product::findOrFail($id);
-        
-        if (!$this->productService->hasPermission($user, $product->shop_id)) {
+
+        if (! $this->productService->hasPermission($user, $product->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
+
         $slug = $product->slug;
         $this->productService->deleteProduct($product);
-        
-        Cache::forget('product_detail_' . $slug . '_*');
+
+        Cache::forget('product_detail_'.$slug.'_*');
         Cache::forget('products_*');
-        
+
         return $this->sendSuccess(null, 'Product deleted successfully');
     }
 
@@ -144,12 +142,12 @@ class ProductController extends BaseController
         $limit = $request->limit ?? 10;
         $slug = $request->slug;
         $language = $request->language ?? config('shop.default_language', 'id');
-        
+
         $cacheKey = "related_products_{$slug}_{$language}_{$limit}";
         $products = Cache::remember($cacheKey, 600, function () use ($slug, $limit, $language) {
             return $this->productService->getRelatedProducts($slug, $limit, $language);
         });
-        
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Related products'
@@ -161,10 +159,11 @@ class ProductController extends BaseController
      */
     public function bestSellingProducts(Request $request)
     {
-        $cacheKey = 'best_selling_' . md5($request->fullUrl());
+        $cacheKey = 'best_selling_'.md5($request->fullUrl());
         $products = Cache::remember($cacheKey, 600, function () use ($request) {
             return $this->productService->getBestSellingProducts($request);
         });
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Best selling products'
@@ -176,10 +175,11 @@ class ProductController extends BaseController
      */
     public function popularProducts(Request $request)
     {
-        $cacheKey = 'popular_products_' . md5($request->fullUrl());
+        $cacheKey = 'popular_products_'.md5($request->fullUrl());
         $products = Cache::remember($cacheKey, 600, function () use ($request) {
             return $this->productService->getPopularProducts($request);
         });
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Popular products'
@@ -193,6 +193,7 @@ class ProductController extends BaseController
     {
         // Tidak di-cache karena user spesifik
         $products = $this->productService->getDraftedProducts($request);
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Drafted products'
@@ -205,6 +206,7 @@ class ProductController extends BaseController
     public function productStock(Request $request)
     {
         $products = $this->productService->getProductStock($request);
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Low stock products'
@@ -217,6 +219,7 @@ class ProductController extends BaseController
     public function myWishlists(Request $request)
     {
         $products = $this->productService->getMyWishlists($request);
+
         return $this->sendSuccess(
             ProductResource::collection($products),
             'Wishlist products'
@@ -243,8 +246,9 @@ class ProductController extends BaseController
             'dropoff_location_id' => 'nullable|exists:resources,id',
             'pickup_location_id' => 'nullable|exists:resources,id',
         ]);
-        
+
         $price = $this->productService->calculateRentalPrice($request);
+
         return $this->sendSuccess($price, 'Rental price calculated');
     }
 
@@ -255,28 +259,28 @@ class ProductController extends BaseController
     public function exportProducts(Request $request, int $shopId)
     {
         $user = $request->user();
-        if (!$this->productService->hasPermission($user, $shopId)) {
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
-        $filename = 'products-for-shop-id-' . $shopId . '.csv';
+
+        $filename = 'products-for-shop-id-'.$shopId.'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
-        
-        $callback = function() use ($shopId) {
+
+        $callback = function () use ($shopId) {
             $handle = fopen('php://output', 'w');
             // Header CSV
             $headers = [
-                'name', 'slug', 'price', 'sale_price', 'type_id', 'shop_id', 
-                'author_id', 'manufacturer_id', 'language', 'product_type', 
-                'quantity', 'unit', 'is_digital', 'is_external', 'description', 
-                'sku', 'image', 'gallery', 'video', 'status', 'height', 
-                'length', 'width', 'in_stock', 'is_taxable', 'visibility'
+                'name', 'slug', 'price', 'sale_price', 'type_id', 'shop_id',
+                'author_id', 'manufacturer_id', 'language', 'product_type',
+                'quantity', 'unit', 'is_digital', 'is_external', 'description',
+                'sku', 'image', 'gallery', 'video', 'status', 'height',
+                'length', 'width', 'in_stock', 'is_taxable', 'visibility',
             ];
             fputcsv($handle, $headers);
-            
+
             // Gunakan chunk untuk menghindari memory overload
             Product::where('shop_id', $shopId)->chunk(100, function ($products) use ($handle) {
                 foreach ($products as $product) {
@@ -311,10 +315,10 @@ class ProductController extends BaseController
                     fputcsv($handle, $row);
                 }
             });
-            
+
             fclose($handle);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -325,21 +329,21 @@ class ProductController extends BaseController
     public function exportVariableOptions(Request $request, int $shopId)
     {
         $user = $request->user();
-        if (!$this->productService->hasPermission($user, $shopId)) {
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
-        $filename = 'variable-options-' . Str::random(5) . '.csv';
+
+        $filename = 'variable-options-'.Str::random(5).'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
-        
-        $callback = function() use ($shopId) {
+
+        $callback = function () use ($shopId) {
             $handle = fopen('php://output', 'w');
             $headers = ['product_id', 'sku', 'title', 'price', 'sale_price', 'quantity', 'options', 'image'];
             fputcsv($handle, $headers);
-            
+
             // Ambil product_ids dari shop, lalu variation dengan chunk
             $productIds = Product::where('shop_id', $shopId)->pluck('id');
             Variation::whereIn('product_id', $productIds)->chunk(100, function ($variations) use ($handle) {
@@ -359,7 +363,7 @@ class ProductController extends BaseController
             });
             fclose($handle);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -371,35 +375,35 @@ class ProductController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        
-        if (!$this->productService->hasPermission($user, $shopId)) {
+
+        if (! $this->productService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        
-        if (!$request->hasFile('csv')) {
+
+        if (! $request->hasFile('csv')) {
             return $this->sendError('CSV file is required', 422);
         }
-        
+
         $file = $request->file('csv');
-        $path = $file->storeAs('csv-imports', 'products-' . $shopId . '-' . time() . '.csv', 'local');
-        $csvData = $this->csvToArray(storage_path('app/' . $path));
-        
+        $path = $file->storeAs('csv-imports', 'products-'.$shopId.'-'.time().'.csv', 'local');
+        $csvData = $this->csvToArray(storage_path('app/'.$path));
+
         if (empty($csvData)) {
             return $this->sendError('CSV file is empty or invalid', 422);
         }
-        
+
         $settings = Settings::first();
         $total = count($csvData);
         $success = 0;
         $errors = [];
-        
+
         // Proses per baris, tangkap error
         foreach ($csvData as $index => $row) {
             try {
                 if (empty($row['type_id'])) {
-                    throw new \Exception('type_id is required at row ' . ($index + 1));
+                    throw new \Exception('type_id is required at row '.($index + 1));
                 }
-                
+
                 $data = ProductData::fromRequest($row);
                 // Override shop_id
                 $data = new ProductData(
@@ -449,17 +453,17 @@ class ProductController extends BaseController
                     product_update_message: null,
                     is_rental: $row['is_rental'] ?? false,
                 );
-                
+
                 $this->productService->createProduct($data, $settings);
                 $success++;
             } catch (\Exception $e) {
-                $errors[] = "Row " . ($index + 1) . ": " . $e->getMessage();
+                $errors[] = 'Row '.($index + 1).': '.$e->getMessage();
             }
         }
-        
+
         // Hapus cache
         Cache::forget('products_*');
-        
+
         return $this->sendSuccess([
             'total' => $total,
             'success' => $success,
@@ -472,14 +476,14 @@ class ProductController extends BaseController
      */
     private function csvToArray(string $filename, string $delimiter = ','): array
     {
-        if (!file_exists($filename) || !is_readable($filename)) {
+        if (! file_exists($filename) || ! is_readable($filename)) {
             return [];
         }
         $header = null;
         $data = [];
         if (($handle = fopen($filename, 'r')) !== false) {
             while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
-                if (!$header) {
+                if (! $header) {
                     $header = $row;
                 } else {
                     if (count($header) === count($row)) {
@@ -489,6 +493,7 @@ class ProductController extends BaseController
             }
             fclose($handle);
         }
+
         return $data;
     }
 }

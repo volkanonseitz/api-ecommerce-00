@@ -12,6 +12,7 @@ class OwnershipTransfer extends Model
     use SoftDeletes;
 
     protected $table = 'ownership_transfers';
+
     protected $guarded = [];
 
     protected static function boot()
@@ -27,7 +28,8 @@ class OwnershipTransfer extends Model
     {
         $date = now()->format('Y-m-d');
         $count = static::whereDate('created_at', now()->toDateString())->count() + 1;
-        return $date . '-' . sprintf('%04d', $count);
+
+        return $date.'-'.sprintf('%04d', $count);
     }
 
     public function previousOwner(): BelongsTo

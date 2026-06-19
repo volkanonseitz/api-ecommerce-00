@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class Conversation extends Model
 {
     protected $guarded = [];
+
     protected $appends = ['latest_message', 'unseen'];
 
     public function user(): BelongsTo
@@ -39,13 +40,15 @@ class Conversation extends Model
 
     public function getUnseenAttribute()
     {
-        if (!Auth::check()) return '0';
+        if (! Auth::check()) {
+            return '0';
+        }
 
         $userId = Auth::id();
         $shopIds = Auth::user()->shops->pluck('id')->toArray();
 
         $participant = $this->participants()
-            ->where(function($q) use ($userId, $shopIds) {
+            ->where(function ($q) use ($userId, $shopIds) {
                 $q->where('user_id', $userId)->where('type', 'user');
                 $q->orWhereIn('shop_id', $shopIds)->where('type', 'shop');
             })

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\StoreNoticeService;
+use App\DTO\StoreNoticeData;
+use App\Enums\Permission;
+use App\Enums\StoreNoticeType;
 use App\Http\Requests\StoreNoticeRequest;
 use App\Http\Requests\StoreNoticeUpdateRequest;
 use App\Http\Resources\StoreNoticeResource;
-use App\DTO\StoreNoticeData;
 use App\Models\StoreNotice;
-use App\Enums\StoreNoticeType;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\StoreNoticeService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Request;
 
 class StoreNoticeController extends Controller
 {
@@ -23,6 +22,7 @@ class StoreNoticeController extends Controller
         $limit = $request->limit ?? 15;
         $storeNotices = $this->service->getStoreNoticesQuery($request, $request->user())
             ->paginate($limit);
+
         return StoreNoticeResource::collection($storeNotices);
     }
 
@@ -30,11 +30,12 @@ class StoreNoticeController extends Controller
     {
         $user = $request->user();
         $shopId = $request->received_by[0] ?? 0;
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && !$this->service->hasPermission($user, $shopId)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->service->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = StoreNoticeData::fromRequest($request->validated());
         $storeNotice = $this->service->createStoreNotice($data, $user);
+
         return new StoreNoticeResource($storeNotice);
     }
 
@@ -50,12 +51,14 @@ class StoreNoticeController extends Controller
             throw new \Exception(config('notice.ACTION_NOT_VALID'), 400);
         }
         $users = $this->service->getUsersToNotify($request, $request->user());
+
         return response()->json($users);
     }
 
     public function show(Request $request, $id)
     {
         $storeNotice = StoreNotice::with(['creator', 'users', 'shops', 'read_status'])->findOrFail($id);
+
         return new StoreNoticeResource($storeNotice);
     }
 
@@ -63,12 +66,13 @@ class StoreNoticeController extends Controller
     {
         $user = $request->user();
         $shopId = $request->received_by[0] ?? 0;
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && !$this->service->hasPermission($user, $shopId)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->service->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $storeNotice = StoreNotice::findOrFail($id);
         $data = StoreNoticeData::fromRequest($request->validated());
         $updated = $this->service->updateStoreNotice($storeNotice, $data, $user);
+
         return new StoreNoticeResource($updated);
     }
 
@@ -76,6 +80,7 @@ class StoreNoticeController extends Controller
     {
         $storeNotice = StoreNotice::findOrFail($id);
         $this->service->deleteStoreNotice($storeNotice);
+
         return response()->json(['message' => 'Store notice deleted']);
     }
 
@@ -84,6 +89,7 @@ class StoreNoticeController extends Controller
         $request->validate(['id' => 'required|exists:store_notices,id']);
         $notice = StoreNotice::findOrFail($request->id);
         $this->service->markAsRead($notice, $request->user()->id);
+
         return response()->json(['success' => true]);
     }
 
@@ -94,6 +100,7 @@ class StoreNoticeController extends Controller
             'notices.*' => 'exists:store_notices,id',
         ]);
         $this->service->markMultipleAsRead($request->notices, $request->user()->id);
+
         return response()->json(['success' => true]);
     }
 }

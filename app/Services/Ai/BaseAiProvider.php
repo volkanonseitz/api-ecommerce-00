@@ -13,7 +13,7 @@ abstract class BaseAiProvider
     {
         $settings = Settings::first();
         $this->enableAi = $settings->options['useAi'] ?? false;
-        if (!$this->enableAi) {
+        if (! $this->enableAi) {
             throw new HttpException(400, config('notice.PLEASE_ENABLE_OPENAI_FROM_THE_SETTINGS'));
         }
     }

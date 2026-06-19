@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Tag;
-use App\DTO\TagData;
 use App\Actions\CreateTagAction;
 use App\Actions\UpdateTagAction;
+use App\DTO\TagData;
+use App\Models\Tag;
 
 class TagService
 {
@@ -24,6 +24,7 @@ class TagService
         if (is_numeric($param)) {
             return Tag::where('id', $param)->with('type')->firstOrFail();
         }
+
         return Tag::where('slug', $param)->where('language', $language)->with('type')->firstOrFail();
     }
 

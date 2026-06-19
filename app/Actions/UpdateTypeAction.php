@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Type;
 use App\DTO\TypeData;
+use App\Models\Type;
 use Illuminate\Support\Str;
 
 class UpdateTypeAction
@@ -18,11 +18,11 @@ class UpdateTypeAction
             'promotional_sliders' => $data->promotional_sliders,
             'images' => $data->images,
             'language' => $data->language,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
 
         $type->update($attributes);
 
-        if (!is_null($data->banners)) {
+        if (! is_null($data->banners)) {
             $type->banners()->delete();
             $type->banners()->createMany($data->banners);
         }

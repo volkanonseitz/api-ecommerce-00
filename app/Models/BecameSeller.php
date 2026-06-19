@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class BecameSeller extends Model
 {
     protected $table = 'became_sellers';
+
     protected $guarded = [];
+
     protected $casts = [
         'page_options' => 'json',
     ];
@@ -16,9 +18,10 @@ class BecameSeller extends Model
     {
         $lang = $language ?? config('shop.default_language', 'id');
         $data = static::where('language', $lang)->first();
-        if (!$data) {
+        if (! $data) {
             $data = static::where('language', config('shop.default_language', 'id'))->first();
         }
+
         return $data;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DownloadService;
 use App\Http\Resources\DownloadableFileResource;
-use Illuminate\Http\Request;
+use App\Services\DownloadService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DownloadController extends Controller
@@ -18,7 +18,7 @@ class DownloadController extends Controller
     public function fetchDownloadableFiles(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
@@ -26,7 +26,7 @@ class DownloadController extends Controller
         $query = $this->downloadService->getDownloadableFilesQuery($user);
 
         // Load morph relations: file.fileable (product/variation with shop)
-        $query->with(['file.fileable' => function($q) {
+        $query->with(['file.fileable' => function ($q) {
             $q->with('shop'); // untuk Product atau Variation->product->shop
         }]);
 
@@ -45,19 +45,19 @@ class DownloadController extends Controller
         ]);
 
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $hasAccess = $this->downloadService->userHasAccessToFile($user, $request->digital_file_id);
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $token = $this->downloadService->generateDownloadToken($request->digital_file_id, $user->id);
 
         return response()->json([
-            'url' => route('download_url.token', ['token' => $token->token])
+            'url' => route('download_url.token', ['token' => $token->token]),
         ]);
     }
 
@@ -67,12 +67,12 @@ class DownloadController extends Controller
     public function downloadFile($token)
     {
         $digitalFile = $this->downloadService->getFileByToken($token);
-        if (!$digitalFile) {
+        if (! $digitalFile) {
             throw new HttpException(404, config('notice.TOKEN_NOT_FOUND'));
         }
 
         $mediaItem = $this->downloadService->getMediaItem($digitalFile->attachment_id);
-        if (!$mediaItem) {
+        if (! $mediaItem) {
             throw new HttpException(404, config('notice.NOT_FOUND'));
         }
 

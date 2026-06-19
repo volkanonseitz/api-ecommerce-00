@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\RefundPolicy;
-use App\Models\Shop;
-use App\DTO\RefundPolicyData;
 use App\Actions\CreateRefundPolicyAction;
 use App\Actions\UpdateRefundPolicyAction;
+use App\DTO\RefundPolicyData;
 use App\Enums\Permission;
+use App\Models\RefundPolicy;
+use App\Models\Shop;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -20,16 +20,25 @@ class RefundPolicyService
 
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
-        if (!$user) return false;
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) return true;
-        if (!$shopId) return false;
+        if (! $user) {
+            return false;
+        }
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        if (! $shopId) {
+            return false;
+        }
 
         $shop = Shop::find($shopId);
-        if (!$shop) return false;
+        if (! $shop) {
+            return false;
+        }
 
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $shop->owner_id === $user->id;
         }
+
         // Staff tidak bisa mengelola refund policy (hanya admin & store owner)
         return false;
     }
@@ -37,6 +46,7 @@ class RefundPolicyService
     public function getPoliciesQuery(Request $request)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
+
         return RefundPolicy::where('language', $language);
     }
 
@@ -45,6 +55,7 @@ class RefundPolicyService
         if (is_numeric($value)) {
             return RefundPolicy::where('id', $value)->where('language', $language)->firstOrFail();
         }
+
         return RefundPolicy::where('slug', $value)->where('language', $language)->firstOrFail();
     }
 

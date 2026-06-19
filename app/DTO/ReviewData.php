@@ -40,6 +40,6 @@ class ReviewData
             'comment' => $this->comment,
             'rating' => $this->rating,
             'photos' => $this->photos,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

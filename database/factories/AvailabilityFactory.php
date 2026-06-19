@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Avilability;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

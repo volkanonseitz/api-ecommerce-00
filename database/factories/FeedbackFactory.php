@@ -19,7 +19,7 @@ class FeedbackFactory extends Factory
             'model_type' => 'App\Models\Review',
             'model_id' => Review::factory(),
             'positive' => $this->faker->boolean(),
-            'negative' => !$this->faker->boolean(),
+            'negative' => ! $this->faker->boolean(),
         ];
     }
 }

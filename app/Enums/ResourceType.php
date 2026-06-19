@@ -23,7 +23,7 @@ enum ResourceType: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::DROPOFF_LOCATION => 'Drop-off Location',
             self::PICKUP_LOCATION => 'Pick-up Location',
             self::PERSON => 'Person',

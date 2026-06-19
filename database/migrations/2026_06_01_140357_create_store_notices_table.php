@@ -1,10 +1,10 @@
 <?php
 
+use App\Enums\StoreNoticePriority;
+use App\Enums\StoreNoticeType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\StoreNoticePriority;
-use App\Enums\StoreNoticeType;
 
 return new class extends Migration
 {

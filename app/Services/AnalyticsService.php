@@ -2,15 +2,14 @@
 
 namespace App\Services;
 
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use App\Models\Product;
-use App\Models\Type;
-use App\Models\User;
-use App\Models\Shop;
 use App\Enums\OrderStatus;
 use App\Enums\Permission;
+use App\Models\Product;
+use App\Models\Shop;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
@@ -36,7 +35,7 @@ class AnalyticsService
 
         // Total shops & vendors
         if ($isSuperAdmin) {
-            $totalVendors = User::whereHas('permissions', fn($q) => $q->where('name', Permission::STORE_OWNER->value))->count();
+            $totalVendors = User::whereHas('permissions', fn ($q) => $q->where('name', Permission::STORE_OWNER->value))->count();
             $totalShops = Shop::count();
         } else {
             $totalShops = Shop::where('owner_id', $user?->id)->count();
@@ -48,18 +47,18 @@ class AnalyticsService
             ->count();
 
         return [
-            'totalRevenue'              => $totalRevenue,
-            'totalRefunds'              => $totalRefunds,
-            'totalShops'                => $totalShops,
-            'totalVendors'              => $totalVendors ?? 0,
-            'todaysRevenue'             => $todaysRevenue,
-            'totalOrders'               => $totalOrders,
-            'newCustomers'              => $newCustomers,
-            'totalYearSaleByMonth'      => $this->getTotalYearSaleByMonth($user),
-            'todayTotalOrderByStatus'   => $this->orderCountingByStatus($user, 1),
-            'weeklyTotalOrderByStatus'  => $this->orderCountingByStatus($user, 7),
+            'totalRevenue' => $totalRevenue,
+            'totalRefunds' => $totalRefunds,
+            'totalShops' => $totalShops,
+            'totalVendors' => $totalVendors ?? 0,
+            'todaysRevenue' => $todaysRevenue,
+            'totalOrders' => $totalOrders,
+            'newCustomers' => $newCustomers,
+            'totalYearSaleByMonth' => $this->getTotalYearSaleByMonth($user),
+            'todayTotalOrderByStatus' => $this->orderCountingByStatus($user, 1),
+            'weeklyTotalOrderByStatus' => $this->orderCountingByStatus($user, 7),
             'monthlyTotalOrderByStatus' => $this->orderCountingByStatus($user, 30),
-            'yearlyTotalOrderByStatus'  => $this->orderCountingByStatus($user, 365),
+            'yearlyTotalOrderByStatus' => $this->orderCountingByStatus($user, 365),
         ];
     }
 
@@ -84,6 +83,7 @@ class AnalyticsService
 
         if ($isSuperAdmin) {
             $results = $query->get();
+
             return $results->sum('paid_total')
                 + $results->unique('parent_id')->sum('delivery_fee')
                 + $results->unique('parent_id')->sum('sales_tax');
@@ -104,6 +104,7 @@ class AnalyticsService
 
         if ($isSuperAdmin) {
             $results = $query->get();
+
             return $results->sum('paid_total')
                 + $results->unique('parent_id')->sum('delivery_fee')
                 + $results->unique('parent_id')->sum('sales_tax');
@@ -118,6 +119,7 @@ class AnalyticsService
         if ($isSuperAdmin) {
             return $query->whereNull('shop_id')->sum('amount');
         }
+
         return $query->whereIn('shop_id', $shops)->sum('amount');
     }
 
@@ -127,6 +129,7 @@ class AnalyticsService
         if ($isSuperAdmin) {
             return $query->whereNull('parent_id')->count();
         }
+
         return $query->whereIn('shop_id', $shops)->count();
     }
 
@@ -136,8 +139,8 @@ class AnalyticsService
     public function getTotalYearSaleByMonth(?Authenticatable $user): array
     {
         $months = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December',
         ];
 
         $isSuperAdmin = $user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
@@ -150,7 +153,7 @@ class AnalyticsService
                 ->join('orders as B', 'A.id', '=', 'B.parent_id')
                 ->where('B.order_status', OrderStatus::COMPLETED->value)
                 ->select(
-                    DB::raw("SUM(A.paid_total) as total"),
+                    DB::raw('SUM(A.paid_total) as total'),
                     DB::raw("DATE_FORMAT(A.created_at, '%M') as month")
                 );
         } else {
@@ -162,16 +165,16 @@ class AnalyticsService
                 ->join('orders as B', 'A.parent_id', '=', 'B.id')
                 ->whereIn('A.shop_id', $shops)
                 ->select(
-                    DB::raw("SUM(B.amount) as total"),
+                    DB::raw('SUM(B.amount) as total'),
                     DB::raw("DATE_FORMAT(A.created_at, '%M') as month")
                 );
         }
 
         $totalByMonth = $query->groupBy('month')->pluck('total', 'month')->toArray();
 
-        return array_map(fn($month) => [
+        return array_map(fn ($month) => [
             'month' => $month,
-            'total' => $totalByMonth[$month] ?? 0
+            'total' => $totalByMonth[$month] ?? 0,
         ], $months);
     }
 
@@ -180,7 +183,7 @@ class AnalyticsService
      */
     public function orderCountingByStatus(?Authenticatable $user, int $days): array
     {
-        if (!$user) {
+        if (! $user) {
             return $this->emptyOrderStatusCount();
         }
 
@@ -215,13 +218,13 @@ class AnalyticsService
             ->toArray();
 
         return [
-            'pending'        => $results[OrderStatus::PENDING->value] ?? 0,
-            'processing'     => $results[OrderStatus::PROCESSING->value] ?? 0,
-            'complete'       => $results[OrderStatus::COMPLETED->value] ?? 0,
-            'cancelled'      => $results[OrderStatus::CANCELLED->value] ?? 0,
-            'refunded'       => $results[OrderStatus::REFUNDED->value] ?? 0,
-            'failed'         => $results[OrderStatus::FAILED->value] ?? 0,
-            'localFacility'  => $results[OrderStatus::AT_LOCAL_FACILITY->value] ?? 0,
+            'pending' => $results[OrderStatus::PENDING->value] ?? 0,
+            'processing' => $results[OrderStatus::PROCESSING->value] ?? 0,
+            'complete' => $results[OrderStatus::COMPLETED->value] ?? 0,
+            'cancelled' => $results[OrderStatus::CANCELLED->value] ?? 0,
+            'refunded' => $results[OrderStatus::REFUNDED->value] ?? 0,
+            'failed' => $results[OrderStatus::FAILED->value] ?? 0,
+            'localFacility' => $results[OrderStatus::AT_LOCAL_FACILITY->value] ?? 0,
             'outForDelivery' => $results[OrderStatus::OUT_FOR_DELIVERY->value] ?? 0,
         ];
     }
@@ -259,7 +262,9 @@ class AnalyticsService
      */
     public function categoryWiseProductCount(?Authenticatable $user, string $language, int $limit = 15): array
     {
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         $isSuperAdmin = $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
         $isStoreOwner = $user->hasPermissionTo(Permission::STORE_OWNER->value);
@@ -304,7 +309,9 @@ class AnalyticsService
      */
     public function categoryWiseProductSales(?Authenticatable $user, string $language, int $limit = 15): array
     {
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         $isSuperAdmin = $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
         $isStoreOwner = $user->hasPermissionTo(Permission::STORE_OWNER->value);
@@ -353,7 +360,9 @@ class AnalyticsService
      */
     public function topRatedProducts(?Authenticatable $user, string $language, int $limit = 10): array
     {
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         $isSuperAdmin = $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
         $isStoreOwner = $user->hasPermissionTo(Permission::STORE_OWNER->value);
@@ -418,6 +427,7 @@ class AnalyticsService
             $row->image = json_decode($row->image_json, true);
             unset($row->image_json);
         }
+
         return $results->toArray();
     }
 }

@@ -16,6 +16,7 @@ class BalanceFactory extends Factory
     {
         $total = $this->faker->randomFloat(2, 0, 10000);
         $withdrawn = $this->faker->randomFloat(2, 0, $total);
+
         return [
             'shop_id' => Shop::factory(),
             'admin_commission_rate' => $this->faker->optional()->randomFloat(2, 5, 20),

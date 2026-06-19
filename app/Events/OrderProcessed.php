@@ -7,5 +7,9 @@ use App\Models\Order;
 class OrderProcessed
 {
     public Order $order;
-    public function __construct(Order $order) { $this->order = $order; }
+
+    public function __construct(Order $order)
+    {
+        $this->order = $order;
+    }
 }

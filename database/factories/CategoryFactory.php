@@ -15,6 +15,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->word();
+
         return [
             'name' => $name,
             'slug' => null, // auto by boot

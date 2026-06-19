@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Type;
-use App\DTO\TypeData;
 use App\Actions\CreateTypeAction;
 use App\Actions\UpdateTypeAction;
+use App\DTO\TypeData;
+use App\Models\Type;
 
 class TypeService
 {
@@ -24,6 +24,7 @@ class TypeService
         if (is_numeric($identifier)) {
             return Type::with('banners')->findOrFail($identifier);
         }
+
         return Type::with('banners')
             ->where('slug', $identifier)
             ->where('language', $language)

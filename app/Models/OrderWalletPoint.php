@@ -11,9 +11,6 @@ class OrderWalletPoint extends Model
 
     public $guarded = [];
 
-    /**
-     * @return BelongsTo
-     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id');

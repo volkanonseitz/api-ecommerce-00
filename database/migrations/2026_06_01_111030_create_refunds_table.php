@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\RefundStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\RefundStatus;
 
 return new class extends Migration
 {
@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('refunds', function (Blueprint $table) {
             $table->id();
             $table->double('amount')->default(0);
-            $table->enum('status',RefundStatus::getValues())->default(RefundStatus::PENDING);
+            $table->enum('status', RefundStatus::getValues())->default(RefundStatus::PENDING);
             $table->string('title')->nullable();
             $table->text('description')->nullable();
             $table->json('images')->nullable();

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ManufacturerService;
+use App\DTO\ManufacturerData;
+use App\Enums\Permission;
 use App\Http\Requests\ManufacturerRequest;
 use App\Http\Resources\ManufacturerResource;
-use App\DTO\ManufacturerData;
 use App\Models\Manufacturer;
-use App\Enums\Permission;
-use Illuminate\Http\Request;
+use App\Services\ManufacturerService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class ManufacturerController extends BaseController
@@ -24,7 +24,7 @@ class ManufacturerController extends BaseController
     {
         $limit = $request->limit ?? 15;
         $language = $request->language ?? config('shop.default_language', 'id');
-        
+
         $cacheKey = "manufacturers_{$language}_{$limit}";
         $manufacturers = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
             return $this->manufacturerService->getManufacturersByLanguage($language, $limit);
@@ -45,12 +45,12 @@ class ManufacturerController extends BaseController
         $user = $request->user();
         $shopId = $request->shop_id;
 
-        if (!$this->manufacturerService->hasPermission($user, $shopId)) {
+        if (! $this->manufacturerService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $validated = $request->validated();
-        
+
         // Atur status persetujuan berdasarkan hak akses user
         if ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             $validated['is_approved'] = true;
@@ -60,7 +60,7 @@ class ManufacturerController extends BaseController
 
         $data = ManufacturerData::fromRequest($validated);
         $manufacturer = $this->manufacturerService->createManufacturer($data);
-        
+
         // Hapus cache untuk bahasa yang sama
         Cache::forget("manufacturers_{$data->language}_*");
 
@@ -77,9 +77,10 @@ class ManufacturerController extends BaseController
     public function show(Request $request, string $slug)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        
+
         try {
             $manufacturer = $this->manufacturerService->getManufacturerByIdOrSlug($slug, $language);
+
             return $this->sendSuccess(
                 new ManufacturerResource($manufacturer),
                 'Manufacturer detail'
@@ -97,7 +98,7 @@ class ManufacturerController extends BaseController
         $user = $request->user();
         $shopId = $request->shop_id;
 
-        if (!$this->manufacturerService->hasPermission($user, $shopId)) {
+        if (! $this->manufacturerService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
@@ -105,13 +106,13 @@ class ManufacturerController extends BaseController
         $validated = $request->validated();
 
         // Non-admin tidak boleh mengubah is_approved, kunci ke status lama
-        if (!($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value))) {
+        if (! ($user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value))) {
             $validated['is_approved'] = $manufacturer->is_approved;
         }
 
         $data = ManufacturerData::fromRequest($validated);
         $updated = $this->manufacturerService->updateManufacturer($manufacturer, $data);
-        
+
         // Hapus cache
         Cache::forget("manufacturers_{$data->language}_*");
 
@@ -129,7 +130,7 @@ class ManufacturerController extends BaseController
         $user = $request->user();
         $shopId = $request->shop_id;
 
-        if (!$this->manufacturerService->hasPermission($user, $shopId)) {
+        if (! $this->manufacturerService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
@@ -149,7 +150,7 @@ class ManufacturerController extends BaseController
     {
         $limit = $request->limit ?? 10;
         $language = $request->language ?? config('shop.default_language', 'id');
-        
+
         $cacheKey = "top_manufacturers_{$language}_{$limit}";
         $manufacturers = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
             return $this->manufacturerService->getTopManufacturers($language, $limit);

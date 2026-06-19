@@ -8,10 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Address extends Model
 {
     protected $table = 'address';
-    protected $guarded = [];
+
+    protected $fillable = [
+        'title',
+        'type',
+        'default',
+        'address',
+        'location',
+        'customer_id',
+    ];
+
     protected $casts = [
-        'address' => 'json',
-        'location' => 'json',
+        'default' => 'boolean',
+        'address' => 'array',
+        'location' => 'array',
     ];
 
     public function customer(): BelongsTo

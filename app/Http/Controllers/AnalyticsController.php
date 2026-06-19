@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AnalyticsService;
 use App\Models\Type;
-use Illuminate\Http\Request;
+use App\Services\AnalyticsService;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
 
 class AnalyticsController extends Controller
 {
@@ -17,10 +17,11 @@ class AnalyticsController extends Controller
     public function analytics(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            throw new AuthenticationException();
+        if (! $user) {
+            throw new AuthenticationException;
         }
         $data = $this->analyticsService->getAnalytics($user);
+
         return response()->json($data);
     }
 
@@ -30,12 +31,12 @@ class AnalyticsController extends Controller
     public function lowStockProducts(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            throw new AuthenticationException();
+        if (! $user) {
+            throw new AuthenticationException;
         }
         $language = $request->language ?? config('shop.default_language', 'id');
         $typeId = $request->type_id;
-        if ($request->type_slug && !$typeId) {
+        if ($request->type_slug && ! $typeId) {
             $type = Type::where('slug', $request->type_slug)
                 ->where('language', $language)
                 ->firstOrFail();
@@ -45,6 +46,7 @@ class AnalyticsController extends Controller
         $products = $this->analyticsService->getLowStockProductsQuery(
             $user, $language, $typeId, $request->shop_id
         )->take($limit)->get();
+
         return response()->json($products);
     }
 
@@ -54,12 +56,13 @@ class AnalyticsController extends Controller
     public function categoryWiseProduct(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            throw new AuthenticationException();
+        if (! $user) {
+            throw new AuthenticationException;
         }
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $data = $this->analyticsService->categoryWiseProductCount($user, $language, $limit);
+
         return response()->json($data);
     }
 
@@ -69,12 +72,13 @@ class AnalyticsController extends Controller
     public function categoryWiseProductSale(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            throw new AuthenticationException();
+        if (! $user) {
+            throw new AuthenticationException;
         }
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $data = $this->analyticsService->categoryWiseProductSales($user, $language, $limit);
+
         return response()->json($data);
     }
 
@@ -84,12 +88,13 @@ class AnalyticsController extends Controller
     public function topRatedProducts(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            throw new AuthenticationException();
+        if (! $user) {
+            throw new AuthenticationException;
         }
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 10;
         $data = $this->analyticsService->topRatedProducts($user, $language, $limit);
+
         return response()->json($data);
     }
 }

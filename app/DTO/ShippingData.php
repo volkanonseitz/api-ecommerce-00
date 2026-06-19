@@ -28,6 +28,6 @@ class ShippingData
             'type' => $this->type,
             'amount' => $this->amount,
             'is_global' => $this->is_global,
-        ], fn($v) => !is_null($v));
+        ], fn ($v) => ! is_null($v));
     }
 }

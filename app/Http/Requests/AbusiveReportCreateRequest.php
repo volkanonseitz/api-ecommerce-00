@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\AbusiveReportTypes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 class AbusiveReportCreateRequest extends FormRequest
 {
@@ -24,9 +22,9 @@ class AbusiveReportCreateRequest extends FormRequest
             ],
 
             'model_type' => [
-    'required',
-    Rule::in(AbusiveReportType::getValues()),
-],
+                'required',
+                Rule::in(AbusiveReportType::getValues()),
+            ],
 
             'message' => [
                 'required',

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Wishlist;
-use App\Models\Product;
 use App\DTO\WishlistData;
+use App\Models\Product;
+use App\Models\Wishlist;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 class WishlistService
@@ -15,6 +15,7 @@ class WishlistService
     public function getUserWishlistProducts(Authenticatable $user, int $perPage = 15)
     {
         $productIds = Wishlist::where('user_id', $user->id)->pluck('product_id');
+
         return Product::whereIn('id', $productIds)->paginate($perPage);
     }
 
@@ -28,7 +29,6 @@ class WishlistService
 
     /**
      * Tambah product ke wishlist (hanya jika belum ada)
-     * @return Wishlist|null
      */
     public function addToWishlist(WishlistData $data): ?Wishlist
     {
@@ -38,11 +38,13 @@ class WishlistService
         if ($exists) {
             return null;
         }
+
         return Wishlist::create($data->toArray());
     }
 
     /**
      * Hapus product dari wishlist
+     *
      * @return bool true jika berhasil dihapus
      */
     public function removeFromWishlist(Authenticatable $user, int $productId): bool
@@ -53,6 +55,7 @@ class WishlistService
         if ($wishlist) {
             return $wishlist->delete();
         }
+
         return false;
     }
 
@@ -68,11 +71,13 @@ class WishlistService
         if ($wishlist) {
             return $wishlist->delete();
         }
+
         return false;
     }
 
     /**
      * Toggle wishlist: tambah jika belum ada, hapus jika sudah ada
+     *
      * @return bool true jika ditambahkan, false jika dihapus
      */
     public function toggleWishlist(WishlistData $data): bool
@@ -82,9 +87,11 @@ class WishlistService
             ->exists();
         if ($exists) {
             $this->removeFromWishlistById($data->user_id, $data->product_id);
+
             return false;
         } else {
             Wishlist::create($data->toArray());
+
             return true;
         }
     }

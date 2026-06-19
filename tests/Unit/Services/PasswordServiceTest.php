@@ -2,13 +2,13 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
+use App\Models\User;
 use App\Services\PasswordService;
 use App\Services\UserService;
-use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PasswordServiceTest extends TestCase
 {

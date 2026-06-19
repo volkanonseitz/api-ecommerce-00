@@ -23,9 +23,9 @@ class TermsAndConditionsCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string'],
+            'title' => ['required', 'string'],
             'description' => ['required', 'string', 'max:10000'],
-            'language'    => ['nullable', 'string'],
+            'language' => ['nullable', 'string'],
         ];
     }
 }

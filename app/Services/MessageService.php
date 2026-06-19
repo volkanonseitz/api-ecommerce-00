@@ -2,15 +2,14 @@
 
 namespace App\Services;
 
+use App\Actions\CreateMessageAction;
+use App\DTO\MessageData;
+use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Participant;
-use App\DTO\MessageData;
-use App\Actions\CreateMessageAction;
-use App\Events\MessageSent;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 
 class MessageService
 {
@@ -22,14 +21,20 @@ class MessageService
     public function hasAccess(Authenticatable $user, Conversation $conversation): bool
     {
         // Jika user adalah customer yang memulai percakapan
-        if ($user->id === $conversation->user_id) return true;
+        if ($user->id === $conversation->user_id) {
+            return true;
+        }
 
         // Jika user adalah pemilik shop atau staff dari shop tersebut
         $shopIds = $user->shops->pluck('id')->toArray();
-        if (in_array($conversation->shop_id, $shopIds)) return true;
+        if (in_array($conversation->shop_id, $shopIds)) {
+            return true;
+        }
 
         // Jika user adalah staff yang memiliki shop_id sama (kasus user punya managed_shop)
-        if ($user->shop_id && $user->shop_id === $conversation->shop_id) return true;
+        if ($user->shop_id && $user->shop_id === $conversation->shop_id) {
+            return true;
+        }
 
         return false;
     }
@@ -99,6 +104,7 @@ class MessageService
         $message = $this->createMessage->execute($data);
         $conversation->update(['updated_at' => now()]);
         event(new MessageSent($message, $conversation, $type, $user));
+
         return $message;
     }
 
@@ -108,12 +114,13 @@ class MessageService
     public function getConversationForUser(int $conversationId, Authenticatable $user): Conversation
     {
         $conversation = Conversation::where('id', $conversationId)
-            ->where(function($q) use ($user) {
+            ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id);
                 $q->orWhereIn('shop_id', $user->shops->pluck('id'));
                 $q->orWhere('shop_id', $user->shop_id);
             })
             ->firstOrFail();
+
         return $conversation;
     }
 }

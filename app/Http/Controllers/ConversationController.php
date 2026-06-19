@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ConversationService;
 use App\Http\Requests\ConversationCreateRequest;
 use App\Models\Shop;
+use App\Services\ConversationService;
 use Illuminate\Http\Request;
 
 class ConversationController extends Controller
@@ -15,19 +15,23 @@ class ConversationController extends Controller
     {
         $limit = $request->limit ?? 15;
         $conversations = $this->service->getUserConversations()->paginate($limit);
+
         return response()->json($conversations);
     }
 
     public function show($conversation_id)
     {
         $conversation = $this->service->findConversation($conversation_id);
+
         return response()->json($conversation);
     }
 
     public function store(ConversationCreateRequest $request)
     {
         $user = $request->user();
-        if (!$user) abort(401, config('notice.NOT_AUTHORIZED'));
+        if (! $user) {
+            abort(401, config('notice.NOT_AUTHORIZED'));
+        }
 
         $shop = Shop::findOrFail($request->shop_id);
         if ($shop->owner_id === $user->id || $request->shop_id === $user->shop_id) {
@@ -35,6 +39,7 @@ class ConversationController extends Controller
         }
 
         $conversation = $this->service->createConversation($user->id, $request->shop_id);
+
         return response()->json($conversation);
     }
 }
