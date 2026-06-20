@@ -9,6 +9,7 @@ use App\Enums\CouponType;
 use App\Enums\Permission;
 use App\Models\Coupon;
 use App\Models\Settings;
+use App\Models\Shop;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;

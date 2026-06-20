@@ -7,6 +7,7 @@ use App\Actions\UpdateAttributeAction;
 use App\DTO\AttributeData;
 use App\Enums\Permission;
 use App\Models\Attribute;
+use App\Models\Shop;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Arr;
 

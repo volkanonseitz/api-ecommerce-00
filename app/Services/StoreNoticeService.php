@@ -13,6 +13,7 @@ use App\Models\StoreNotice;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 class StoreNoticeService

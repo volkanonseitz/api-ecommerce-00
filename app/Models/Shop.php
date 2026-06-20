@@ -94,4 +94,14 @@ class Shop extends Model
         // default logic, bisa disesuaikan
         return 10; // percentage
     }
+
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    public function withdraws()
+    {
+        return $this->hasMany(Withdraw::class);
+    }
 }

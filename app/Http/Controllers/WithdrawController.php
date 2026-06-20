@@ -23,7 +23,7 @@ class WithdrawController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $limit = $request->limit ?? 15;
         $withdraws = $this->withdrawService->getWithdrawsQuery($request, $user)->paginate($limit);
@@ -38,7 +38,7 @@ class WithdrawController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $data = WithdrawData::fromRequest($request->validated());
         $withdraw = $this->withdrawService->createWithdraw($data, $user);
@@ -53,7 +53,7 @@ class WithdrawController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $withdraw = $this->withdrawService->findWithdraw((int) $id, $user);
 
@@ -65,7 +65,7 @@ class WithdrawController extends Controller
      */
     public function update(UpdateWithdrawRequest $request, $id)
     {
-        throw new HttpException(400, config('constants.ACTION_NOT_VALID'));
+        throw new HttpException(400, config('notice.ACTION_NOT_VALID'));
     }
 
     /**
@@ -75,7 +75,7 @@ class WithdrawController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $this->withdrawService->deleteWithdraw((int) $id, $user);
 
@@ -89,7 +89,7 @@ class WithdrawController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $request->validate([
             'id' => 'required|exists:withdraws,id',

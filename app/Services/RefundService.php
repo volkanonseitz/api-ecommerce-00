@@ -8,6 +8,7 @@ use App\Enums\RefundStatus;
 use App\Models\Balance;
 use App\Models\Order;
 use App\Models\Refund;
+use App\Models\Shop;
 use App\Models\Wallet;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;

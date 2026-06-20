@@ -51,11 +51,11 @@ class WithdrawService
 
         // Non-admin: hanya untuk shop yang dimiliki
         if (! $shopId) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         if (! $this->hasPermission($user, (int) $shopId)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         return $query->where('shop_id', $shopId);
@@ -68,7 +68,7 @@ class WithdrawService
     {
         $withdraw = Withdraw::with('shop')->findOrFail($id);
         if (! $this->hasPermission($user, $withdraw->shop_id)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         return $withdraw;
@@ -80,12 +80,12 @@ class WithdrawService
     public function createWithdraw(WithdrawData $data, Authenticatable $user): Withdraw
     {
         if (! $this->hasPermission($user, $data->shop_id)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         $balance = Balance::where('shop_id', $data->shop_id)->first();
         if (! $balance || $balance->current_balance < $data->amount) {
-            throw new BadRequestHttpException(config('constants.INSUFFICIENT_BALANCE'));
+            throw new BadRequestHttpException(config('notice.INSUFFICIENT_BALANCE'));
         }
 
         $withdraw = Withdraw::create($data->toArray());
@@ -106,7 +106,7 @@ class WithdrawService
     public function approveWithdraw(int $id, string $status, Authenticatable $user): Withdraw
     {
         if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         $withdraw = Withdraw::findOrFail($id);
@@ -122,7 +122,7 @@ class WithdrawService
     public function deleteWithdraw(int $id, Authenticatable $user): void
     {
         if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
         $withdraw = Withdraw::findOrFail($id);
         $withdraw->delete();

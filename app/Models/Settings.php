@@ -24,7 +24,7 @@ class Settings extends Model
             $data = static::where('language', 'id')->first();
         }
 
-        return $data ?? new static([
+        return $data ?? new self([
             'options' => [],
         ]);
     }

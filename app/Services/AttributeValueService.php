@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTO\AttributeValueData;
 use App\Enums\Permission;
 use App\Models\AttributeValue;
+use App\Models\Shop;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 class AttributeValueService

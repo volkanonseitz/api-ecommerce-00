@@ -20,7 +20,7 @@ class OwnershipTransferController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $limit = $request->limit ?? 15;
@@ -40,7 +40,7 @@ class OwnershipTransferController extends Controller
     {
         $user = $request->user();
         if (! $this->transferService->hasPermission($user, $request->shop_id)) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = OwnershipTransferData::fromRequest($request->validated(), $user->id);
@@ -66,7 +66,7 @@ class OwnershipTransferController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $request->validate(['status' => 'required|string|in:pending,approved,rejected']);
@@ -82,7 +82,7 @@ class OwnershipTransferController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            throw new AuthorizationException(config('constants.NOT_AUTHORIZED'));
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $this->transferService->deleteTransfer((int) $id, $user);

@@ -19,7 +19,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
- // FIX: Import ditambahkan disini
+// FIX: Import ditambahkan disini
 
 class ShopService
 {
@@ -148,7 +148,12 @@ class ShopService
                 'status' => DefaultStatusType::PENDING,
             ]
         );
-        event(new ProcessOwnershipTransition($shop, $shop->owner, $newOwner, ['message' => $vendorMessage]));
+        event(new ProcessOwnershipTransition(
+            $shop,
+            $shop->owner,
+            $newOwner,
+            ['message' => $vendorMessage]
+        ));
     }
 
     public function enableMaintenance(Shop $shop): void

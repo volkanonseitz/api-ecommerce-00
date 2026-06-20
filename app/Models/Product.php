@@ -170,8 +170,7 @@ class Product extends Model
 
     public function getBlockedDatesAttribute()
     {
-        // Implementasi sederhana
-        return [];
+        return $this->getBlockedDates();
     }
 
     public function getTranslatedLanguagesAttribute(): array
@@ -193,5 +192,10 @@ class Product extends Model
         return $this->belongsToMany(Order::class, 'order_product')
             ->withPivot('order_quantity', 'unit_price', 'subtotal', 'variation_option_id')
             ->withTimestamps();
+    }
+
+    public function shipping()
+    {
+        return $this->belongsTo(Shipping::class);
     }
 }

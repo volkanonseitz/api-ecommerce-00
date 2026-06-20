@@ -52,7 +52,7 @@ class OwnershipTransferService
             return OwnershipTransfer::where('to', $user->id);
         }
         // selain super admin dan store owner tidak boleh akses
-        abort(403, config('constants.NOT_AUTHORIZED'));
+        abort(403, config('notice.NOT_AUTHORIZED'));
     }
 
     /**
@@ -86,7 +86,7 @@ class OwnershipTransferService
     public function updateTransferStatus(int $id, string $status, Authenticatable $user): OwnershipTransfer
     {
         if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
 
         $transfer = OwnershipTransfer::findOrFail($id);
@@ -122,7 +122,7 @@ class OwnershipTransferService
         $pendingWithdrawals = $shop->withdraws->filter(fn ($w) => $w->status !== 'approved')->count();
 
         if ($incompleteOrders > 0 || $currentBalance > 1.00 || $pendingWithdrawals > 0) {
-            throw new \Exception(config('constants.COULD_NOT_SETTLE_THE_TRANSITION'));
+            throw new \Exception(config('notice.COULD_NOT_SETTLE_THE_TRANSITION'));
         }
     }
 
@@ -133,7 +133,7 @@ class OwnershipTransferService
     {
         $transfer = OwnershipTransfer::findOrFail($id);
         if (! $this->hasPermission($user, $transfer->shop_id)) {
-            throw new \Exception(config('constants.NOT_AUTHORIZED'));
+            throw new \Exception(config('notice.NOT_AUTHORIZED'));
         }
         $transfer->delete();
     }

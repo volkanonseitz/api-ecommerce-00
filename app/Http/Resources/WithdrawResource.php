@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Withdraw;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Withdraw
+ */
 class WithdrawResource extends JsonResource
 {
     public function toArray($request)
