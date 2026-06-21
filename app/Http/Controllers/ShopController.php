@@ -16,7 +16,7 @@ use App\Services\ShopService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class ShopController extends Controller
+class ShopController extends BaseController
 {
     public function __construct(private ShopService $shopService) {}
 

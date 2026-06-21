@@ -3,7 +3,6 @@
 use App\Enums\Permission;
 use App\Http\Controllers\AbusiveReportController;
 use App\Http\Controllers\AddressController;
-use App\Http\Controllers\AiController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AttributeController;
@@ -162,9 +161,6 @@ Route::apiResource('/orders', OrderController::class)->only(['show', 'store']);
 Route::post('/orders/payment', [OrderController::class, 'submitPayment']);
 Route::get('/export-order/token/{token}', [OrderController::class, 'exportOrder'])->name('export_order.token');
 Route::get('/download-invoice/token/{token}', [OrderController::class, 'downloadInvoice'])->name('download_invoice.token');
-
-// AiController (public)
-Route::post('/generate-descriptions', [AiController::class, 'generateDescription']);
 
 // PaymentIntentController (public)
 Route::get('/payment-intent', [PaymentIntentController::class, 'getPaymentIntent']);

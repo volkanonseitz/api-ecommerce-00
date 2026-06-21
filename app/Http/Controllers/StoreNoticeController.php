@@ -13,7 +13,7 @@ use App\Services\StoreNoticeService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class StoreNoticeController extends Controller
+class StoreNoticeController extends BaseController
 {
     public function __construct(private StoreNoticeService $service) {}
 

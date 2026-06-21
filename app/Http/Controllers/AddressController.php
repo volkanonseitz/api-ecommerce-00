@@ -10,7 +10,7 @@ use App\Services\AddressService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AddressController extends Controller
+class AddressController extends BaseController
 {
     public function __construct(
         private readonly AddressService $addressService

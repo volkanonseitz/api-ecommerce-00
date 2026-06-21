@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\NotifyLog;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin NotifyLog
+ */
 class NotifyLogResource extends JsonResource
 {
     public function toArray($request)

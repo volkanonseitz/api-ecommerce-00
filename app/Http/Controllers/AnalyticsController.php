@@ -7,7 +7,7 @@ use App\Services\AnalyticsService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 
-class AnalyticsController extends Controller
+class AnalyticsController extends BaseController
 {
     public function __construct(private AnalyticsService $analyticsService) {}
 

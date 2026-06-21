@@ -9,7 +9,7 @@ use App\Models\Conversation;
 use App\Services\MessageService;
 use Illuminate\Http\Request;
 
-class MessageController extends Controller
+class MessageController extends BaseController
 {
     public function __construct(private MessageService $messageService) {}
 

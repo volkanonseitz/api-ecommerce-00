@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Feedback;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Feedback
+ */
 class FeedbackResource extends JsonResource
 {
     public function toArray($request)

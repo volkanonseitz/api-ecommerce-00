@@ -7,7 +7,7 @@ use App\Http\Requests\PaymentMethodCreateRequest;
 use App\Services\PaymentMethodService;
 use Illuminate\Http\Request;
 
-class PaymentMethodController extends Controller
+class PaymentMethodController extends BaseController
 {
     public function __construct(private PaymentMethodService $pmService) {}
 

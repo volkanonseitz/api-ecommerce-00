@@ -9,7 +9,7 @@ use App\Services\OwnershipTransferService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class OwnershipTransferController extends Controller
+class OwnershipTransferController extends BaseController
 {
     public function __construct(private OwnershipTransferService $transferService) {}
 

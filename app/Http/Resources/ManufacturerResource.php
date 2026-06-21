@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Manufacturer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Manufacturer
+ */
 class ManufacturerResource extends JsonResource
 {
     /**

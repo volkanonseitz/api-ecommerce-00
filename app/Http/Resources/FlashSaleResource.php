@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\FlashSale;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin FlashSale
+ */
 class FlashSaleResource extends JsonResource
 {
     public function toArray($request)

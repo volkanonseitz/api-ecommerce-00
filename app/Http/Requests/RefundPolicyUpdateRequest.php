@@ -17,8 +17,8 @@ class RefundPolicyUpdateRequest extends FormRequest
     {
         return [
             'title' => ['nullable', 'string', 'max:255'],
-            'target' => ['nullable', 'string', 'in:'.implode(',', RefundPolicyTarget::values())],
-            'status' => ['nullable', 'string', 'in:'.implode(',', RefundPolicyStatus::values())],
+            'target' => ['nullable', 'string', 'in:'.implode(',', RefundPolicyTarget::getValues())],
+            'status' => ['nullable', 'string', 'in:'.implode(',', RefundPolicyStatus::getValues())],
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:10000'],
             'shop_id' => ['nullable', 'exists:shops,id'],

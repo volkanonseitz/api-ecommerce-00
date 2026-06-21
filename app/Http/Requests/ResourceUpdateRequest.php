@@ -17,7 +17,7 @@ class ResourceUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'type' => ['required', Rule::in(ResourceType::values())],
+            'type' => ['required', Rule::in(ResourceType::getValues())],
             'price' => ['nullable', 'numeric'],
             'is_approved' => ['nullable', 'boolean'],
             'image' => ['nullable', 'array'],

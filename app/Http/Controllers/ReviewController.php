@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class ReviewController extends Controller
+class ReviewController extends BaseController
 {
     public function __construct(
         private ReviewService $reviewService,

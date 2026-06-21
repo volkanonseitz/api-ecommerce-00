@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class QuestionController extends Controller
+class QuestionController extends BaseController
 {
     public function __construct(private QuestionService $questionService) {}
 

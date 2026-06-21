@@ -7,7 +7,7 @@ use App\Services\PaymentService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 
-class PaymentIntentController extends Controller
+class PaymentIntentController extends BaseController
 {
     public function __construct(private PaymentService $paymentService) {}
 

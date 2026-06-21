@@ -12,7 +12,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class WithdrawController extends Controller
+class WithdrawController extends BaseController
 {
     public function __construct(private WithdrawService $withdrawService) {}
 
@@ -93,7 +93,7 @@ class WithdrawController extends Controller
         }
         $request->validate([
             'id' => 'required|exists:withdraws,id',
-            'status' => 'required|string|in:'.implode(',', WithdrawStatus::values()),
+            'status' => 'required|string|in:'.implode(',', WithdrawStatus::getValues()),
         ]);
         $withdraw = $this->withdrawService->approveWithdraw($request->id, $request->status, $user);
 

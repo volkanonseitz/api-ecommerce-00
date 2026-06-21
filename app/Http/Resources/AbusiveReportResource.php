@@ -2,9 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\AbusiveReportType;
+use App\Models\AbusiveReport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin AbusiveReport
+ */
 class AbusiveReportResource extends JsonResource
 {
     public function toArray(Request $request): array

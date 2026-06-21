@@ -8,7 +8,7 @@ use App\Http\Resources\AttachmentResource;
 use App\Services\AttachmentService;
 use Illuminate\Http\Request;
 
-class AttachmentController extends Controller
+class AttachmentController extends BaseController
 {
     public function __construct(private AttachmentService $attachmentService) {}
 

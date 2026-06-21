@@ -13,7 +13,7 @@ use App\Services\FlashSaleService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class FlashSaleController extends Controller
+class FlashSaleController extends BaseController
 {
     public function __construct(private FlashSaleService $flashSaleService) {}
 

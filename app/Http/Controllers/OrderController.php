@@ -17,7 +17,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
     public function __construct(
         private OrderService $orderService,

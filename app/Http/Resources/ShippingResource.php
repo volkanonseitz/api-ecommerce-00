@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Shipping;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Shipping
+ */
 class ShippingResource extends JsonResource
 {
     public function toArray($request)

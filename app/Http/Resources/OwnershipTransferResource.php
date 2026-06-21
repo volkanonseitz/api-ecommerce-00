@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\OwnershipTransfer;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin OwnershipTransfer
+ */
 class OwnershipTransferResource extends JsonResource
 {
     public function toArray($request)

@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum FlashSaleType: string
+enum EventType: string
 {
     case ORDER_CANCELLED = 'cancelOrder';
     case ORDER_CREATED = 'createOrder';

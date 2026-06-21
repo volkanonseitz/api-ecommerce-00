@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Shop;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Shop
+ */
 class ShopResource extends JsonResource
 {
     public function toArray($request)

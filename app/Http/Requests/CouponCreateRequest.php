@@ -25,7 +25,7 @@ class CouponCreateRequest extends FormRequest
             'amount' => $amountRules,
             'minimum_cart_amount' => ['required', 'numeric', 'min:0'],
             'shop_id' => ['nullable', 'exists:shops,id'],
-            'type' => ['required', Rule::in(CouponType::values())],
+            'type' => ['required', Rule::in(CouponType::getValues())],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'array'],
             'language' => ['nullable', 'string'],

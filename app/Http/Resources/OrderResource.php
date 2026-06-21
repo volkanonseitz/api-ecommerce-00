@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Order;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Order
+ */
 class OrderResource extends JsonResource
 {
     public function toArray($request)

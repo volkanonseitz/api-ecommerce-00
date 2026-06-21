@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\StoreNotice;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin StoreNotice
+ */
 class StoreNoticeResource extends JsonResource
 {
     public function toArray($request)

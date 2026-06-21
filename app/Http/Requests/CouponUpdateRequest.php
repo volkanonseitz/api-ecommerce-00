@@ -31,7 +31,7 @@ class CouponUpdateRequest extends FormRequest
         // Jika language adalah default, boleh update code, type, active_from, expire_at
         if ($language === config('shop.default_language', 'id')) {
             $rules['code'] = ['nullable', 'string', Rule::unique('coupons')->ignore($this->id)->where('language', $language)];
-            $rules['type'] = ['nullable', Rule::in(CouponType::values())];
+            $rules['type'] = ['nullable', Rule::in(CouponType::getValues())];
             $rules['active_from'] = ['nullable', 'date'];
             $rules['expire_at'] = ['nullable', 'date'];
         }

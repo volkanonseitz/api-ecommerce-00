@@ -18,7 +18,7 @@ class ResourceCreateRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'slug' => ['nullable', 'string'],
-            'type' => ['required', Rule::in(ResourceType::values())],
+            'type' => ['required', Rule::in(ResourceType::getValues())],
             'price' => ['nullable', 'numeric'],
             'image' => ['nullable', 'array'],
             'icon' => ['nullable', 'string'],

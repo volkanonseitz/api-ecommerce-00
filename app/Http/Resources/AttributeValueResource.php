@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\AttributeValue;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin AttributeValue
+ */
 class AttributeValueResource extends JsonResource
 {
     public function toArray($request)

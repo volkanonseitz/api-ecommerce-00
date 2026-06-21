@@ -8,7 +8,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class DownloadController extends Controller
+class DownloadController extends BaseController
 {
     public function __construct(private DownloadService $downloadService) {}
 

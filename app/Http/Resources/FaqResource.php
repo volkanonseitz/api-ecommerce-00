@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Faqs;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Faqs
+ */
 class FaqResource extends JsonResource
 {
     public function toArray($request)

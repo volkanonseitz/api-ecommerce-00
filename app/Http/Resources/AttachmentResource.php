@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Attachment;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Attachment
+ */
 class AttachmentResource extends JsonResource
 {
     public function toArray($request)

@@ -10,7 +10,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class WishlistController extends Controller
+class WishlistController extends BaseController
 {
     public function __construct(private WishlistService $wishlistService) {}
 

@@ -6,7 +6,7 @@ use App\DTO\CheckoutVerifyData;
 use App\Http\Requests\CheckoutVerifyRequest;
 use App\Services\CheckoutService;
 
-class CheckoutController extends Controller
+class CheckoutController extends BaseController
 {
     public function __construct(private CheckoutService $checkoutService) {}
 

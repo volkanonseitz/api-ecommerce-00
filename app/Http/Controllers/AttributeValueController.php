@@ -10,7 +10,7 @@ use App\Services\AttributeValueService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class AttributeValueController extends Controller
+class AttributeValueController extends BaseController
 {
     public function __construct(private AttributeValueService $attributeValueService) {}
 

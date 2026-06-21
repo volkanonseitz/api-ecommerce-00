@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\TermsAndConditions;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin TermsAndConditions
+ */
 class TermsConditionResource extends JsonResource
 {
     public function toArray($request)

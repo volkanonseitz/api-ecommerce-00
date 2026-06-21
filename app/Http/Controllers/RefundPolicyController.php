@@ -12,7 +12,7 @@ use App\Services\RefundPolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class RefundPolicyController extends Controller
+class RefundPolicyController extends BaseController
 {
     public function __construct(private RefundPolicyService $policyService) {}
 

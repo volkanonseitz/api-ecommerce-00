@@ -9,7 +9,7 @@ use App\Services\NotifyLogsService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class NotifyLogsController extends Controller
+class NotifyLogsController extends BaseController
 {
     public function __construct(private NotifyLogsService $notifyService) {}
 

@@ -11,7 +11,7 @@ use App\Services\RefundService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class RefundController extends Controller
+class RefundController extends BaseController
 {
     public function __construct(private RefundService $refundService) {}
 

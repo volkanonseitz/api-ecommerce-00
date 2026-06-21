@@ -31,6 +31,17 @@ class EventServiceProvider extends ServiceProvider
         OrderReceived::class => [
             SendOrderReceivedNotification::class,
         ],
+
+        DigitalProductUpdateEvent::class => [
+            DigitalProductNotifyLogsListener::class,
+        ],
+
+        ProductReviewApproved::class => [
+            ProductReviewApprovedListener::class,
+        ],
+        ProductReviewRejected::class => [
+            ProductReviewRejectedListener::class,
+        ],
     ];
 
     public function boot(): void

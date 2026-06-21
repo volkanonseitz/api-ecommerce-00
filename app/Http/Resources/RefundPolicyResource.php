@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\RefundPolicy;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin RefundPolicy
+ */
 class RefundPolicyResource extends JsonResource
 {
     public function toArray($request)

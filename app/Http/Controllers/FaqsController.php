@@ -13,7 +13,7 @@ use App\Services\FaqsService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class FaqsController extends Controller
+class FaqsController extends BaseController
 {
     public function __construct(private FaqsService $faqsService) {}
 

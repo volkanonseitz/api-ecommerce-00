@@ -7,7 +7,7 @@ use App\Models\Shop;
 use App\Services\ConversationService;
 use Illuminate\Http\Request;
 
-class ConversationController extends Controller
+class ConversationController extends BaseController
 {
     public function __construct(private ConversationService $service) {}
 

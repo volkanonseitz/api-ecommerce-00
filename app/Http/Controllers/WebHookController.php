@@ -6,7 +6,7 @@ use App\Services\Payment\FlutterwaveProvider;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 
-class WebHookController extends Controller
+class WebHookController extends BaseController
 {
     public function __construct(private PaymentService $paymentService) {}
 

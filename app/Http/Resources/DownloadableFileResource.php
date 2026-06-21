@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\DownloadToken;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin DownloadToken
+ */
 class DownloadableFileResource extends JsonResource
 {
     public function toArray($request)

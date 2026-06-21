@@ -7,7 +7,7 @@ use App\Http\Requests\FeedbackCreateRequest;
 use App\Http\Resources\FeedbackResource;
 use App\Services\FeedbackService;
 
-class FeedbackController extends Controller
+class FeedbackController extends BaseController
 {
     public function __construct(private FeedbackService $feedbackService) {}
 

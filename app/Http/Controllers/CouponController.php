@@ -12,7 +12,7 @@ use App\Services\CouponService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
-class CouponController extends Controller
+class CouponController extends BaseController
 {
     public function __construct(private CouponService $couponService) {}
 

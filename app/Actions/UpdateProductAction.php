@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\DTO\ProductData;
+use App\DTO\VariationOptionData;
 use App\Events\DigitalProductUpdateEvent;
 use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
