@@ -1,6 +1,7 @@
 <?php
 
 namespace App\DTO;
+
 use App\Enums\AbusiveReportType;
 
 class AbusiveReportData

@@ -21,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(OtpService::class, function ($app) {
             return new OtpService;
         });
+
+        $this->app->bind(AddressFormatterService::class, function ($app) {
+            return new AddressFormatterService;
+        });
+        $this->app->bind(CurrencyFormatterService::class, function ($app) {
+            return new CurrencyFormatterService;
+        });
     }
 
     /**

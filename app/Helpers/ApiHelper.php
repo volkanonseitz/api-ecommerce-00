@@ -21,13 +21,14 @@ if (! function_exists('formatAPIResourcePaginate')) {
     // }
 }
 
-if (!function_exists('format_currency')) {
+if (! function_exists('format_currency')) {
     function format_currency($amount, $currency = 'USD', $locale = 'en-US')
     {
         if ($amount === null) {
             return '';
         }
         $formatter = new NumberFormatter($locale, NumberFormatter::CURRENCY);
+
         return $formatter->formatCurrency($amount, $currency);
     }
 }

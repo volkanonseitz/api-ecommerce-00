@@ -102,7 +102,20 @@ class OrderController extends BaseController
         $shopId = $downloadToken->payload;
         $downloadToken->delete();
 
-        return Excel::download(new OrderExport($shopId), 'orders.xlsx');
+        $addressFormatter = app(AddressFormatterService::class);
+        $currencyFormatter = app(CurrencyFormatterService::class);
+        $settingsService = app(SettingsService::class);
+
+        return Excel::download(
+            new OrderExport(
+                $this->repository,
+                $shopId,
+                $addressFormatter,
+                $currencyFormatter,
+                $settingsService
+            ),
+            'orders.xlsx'
+        );
     }
 
     public function downloadInvoiceUrl(Request $request)

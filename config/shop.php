@@ -9,6 +9,7 @@ return [
     'default_language' => env('DEFAULT_LANGUAGE', 'id'),
     'translation_enabled' => env('TRANSLATION_ENABLED', true),
     'default_currency' => env('DEFAULT_CURRENCY', 'IDR'),
+    'default_currency_formation' => env('DEFAULT_CURRENCY_FORMATION', 'id-ID'),
     'active_payment_gateway' => env('ACTIVE_PAYMENT_GATEWAY', 'stripe'),
 
     'dummy_data_path' => env('DUMMY_DATA_PATH', storage_path('dummy')),
