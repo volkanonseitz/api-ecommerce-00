@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\DTO\FlashSaleData;
 use App\Events\FlashSaleProcessed;
-use App\Http\Requests\CreateFlashSaleRequest;
-use App\Http\Requests\UpdateFlashSaleRequest;
+use App\Http\Requests\lashSaleCreateRequest;
+use App\Http\Requests\FlashSaleUpdateRequest;
 use App\Http\Resources\FlashSaleResource;
 use App\Http\Resources\ProductResource;
 use App\Models\FlashSale;
@@ -33,7 +33,7 @@ class FlashSaleController extends BaseController
     /**
      * POST /flash-sales
      */
-    public function store(CreateFlashSaleRequest $request)
+    public function store(FlashSaleCreateRequest $request)
     {
         if (! $this->flashSaleService->hasPermission($request->user())) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
@@ -61,7 +61,7 @@ class FlashSaleController extends BaseController
     /**
      * PUT /flash-sales/{id}
      */
-    public function update(UpdateFlashSaleRequest $request, $id)
+    public function update(FlashSaleUpdateRequest $request, $id)
     {
         if (! $this->flashSaleService->hasPermission($request->user())) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));

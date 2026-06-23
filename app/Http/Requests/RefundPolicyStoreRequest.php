@@ -6,7 +6,7 @@ use App\Enums\RefundPolicyStatus;
 use App\Enums\RefundPolicyTarget;
 use Illuminate\Foundation\Http\FormRequest;
 
-class RefundPolicyCreateRequest extends FormRequest
+class RefundPolicyStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {

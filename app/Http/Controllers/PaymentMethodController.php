@@ -16,11 +16,10 @@ class PaymentMethodController extends BaseController
         return $this->pmService->getUserPaymentMethods($request->user());
     }
 
-    public function store(PaymentMethodCreateRequest $request)
+        public function store(PaymentMethodCreateRequest $request)
     {
         $data = PaymentMethodData::fromRequest($request->validated());
         $method = $this->pmService->storeCard($data, $request->user());
-
         return response()->json($method);
     }
 

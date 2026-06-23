@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\DTO\ShippingData;
 use App\Enums\Permission;
-use App\Http\Requests\CreateShippingRequest;
-use App\Http\Requests\UpdateShippingRequest;
+use App\Http\Requests\ShippingCreateRequest;
+use App\Http\Requests\ShippingUpdateRequest;
 use App\Http\Resources\ShippingResource;
 use App\Models\Shipping;
 use App\Services\ShippingService;
@@ -26,7 +26,7 @@ class ShippingController extends BaseController
         return $this->sendSuccess(ShippingResource::collection($shippings), 'Shippings retrieved');
     }
 
-    public function store(CreateShippingRequest $request)
+    public function store(ShippingCreateRequest $request)
     {
         $user = $request->user();
         if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
@@ -46,7 +46,7 @@ class ShippingController extends BaseController
         return $this->sendSuccess(new ShippingResource($shipping), 'Shipping detail');
     }
 
-    public function update(UpdateShippingRequest $request, $id)
+    public function update(ShippingUpdateRequest $request, $id)
     {
         $user = $request->user();
         if (! $user || ! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {

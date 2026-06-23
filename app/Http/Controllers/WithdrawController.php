@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\WithdrawData;
 use App\Enums\WithdrawStatus;
-use App\Http\Requests\UpdateWithdrawRequest;
+use App\Http\Requests\WithdrawUpdateRequest;
 use App\Http\Requests\WithdrawRequest;
 use App\Http\Resources\WithdrawResource;
 use App\Services\WithdrawService;
@@ -63,7 +63,7 @@ class WithdrawController extends BaseController
     /**
      * PUT /withdraws/{id} (not allowed)
      */
-    public function update(UpdateWithdrawRequest $request, $id)
+    public function update(WithdrawUpdateRequest $request, $id)
     {
         throw new HttpException(400, config('notice.ACTION_NOT_VALID'));
     }

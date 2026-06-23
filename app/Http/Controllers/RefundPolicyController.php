@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\DTO\RefundPolicyData;
 use App\Enums\Permission;
-use App\Http\Requests\StoreRefundPolicyRequest;
-use App\Http\Requests\UpdateRefundPolicyRequest;
+use App\Http\Requests\RefundPolicyStoreRequest;
+use App\Http\Requests\RefundPolicyUpdateRequest;
 use App\Http\Resources\RefundPolicyResource;
 use App\Models\RefundPolicy;
 use App\Services\RefundPolicyService;
@@ -31,7 +31,7 @@ class RefundPolicyController extends BaseController
     /**
      * POST /refund-policies
      */
-    public function store(StoreRefundPolicyRequest $request)
+    public function store(RefundPolicyStoreRequest $request)
     {
         $user = $request->user();
         $shopId = $request->shop_id;
@@ -60,7 +60,7 @@ class RefundPolicyController extends BaseController
     /**
      * PUT /refund-policies/{id}
      */
-    public function update(UpdateRefundPolicyRequest $request, $id)
+    public function update(RefundPolicyUpdateRequest $request, $id)
     {
         $policy = RefundPolicy::findOrFail($id);
         $user = $request->user();
