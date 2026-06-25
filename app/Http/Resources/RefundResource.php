@@ -2,28 +2,24 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Refund;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Refund
- */
 class RefundResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'refund_reason' => ['name' => $this->refund_reason->name ?? null],
-            'amount' => $this->amount,
-            'status' => $this->status,
-            'customer' => ['email' => $this->customer->email ?? null],
+            'id' => $this->resource->id,
+            'refund_reason' => ['name' => $this->resource->refund_reason->name ?? null],
+            'amount' => $this->resource->amount,
+            'status' => $this->resource->status,
+            'customer' => ['email' => $this->resource->customer->email ?? null],
             'order' => [
-                'id' => $this->order->id ?? null,
-                'tracking_number' => $this->order->tracking_number ?? null,
-                'created_at' => $this->created_at,
+                'id' => $this->resource->order->id ?? null,
+                'tracking_number' => $this->resource->order->tracking_number ?? null,
+                'created_at' => $this->resource->created_at,
             ],
-            'created_at' => $this->created_at,
+            'created_at' => $this->resource->created_at,
         ];
     }
 }

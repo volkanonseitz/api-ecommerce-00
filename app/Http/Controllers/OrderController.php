@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DTO\OrderData;
+use App\Enums\Permission;
 use App\Exports\OrderExport;
 use App\Http\Requests\OrderCreateRequest;
 use App\Http\Requests\OrderUpdateRequest;
@@ -10,8 +11,11 @@ use App\Http\Resources\OrderResource;
 use App\Models\DownloadToken;
 use App\Models\Order;
 use App\Models\Settings;
+use App\Services\AddressFormatterService;
+use App\Services\CurrencyFormatterService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
+use App\Services\SettingsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -45,7 +49,7 @@ class OrderController extends BaseController
         return new OrderResource($order);
     }
 
-    public function show(Request $request, $params)
+    public function show(Request $request, string $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $order = $this->orderService->getOrderByTrackingOrId($params, $language, $request->user());
@@ -102,13 +106,23 @@ class OrderController extends BaseController
         $shopId = $downloadToken->payload;
         $downloadToken->delete();
 
+        // Ambil data order
+        $query = Order::with(['customer', 'shop']);
+        if ($shopId) {
+            $query->where('shop_id', $shopId);
+        } else {
+            $query->whereNull('parent_id');
+        }
+        $orders = $query->get();
+
+        // Ambil service yang dibutuhkan
         $addressFormatter = app(AddressFormatterService::class);
         $currencyFormatter = app(CurrencyFormatterService::class);
         $settingsService = app(SettingsService::class);
 
         return Excel::download(
             new OrderExport(
-                $this->repository,
+                $orders,
                 $shopId,
                 $addressFormatter,
                 $currencyFormatter,
@@ -136,7 +150,10 @@ class OrderController extends BaseController
     public function downloadInvoice($token)
     {
         $downloadToken = DownloadToken::where('token', $token)->firstOrFail();
-        $payload = unserialize($downloadToken->payload);
+        $payload = unserialize(
+            $downloadToken->payload,
+            ['allowed_classes' => false]
+        );
         $downloadToken->delete();
 
         $order = Order::with(['products', 'children.shop', 'parent_order', 'wallet_point'])->where('id', $payload['order_id'])->orWhere('tracking_number', $payload['order_id'])->firstOrFail();

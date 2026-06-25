@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+use App\Events\DigitalProductUpdateEvent;
 use App\Events\OrderCreated;
 use App\Events\OrderProcessed;
 use App\Events\OrderReceived;
+use App\Events\ProductReviewApproved;
+use App\Events\ProductReviewRejected;
+use App\Listeners\DigitalProductNotifyLogsListener;
 use App\Listeners\ProductInventoryDecrement;
+use App\Listeners\ProductReviewApprovedListener;
+use App\Listeners\ProductReviewRejectedListener;
 use App\Listeners\SendOrderCreationNotification;
 use App\Listeners\SendOrderReceivedNotification;
 use App\Listeners\StoredOrderNotifyLogsListener;

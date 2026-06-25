@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\FlashSaleData;
 use App\Events\FlashSaleProcessed;
-use App\Http\Requests\lashSaleCreateRequest;
+use App\Http\Requests\FlashSaleCreateRequest;
 use App\Http\Requests\FlashSaleUpdateRequest;
 use App\Http\Resources\FlashSaleResource;
 use App\Http\Resources\ProductResource;

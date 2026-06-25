@@ -39,7 +39,7 @@ class DeliveryTimeController extends BaseController
         return $this->sendSuccess($deliveryTime, 'Delivery time created', 201);
     }
 
-    public function show(Request $request, $params)
+    public function show(Request $request, string $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $deliveryTime = $this->deliveryTimeService->find($params, $language);

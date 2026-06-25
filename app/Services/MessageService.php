@@ -6,6 +6,7 @@ use App\Actions\CreateMessageAction;
 use App\DTO\MessageData;
 use App\Events\MessageSent;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Participant;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;

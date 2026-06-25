@@ -2,23 +2,19 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Attribute;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Attribute
- */
 class AttributeResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'shop_id' => $this->shop_id,
-            'language' => $this->language,
-            'translated_languages' => $this->translated_languages,
-            'slug' => $this->slug,
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
+            'shop_id' => $this->resource->shop_id,
+            'language' => $this->resource->language,
+            'translated_languages' => $this->resource->translated_languages,
+            'slug' => $this->resource->slug,
             'values' => AttributeValueResource::collection($this->whenLoaded('values')),
         ];
     }

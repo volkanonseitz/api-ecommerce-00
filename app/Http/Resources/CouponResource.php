@@ -2,33 +2,29 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Coupon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Coupon
- */
 class CouponResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'code' => $this->code,
-            'language' => $this->language,
-            'description' => $this->description,
-            'image' => $this->image,
-            'type' => $this->type,
-            'amount' => $this->amount,
-            'minimum_cart_amount' => $this->minimum_cart_amount,
-            'active_from' => $this->active_from?->toISOString(),
-            'expire_at' => $this->expire_at?->toISOString(),
-            'is_valid' => $this->is_valid,
-            'target' => $this->target,
-            'is_approve' => $this->is_approve,
-            'translated_languages' => $this->translated_languages,
-            'shop_id' => $this->shop_id,
-            'user_id' => $this->user_id,
+            'id' => $this->resource->id,
+            'code' => $this->resource->code,
+            'language' => $this->resource->language,
+            'description' => $this->resource->description,
+            'image' => $this->resource->image,
+            'type' => $this->resource->type,
+            'amount' => $this->resource->amount,
+            'minimum_cart_amount' => $this->resource->minimum_cart_amount,
+            'active_from' => $this->resource->active_from?->toISOString(),
+            'expire_at' => $this->resource->expire_at?->toISOString(),
+            'is_valid' => $this->resource->is_valid,
+            'target' => $this->resource->target,
+            'is_approve' => $this->resource->is_approve,
+            'translated_languages' => $this->resource->translated_languages,
+            'shop_id' => $this->resource->shop_id,
+            'user_id' => $this->resource->user_id,
         ];
     }
 }

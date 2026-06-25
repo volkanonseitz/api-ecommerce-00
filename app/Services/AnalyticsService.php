@@ -50,7 +50,7 @@ class AnalyticsService
             'totalRevenue' => $totalRevenue,
             'totalRefunds' => $totalRefunds,
             'totalShops' => $totalShops,
-            'totalVendors' => $totalVendors ?? 0,
+            'totalVendors' => $totalVendors,
             'todaysRevenue' => $todaysRevenue,
             'totalOrders' => $totalOrders,
             'newCustomers' => $newCustomers,
@@ -70,26 +70,28 @@ class AnalyticsService
             ->whereNotNull('childOrder.parent_id')
             ->join('orders as parentOrder', 'childOrder.parent_id', '=', 'parentOrder.id')
             ->whereDate('parentOrder.created_at', '<=', Carbon::now())
-            ->where('parentOrder.order_status', OrderStatus::COMPLETED->value)
-            ->select(
-                'childOrder.id',
-                'childOrder.parent_id',
-                'childOrder.paid_total',
-                'childOrder.created_at',
-                'childOrder.shop_id',
-                'parentOrder.delivery_fee',
-                'parentOrder.sales_tax',
-            );
+            ->where('parentOrder.order_status', OrderStatus::COMPLETED->value);
 
         if ($isSuperAdmin) {
-            $results = $query->get();
+            $totalPaid = (clone $query)->sum('childOrder.paid_total');
 
-            return $results->sum('paid_total')
-                + $results->unique('parent_id')->sum('delivery_fee')
-                + $results->unique('parent_id')->sum('sales_tax');
-        } else {
-            return $query->whereIn('childOrder.shop_id', $shops)->get()->sum('paid_total');
+            $parentFees = (clone $query)
+                ->select(
+                    'childOrder.parent_id',
+                    'parentOrder.delivery_fee',
+                    'parentOrder.sales_tax'
+                )
+                ->get()
+                ->unique('parent_id');
+
+            return $totalPaid
+                + $parentFees->sum('delivery_fee')
+                + $parentFees->sum('sales_tax');
         }
+
+        return (clone $query)
+            ->whereIn('childOrder.shop_id', $shops)
+            ->sum('childOrder.paid_total');
     }
 
     protected function calculateTodaysRevenue($shops, bool $isSuperAdmin): float
@@ -99,18 +101,28 @@ class AnalyticsService
             ->where('A.order_status', OrderStatus::COMPLETED->value)
             ->whereNotNull('A.parent_id')
             ->join('orders as B', 'A.parent_id', '=', 'B.id')
-            ->where('B.order_status', OrderStatus::COMPLETED->value)
-            ->select('A.id', 'A.parent_id', 'A.paid_total', 'B.delivery_fee', 'B.sales_tax', 'A.created_at', 'A.shop_id');
+            ->where('B.order_status', OrderStatus::COMPLETED->value);
 
         if ($isSuperAdmin) {
-            $results = $query->get();
+            $totalPaid = (clone $query)->sum('A.paid_total');
 
-            return $results->sum('paid_total')
-                + $results->unique('parent_id')->sum('delivery_fee')
-                + $results->unique('parent_id')->sum('sales_tax');
-        } else {
-            return $query->whereIn('A.shop_id', $shops)->get()->sum('paid_total');
+            $parentFees = (clone $query)
+                ->select(
+                    'A.parent_id',
+                    'B.delivery_fee',
+                    'B.sales_tax'
+                )
+                ->get()
+                ->unique('parent_id');
+
+            return $totalPaid
+                + $parentFees->sum('delivery_fee')
+                + $parentFees->sum('sales_tax');
         }
+
+        return (clone $query)
+            ->whereIn('A.shop_id', $shops)
+            ->sum('A.paid_total');
     }
 
     protected function calculateTotalRefunds($shops, bool $isSuperAdmin): float

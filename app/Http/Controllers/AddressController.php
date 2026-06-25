@@ -7,13 +7,14 @@ use App\Http\Requests\AddressRequest;
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
 use App\Services\AddressService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AddressController extends BaseController
 {
     use AuthorizesRequests;
+
     public function __construct(
         private readonly AddressService $addressService
     ) {}

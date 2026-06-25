@@ -2,26 +2,28 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Faqs;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Faqs
- */
 class FaqResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'faq_title' => $this->faq_title,
-            'slug' => $this->slug,
-            'faq_description' => $this->faq_description,
-            'faq_type' => $this->faq_type,
-            'issued_by' => $this->issued_by,
-            'language' => $this->language,
-            'translated_languages' => $this->translated_languages,
-            'shop' => $this->whenLoaded('shop', fn () => ['id' => $this->shop->id, 'name' => $this->shop->name]),
+            'id' => $this->resource->id,
+            'faq_title' => $this->resource->faq_title,
+            'slug' => $this->resource->slug,
+            'faq_description' => $this->resource->faq_description,
+            'faq_type' => $this->resource->faq_type,
+            'issued_by' => $this->resource->issued_by,
+            'language' => $this->resource->language,
+            'translated_languages' => $this->resource->translated_languages,
+            'shop' => $this->resource->whenLoaded(
+                'shop',
+                fn () => [
+                    'id' => $this->resource->shop->id,
+                    'name' => $this->resource->shop->name,
+                ]
+            ),
         ];
     }
 }

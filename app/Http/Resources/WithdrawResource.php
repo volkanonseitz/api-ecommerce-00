@@ -13,16 +13,16 @@ class WithdrawResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'shop_id' => $this->shop_id,
-            'amount' => $this->amount,
-            'payment_method' => $this->payment_method,
-            'details' => $this->details,
-            'note' => $this->note,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at,
+            'id' => $this->resource->id,
+            'shop_id' => $this->resource->shop_id,
+            'amount' => $this->resource->amount,
+            'payment_method' => $this->resource->payment_method,
+            'details' => $this->resource->details,
+            'note' => $this->resource->note,
+            'status' => $this->resource->status,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
+            'deleted_at' => $this->resource->deleted_at,
             'shop' => new ShopResource($this->whenLoaded('shop')),
         ];
     }

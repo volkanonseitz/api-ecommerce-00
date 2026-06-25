@@ -19,23 +19,23 @@ class ManufacturerResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'language' => $this->language,
-            'translated_languages' => $this->translated_languages,
-            'products_count' => $this->products_count,
-            'is_approved' => $this->is_approved,
-            'description' => $this->description,
-            'website' => $this->website,
-            'socials' => $this->socials,
-            'image' => $this->image,
-            'cover_image' => $this->cover_image,
-            'type' => $this->whenLoaded('type', function () {
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
+            'slug' => $this->resource->slug,
+            'language' => $this->resource->language,
+            'translated_languages' => $this->resource->translated_languages,
+            'products_count' => $this->resource->products_count,
+            'is_approved' => $this->resource->is_approved,
+            'description' => $this->resource->description,
+            'website' => $this->resource->website,
+            'socials' => $this->resource->socials,
+            'image' => $this->resource->image,
+            'cover_image' => $this->resource->cover_image,
+            'type' => $this->resource->whenLoaded('type', function () {
                 return [
-                    'id' => $this->type->id,
-                    'name' => $this->type->name,
-                    'slug' => $this->type->slug,
+                    'id' => $this->resource->type->id,
+                    'name' => $this->resource->type->name,
+                    'slug' => $this->resource->type->slug,
                 ];
             }),
         ];

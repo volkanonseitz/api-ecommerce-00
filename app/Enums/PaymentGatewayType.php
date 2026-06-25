@@ -6,6 +6,10 @@ enum PaymentGatewayType: string
 {
     case STRIPE = 'STRIPE';
     case PAYPAL = 'PAYPAL';
+
+    case FLUTTERWAVE = 'FLUTTERWAVE';
+    case IYZICO = 'IYZICO';
+
     case CASH_ON_DELIVERY = 'CASH_ON_DELIVERY';
     case CASH = 'CASH';
     case FULL_WALLET_PAYMENT = 'FULL_WALLET_PAYMENT';
@@ -29,6 +33,8 @@ enum PaymentGatewayType: string
             self::CASH_ON_DELIVERY => 'Cash on Delivery',
             self::CASH => 'Cash',
             self::FULL_WALLET_PAYMENT => 'Full Wallet Payment',
+            self::FLUTTERWAVE => 'Flutterwave',
+            self::IYZICO => 'Iyzico',
         };
     }
 }

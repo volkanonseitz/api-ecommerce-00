@@ -95,12 +95,12 @@ class Shop extends Model
         return 10; // percentage
     }
 
-    public function refunds()
+    public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);
     }
 
-    public function withdraws()
+    public function withdraws(): HasMany
     {
         return $this->hasMany(Withdraw::class);
     }

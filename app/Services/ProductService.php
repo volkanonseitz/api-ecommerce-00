@@ -183,8 +183,20 @@ class ProductService
         $product = Product::findOrFail($productId);
         $totalBooked = 0;
         foreach ($blockedDates as $bd) {
-            $period = Period::make($bd['from'], $bd['to'], Precision::DAY, Boundaries::EXCLUDE_END);
-            $range = Period::make($from, $to, Precision::DAY, Boundaries::EXCLUDE_END);
+            $period = Period::make(
+                $bd->from,
+                $bd->to,
+                Precision::DAY(),
+                Boundaries::EXCLUDE_END()
+            );
+
+            $range = Period::make(
+                $from,
+                $to,
+                Precision::DAY(),
+                Boundaries::EXCLUDE_END()
+            );
+
             if ($period->overlapsWith($range)) {
                 $totalBooked += $bd->order_quantity ?? 0;
             }

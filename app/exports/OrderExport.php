@@ -2,18 +2,20 @@
 
 namespace App\Exports;
 
+use App\Models\Settings;
 use App\Services\AddressFormatterService;
 use App\Services\CurrencyFormatterService;
 use App\Services\SettingsService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class OrderExport implements FromCollection, WithHeadings
 {
-    private $repository;
+    private Collection $orders;
 
-    private $shop_id;
+    private ?int $shopId;
 
     private AddressFormatterService $addressFormatter;
 
@@ -22,40 +24,33 @@ class OrderExport implements FromCollection, WithHeadings
     private SettingsService $settingsService;
 
     public function __construct(
-        $repository,
-        $shop_id,
+        Collection $orders,
+        ?int $shopId,
         AddressFormatterService $addressFormatter,
         CurrencyFormatterService $currencyFormatter,
         SettingsService $settingsService
     ) {
-        $this->repository = $repository;
-        $this->shop_id = $shop_id;
+        $this->orders = $orders;
+        $this->shopId = $shopId;
         $this->addressFormatter = $addressFormatter;
         $this->currencyFormatter = $currencyFormatter;
         $this->settingsService = $settingsService;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
-        $results = [];
-
-        if (! empty($this->shop_id)) {
-            $orders = $this->repository->where('shop_id', $this->shop_id)->get();
-        } else {
-            $orders = $this->repository->whereNull('parent_id')->get();
-        }
-
-        if ($orders->isEmpty()) {
-            return collect($results);
+        if ($this->orders->isEmpty()) {
+            return collect();
         }
 
         $language = request()->input('language', config('shop.default_language', 'en'));
-        $settings = $this->settingsService->getSettings($language);
-        $currency = $settings['options']['currency'] ?? config('shop.default_currency', 'USD');
-        $currencyOptions = $settings['options']['currencyOptions'] ?? [];
-        $locale = $currencyOptions['formation'] ?? config('notice.default_currency_formation', 'en-US');
+        $settings = Settings::getData($language);
+        $currency = $settings->options['currency'] ?? config('shop.default_currency', 'USD');
+        $locale = $settings->options['currencyOptions']['formation'] ?? config('shop.default_currency_formation', 'en-US');
 
-        foreach ($orders as $order) {
+        $results = [];
+
+        foreach ($this->orders as $order) {
             $results[] = [
                 'id' => '#'.$order->id.' '.($order->customer->name ?? $order->customer_name ?? ''),
                 'customer_email' => $order->customer->email ?? 'Guest User',
@@ -73,8 +68,8 @@ class OrderExport implements FromCollection, WithHeadings
                 'delivery_fee' => $this->currencyFormatter->format($order->delivery_fee, $currency, $locale),
                 'payment_id' => $order->payment_id,
                 'payment_gateway' => $order->payment_gateway,
-                'billing_address' => $this->addressFormatter->formatAddress($order->billing_address),
-                'shipping_address' => $this->addressFormatter->formatAddress($order->shipping_address),
+                'billing_address' => $this->addressFormatter->format($order->billing_address),
+                'shipping_address' => $this->addressFormatter->format($order->shipping_address),
                 'customer_contact' => $order->customer_contact,
                 'customer_name' => $order->customer_name,
                 'logistics_provider' => $order->logistics_provider,

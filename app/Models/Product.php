@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +14,16 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property-read array $blocked_dates
+ * @property-read float $ratings
+ * @property-read int $total_reviews
+ * @property-read Collection $rating_count
+ * @property-read Collection|null $my_review
+ * @property-read bool $in_wishlist
+ * @property-read array $translated_languages
+ * @property-read int $sold
+ */
 class Product extends Model
 {
     use SoftDeletes;
@@ -41,12 +54,6 @@ class Product extends Model
         'translated_languages',
         'sold',
     ];
-
-    // Helper untuk slug (akan diisi oleh service)
-    public function getSlugAttribute($value)
-    {
-        return $value;
-    }
 
     // Relasi
     public function type(): BelongsTo
@@ -134,6 +141,18 @@ class Product extends Model
         return $this->belongsToMany(Resource::class, 'feature_product', 'product_id', 'resource_id');
     }
 
+    public function orders(): BelongsToMany
+    {
+        return $this->belongsToMany(Order::class, 'order_product')
+            ->withPivot('order_quantity', 'unit_price', 'subtotal', 'variation_option_id')
+            ->withTimestamps();
+    }
+
+    public function shipping(): BelongsTo
+    {
+        return $this->belongsTo(Shipping::class);
+    }
+
     // Accessors
     public function getRatingsAttribute()
     {
@@ -152,7 +171,7 @@ class Product extends Model
 
     public function getMyReviewAttribute()
     {
-        if (auth()->user()) {
+        if (auth()->check()) {
             return $this->reviews()->where('user_id', auth()->id())->get();
         }
 
@@ -161,14 +180,14 @@ class Product extends Model
 
     public function getInWishlistAttribute()
     {
-        if (auth()->user()) {
+        if (auth()->check()) {
             return $this->wishlists()->where('user_id', auth()->id())->exists();
         }
 
         return false;
     }
 
-    public function getBlockedDatesAttribute()
+    public function getBlockedDatesAttribute(): array
     {
         return $this->getBlockedDates();
     }
@@ -187,15 +206,23 @@ class Product extends Model
             ->sum('order_quantity');
     }
 
-    public function orders(): BelongsToMany
+    /**
+     * Get blocked dates for rental products.
+     */
+    private function getBlockedDates(): array
     {
-        return $this->belongsToMany(Order::class, 'order_product')
-            ->withPivot('order_quantity', 'unit_price', 'subtotal', 'variation_option_id')
-            ->withTimestamps();
-    }
+        $availabilities = $this->availabilities()
+            ->whereDate('to', '>=', Carbon::now())
+            ->get();
 
-    public function shipping()
-    {
-        return $this->belongsTo(Shipping::class);
+        $blocked = [];
+        foreach ($availabilities as $availability) {
+            $period = CarbonPeriod::create($availability->from, $availability->to);
+            foreach ($period as $date) {
+                $blocked[] = $date->toDateString();
+            }
+        }
+
+        return array_values(array_unique($blocked));
     }
 }

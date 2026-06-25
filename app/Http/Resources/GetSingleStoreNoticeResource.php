@@ -15,16 +15,16 @@ class GetSingleStoreNoticeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'type' => $this->type,
-            'priority' => $this->priority,
-            'notice' => $this->notice,
-            'description' => $this->description,
-            'effective_from' => $this->effective_from,
-            'expired_at' => $this->expired_at,
-            'creator_role' => $this->creator_role,
-            'users' => $this->users,
-            'shops' => $this->shops,
+            'id' => $this->resource->id,
+            'type' => $this->resource->type,
+            'priority' => $this->resource->priority,
+            'notice' => $this->resource->notice,
+            'description' => $this->resource->description,
+            'effective_from' => $this->resource->effective_from,
+            'expired_at' => $this->resource->expired_at,
+            'creator_role' => $this->resource->creator_role,
+            'users' => $this->resource->users,
+            'shops' => $this->resource->shops,
         ];
     }
 }

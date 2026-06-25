@@ -46,7 +46,7 @@ class RefundReasonController extends BaseController
         return $this->sendSuccess(new RefundReasonResource($reason), 'Refund reason created', 201);
     }
 
-    public function show(Request $request, $params)
+    public function show(Request $request, string $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $reason = $this->service->find($params, $language);

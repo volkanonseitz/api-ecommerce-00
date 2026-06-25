@@ -51,7 +51,7 @@ class CouponController extends BaseController
     /**
      * GET /coupons/{params}  (params bisa id atau code)
      */
-    public function show(Request $request, $params)
+    public function show(Request $request, string $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $coupon = $this->couponService->findCoupon($params, $language);

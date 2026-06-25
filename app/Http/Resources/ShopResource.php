@@ -2,35 +2,31 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Shop;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Shop
- */
 class ShopResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'owner_id' => $this->owner_id,
+            'id' => $this->resource->id,
+            'owner_id' => $this->resource->owner_id,
             'owner' => new UserResource($this->whenLoaded('owner')),
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'cover_image' => $this->cover_image,
-            'logo' => $this->logo,
-            'is_active' => $this->is_active,
-            'address' => $this->address,
-            'settings' => $this->settings,
-            'notifications' => $this->notifications,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'balance' => $this->whenLoaded('balance', fn () => $this->balance),
-            'categories' => $this->whenLoaded('categories', fn () => CategoryResource::collection($this->categories)),
-            'orders_count' => $this->whenCounted('orders'),
-            'products_count' => $this->whenCounted('products'),
+            'name' => $this->resource->name,
+            'slug' => $this->resource->slug,
+            'description' => $this->resource->description,
+            'cover_image' => $this->resource->cover_image,
+            'logo' => $this->resource->logo,
+            'is_active' => $this->resource->is_active,
+            'address' => $this->resource->address,
+            'settings' => $this->resource->settings,
+            'notifications' => $this->resource->notifications,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
+            'balance' => $this->resource->whenLoaded('balance', fn () => $this->resource->balance),
+            'categories' => $this->resource->whenLoaded('categories', fn () => CategoryResource::collection($this->resource->categories)),
+            'orders_count' => $this->resource->whenCounted('orders'),
+            'products_count' => $this->resource->whenCounted('products'),
         ];
     }
 }

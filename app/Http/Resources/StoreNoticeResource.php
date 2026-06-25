@@ -2,40 +2,36 @@
 
 namespace App\Http\Resources;
 
-use App\Models\StoreNotice;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin StoreNotice
- */
 class StoreNoticeResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'type' => $this->type,
-            'priority' => $this->priority,
-            'notice' => $this->notice,
-            'description' => $this->description,
-            'effective_from' => $this->effective_from,
-            'expired_at' => $this->expired_at,
-            'creator_role' => $this->creator_role,
-            'is_read' => $this->is_read,
+            'id' => $this->resource->id,
+            'type' => $this->resource->type,
+            'priority' => $this->resource->priority,
+            'notice' => $this->resource->notice,
+            'description' => $this->resource->description,
+            'effective_from' => $this->resource->effective_from,
+            'expired_at' => $this->resource->expired_at,
+            'creator_role' => $this->resource->creator_role,
+            'is_read' => $this->resource->is_read,
             'creator' => [
-                'id' => $this->creator->id,
-                'name' => $this->creator->name,
-                'email' => $this->creator->email,
+                'id' => $this->resource->creator->id,
+                'name' => $this->resource->creator->name,
+                'email' => $this->resource->creator->email,
             ],
             'users' => UserResource::collection($this->whenLoaded('users')),
             'shops' => ShopResource::collection($this->whenLoaded('shops')),
-            'read_status' => $this->readStatusCollection(),
+            'read_status' => $this->resource->readStatusCollection(),
         ];
     }
 
     private function readStatusCollection()
     {
-        return $this->read_status->map(function ($user) {
+        return $this->resource->read_status->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,

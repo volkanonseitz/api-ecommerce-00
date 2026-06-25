@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\DTO\AbusiveReportData;
-use App\Enums\AbusiveReportTypes;
+use App\Enums\AbusiveReportType;
 use App\Models\AbusiveReport;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +55,7 @@ class AbusiveReportService
     {
         DB::transaction(function () use ($modelType, $modelId) {
 
-            $modelClass = AbusiveReportTypes::resolve($modelType);
+            $modelClass = AbusiveReportType::resolve($modelType);
 
             $model = $modelClass::findOrFail($modelId);
 
@@ -72,7 +72,7 @@ class AbusiveReportService
     {
         DB::transaction(function () use ($modelType, $modelId) {
 
-            $modelClass = AbusiveReportTypes::resolve($modelType);
+            $modelClass = AbusiveReportType::resolve($modelType);
 
             AbusiveReport::query()
                 ->where('model_id', $modelId)

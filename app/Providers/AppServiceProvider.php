@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Address;
 use App\Policies\AddressPolicy;
+use App\Services\AddressFormatterService;
+use App\Services\CurrencyFormatterService;
 use App\Services\Otp\OtpService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;

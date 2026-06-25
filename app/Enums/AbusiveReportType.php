@@ -24,6 +24,11 @@ enum AbusiveReportType: string
         };
     }
 
+    public static function resolve(string $type): self
+    {
+        return self::from($type);
+    }
+
     public static function fromModelClass(string $class): string
     {
         return match ($class) {

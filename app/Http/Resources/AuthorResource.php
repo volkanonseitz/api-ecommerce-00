@@ -2,13 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Author;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Author
- */
 class AuthorResource extends JsonResource
 {
     public function toArray(
@@ -16,20 +12,20 @@ class AuthorResource extends JsonResource
     ): array {
 
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'language' => $this->language,
-            'is_approved' => $this->is_approved,
-            'slug' => $this->slug,
-            'bio' => $this->bio,
-            'quote' => $this->quote,
-            'born' => $this->born,
-            'death' => $this->death,
-            'languages' => $this->languages,
-            'socials' => $this->socials,
-            'image' => $this->image,
-            'cover_image' => $this->cover_image,
-            'products_count' => $this->products_count ?? 0,
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
+            'language' => $this->resource->language,
+            'is_approved' => $this->resource->is_approved,
+            'slug' => $this->resource->slug,
+            'bio' => $this->resource->bio,
+            'quote' => $this->resource->quote,
+            'born' => $this->resource->born,
+            'death' => $this->resource->death,
+            'languages' => $this->resource->languages,
+            'socials' => $this->resource->socials,
+            'image' => $this->resource->image,
+            'cover_image' => $this->resource->cover_image,
+            'products_count' => $this->resource->products_count ?? 0,
         ];
     }
 }

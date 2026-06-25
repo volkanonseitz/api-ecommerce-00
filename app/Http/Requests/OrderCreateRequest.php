@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentGatewayType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\PaymentGatewayType;
 
 class OrderCreateRequest extends FormRequest
 {

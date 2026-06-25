@@ -2,26 +2,22 @@
 
 namespace App\Http\Resources;
 
-use App\Models\FlashSaleRequest;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin FlashSaleRequest
- */
 class FlashSaleVendorResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'note' => $this->note,
-            'flash_sale_id' => $this->flash_sale_id,
-            'language' => $this->language,
-            'request_status' => $this->request_status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at,
+            'id' => $this->resource->id,
+            'title' => $this->resource->title,
+            'note' => $this->resource->note,
+            'flash_sale_id' => $this->resource->flash_sale_id,
+            'language' => $this->resource->language,
+            'request_status' => $this->resource->request_status,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
+            'deleted_at' => $this->resource->deleted_at,
             'products' => ProductResource::collection($this->whenLoaded('products')),
         ];
     }

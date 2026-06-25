@@ -11,6 +11,10 @@ class DownloadToken extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'payload' => 'array',
+    ];
+
     public function file(): BelongsTo
     {
         return $this->belongsTo(DigitalFile::class, 'digital_file_id');

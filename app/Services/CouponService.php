@@ -184,7 +184,7 @@ class CouponService
         }
 
         // Free shipping coupon and already free shipping active
-        if ($coupon->type === CouponType::FREE_SHIPPING->value && $useFreeShipping) {
+        if ($coupon->type === CouponType::FREE_SHIPPING_COUPON->value && $useFreeShipping) {
             return ['is_valid' => false, 'message' => config('notice.ALREADY_FREE_SHIPPING_ACTIVATED')];
         }
 
@@ -201,14 +201,14 @@ class CouponService
 
             $isValidForShop = $totalForShop >= $coupon->minimum_cart_amount;
             switch ($coupon->type) {
-                case CouponType::FIXED->value:
+                case CouponType::FIXED_COUPON->value:
                     $isValidForShop = $isValidForShop && $totalForShop > $coupon->amount;
                     break;
-                case CouponType::PERCENTAGE->value:
+                case CouponType::PERCENTAGE_COUPON->value:
                     $discountAmount = ($totalForShop * $coupon->amount) / 100;
                     $isValidForShop = $isValidForShop && $totalForShop > $discountAmount;
                     break;
-                case CouponType::FREE_SHIPPING->value:
+                case CouponType::FREE_SHIPPING_COUPON->value:
                     $isValidForShop = $isValidForShop && $useFreeShipping;
                     break;
             }

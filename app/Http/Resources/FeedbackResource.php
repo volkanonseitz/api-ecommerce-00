@@ -2,30 +2,26 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Feedback;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Feedback
- */
 class FeedbackResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'model_id' => $this->model_id,
-            'model_type' => $this->model_type,
-            'positive' => $this->positive,
-            'negative' => $this->negative,
-            'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', fn () => [
-                'id' => $this->user->id,
-                'name' => $this->user->name,
-                'email' => $this->user->email,
+            'id' => $this->resource->id,
+            'model_id' => $this->resource->model_id,
+            'model_type' => $this->resource->model_type,
+            'positive' => $this->resource->positive,
+            'negative' => $this->resource->negative,
+            'user_id' => $this->resource->user_id,
+            'user' => $this->resource->whenLoaded('user', fn () => [
+                'id' => $this->resource->user->id,
+                'name' => $this->resource->user->name,
+                'email' => $this->resource->user->email,
             ]),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
         ];
     }
 }

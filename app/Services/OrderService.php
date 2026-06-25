@@ -389,32 +389,31 @@ class OrderService
     // Method untuk export, invoice, submitPayment, dll.
     public function getExportToken(int $userId, ?int $shopId): string
     {
-        $token = Str::random(16);
-        DownloadToken::create([
+        $token = DownloadToken::create([
             'user_id' => $userId,
-            'token' => $token,
+            'token' => Str::random(16),
             'payload' => $shopId,
         ]);
 
-        return route('export_order.token', ['token' => $token]);
+        return route('export_order.token', ['token' => $token->token]);
     }
 
     public function getInvoiceToken(int $userId, int $orderId, string $language, array $translatedText, bool $isRtl): string
     {
-        $payload = serialize([
+        $payload = [
             'user_id' => $userId,
             'order_id' => $orderId,
             'language' => $language,
             'translated_text' => $translatedText,
             'is_rtl' => $isRtl,
-        ]);
-        $token = Str::random(16);
-        DownloadToken::create([
+        ];
+
+        $token = DownloadToken::create([
             'user_id' => $userId,
-            'token' => $token,
-            'payload' => $payload,
+            'token' => Str::random(16),
+            'payload' => serialize($payload),
         ]);
 
-        return route('download_invoice.token', ['token' => $token]);
+        return route('download_invoice.token', ['token' => $token->token]);
     }
 }

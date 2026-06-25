@@ -9,6 +9,7 @@ use App\Enums\Permission;
 use App\Events\FlashSaleProcessed;
 use App\Models\FlashSale;
 use App\Models\FlashSaleRequest;
+use App\Models\Product;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;

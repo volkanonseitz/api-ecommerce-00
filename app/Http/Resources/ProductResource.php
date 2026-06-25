@@ -2,37 +2,33 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Product;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin Product
- */
 class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'type' => $this->type ? ['id' => $this->type->id, 'name' => $this->type->name] : null,
-            'language' => $this->language,
-            'translated_languages' => $this->translated_languages,
-            'product_type' => $this->product_type,
-            'shop' => $this->shop ? ['id' => $this->shop->id, 'name' => $this->shop->name] : null,
-            'sale_price' => $this->sale_price,
-            'max_price' => $this->max_price,
-            'min_price' => $this->min_price,
-            'image' => $this->image,
-            'status' => $this->status,
-            'price' => $this->price,
-            'quantity' => $this->quantity,
-            'unit' => $this->unit,
-            'sku' => $this->sku,
-            'sold_quantity' => $this->sold_quantity,
-            'in_flash_sale' => $this->in_flash_sale,
-            'visibility' => $this->visibility,
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
+            'slug' => $this->resource->slug,
+            'type' => $this->resource->type ? ['id' => $this->resource->type->id, 'name' => $this->resource->type->name] : null,
+            'language' => $this->resource->language,
+            'translated_languages' => $this->resource->translated_languages,
+            'product_type' => $this->resource->product_type,
+            'shop' => $this->resource->shop ? ['id' => $this->resource->shop->id, 'name' => $this->resource->shop->name] : null,
+            'sale_price' => $this->resource->sale_price,
+            'max_price' => $this->resource->max_price,
+            'min_price' => $this->resource->min_price,
+            'image' => $this->resource->image,
+            'status' => $this->resource->status,
+            'price' => $this->resource->price,
+            'quantity' => $this->resource->quantity,
+            'unit' => $this->resource->unit,
+            'sku' => $this->resource->sku,
+            'sold_quantity' => $this->resource->sold_quantity,
+            'in_flash_sale' => $this->resource->in_flash_sale,
+            'visibility' => $this->resource->visibility,
         ];
     }
 }

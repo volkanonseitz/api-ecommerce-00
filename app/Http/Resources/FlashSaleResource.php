@@ -2,33 +2,29 @@
 
 namespace App\Http\Resources;
 
-use App\Models\FlashSale;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin FlashSale
- */
 class FlashSaleResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'start_date' => $this->start_date?->toISOString(),
-            'end_date' => $this->end_date?->toISOString(),
-            'sale_status' => $this->sale_status,
-            'type' => $this->type,
-            'rate' => $this->rate,
-            'sale_builder' => $this->sale_builder,
-            'image' => $this->image,
-            'cover_image' => $this->cover_image,
-            'language' => $this->language,
-            'deleted_at' => $this->deleted_at,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'id' => $this->resource->id,
+            'title' => $this->resource->title,
+            'slug' => $this->resource->slug,
+            'description' => $this->resource->description,
+            'start_date' => $this->resource->start_date?->toISOString(),
+            'end_date' => $this->resource->end_date?->toISOString(),
+            'sale_status' => $this->resource->sale_status,
+            'type' => $this->resource->type,
+            'rate' => $this->resource->rate,
+            'sale_builder' => $this->resource->sale_builder,
+            'image' => $this->resource->image,
+            'cover_image' => $this->resource->cover_image,
+            'language' => $this->resource->language,
+            'deleted_at' => $this->resource->deleted_at,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
             'products' => ProductResource::collection($this->whenLoaded('products')),
         ];
     }

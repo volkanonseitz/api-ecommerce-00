@@ -6,9 +6,9 @@ use App\Enums\PaymentGatewayType;
 use App\Models\Order;
 use App\Models\PaymentGateway;
 use App\Models\PaymentIntent;
-use App\Services\Payment\FlutterwaveProvider;
+// use App\Services\Payment\FlutterwaveProvider;
 use App\Services\Payment\PaymentProviderInterface;
-use App\Services\Payment\StripeProvider;
+// use App\Services\Payment\StripeProvider;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -25,8 +25,8 @@ class PaymentService
     protected function resolveProvider(string $gateway): PaymentProviderInterface
     {
         return match (strtoupper($gateway)) {
-            PaymentGatewayType::STRIPE => new StripeProvider,
-            PaymentGatewayType::FLUTTERWAVE => new FlutterwaveProvider,
+            // PaymentGatewayType::STRIPE => new StripeProvider,
+            // PaymentGatewayType::FLUTTERWAVE => new FlutterwaveProvider,
             default => throw new \Exception("Unsupported payment gateway: {$gateway}"),
         };
     }

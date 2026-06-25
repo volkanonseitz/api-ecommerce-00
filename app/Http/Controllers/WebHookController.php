@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Payment\FlutterwaveProvider;
+// use App\Services\Payment\FlutterwaveProvider;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 
@@ -82,8 +82,8 @@ class WebHookController extends BaseController
 
     public function callback(Request $request)
     {
-        $flutterwave = new FlutterwaveProvider;
+        // $flutterwave = new FlutterwaveProvider;
 
-        return $flutterwave->handleCallback($request);
+        // return $flutterwave->handleCallback($request);
     }
 }
