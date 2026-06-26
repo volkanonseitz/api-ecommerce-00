@@ -1,10 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,25 +11,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
-/**
- * @property-read array $blocked_dates
- * @property-read float $ratings
- * @property-read int $total_reviews
- * @property-read Collection $rating_count
- * @property-read Collection|null $my_review
- * @property-read bool $in_wishlist
- * @property-read array $translated_languages
- * @property-read int $sold
- */
 class Product extends Model
 {
     use SoftDeletes;
 
     protected $table = 'products';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name', 'slug', 'price', 'sale_price', 'max_price', 'min_price',
+        'description', 'sku', 'quantity', 'unit', 'language',
+        'image', 'gallery', 'video', 'status', 'product_type',
+        'is_rental', 'is_digital', 'is_external', 'in_stock', 'is_taxable',
+        'shop_id', 'type_id', 'author_id', 'manufacturer_id', 'shipping_id',
+        'sold_quantity', 'visibility',
+    ];
 
     protected $casts = [
         'image' => 'json',
@@ -44,18 +39,6 @@ class Product extends Model
         'in_flash_sale' => 'boolean',
     ];
 
-    protected $appends = [
-        'ratings',
-        'total_reviews',
-        'rating_count',
-        'my_review',
-        'in_wishlist',
-        'blocked_dates',
-        'translated_languages',
-        'sold',
-    ];
-
-    // Relasi
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class);
@@ -151,78 +134,5 @@ class Product extends Model
     public function shipping(): BelongsTo
     {
         return $this->belongsTo(Shipping::class);
-    }
-
-    // Accessors
-    public function getRatingsAttribute()
-    {
-        return round($this->reviews()->avg('rating'), 2);
-    }
-
-    public function getTotalReviewsAttribute()
-    {
-        return $this->reviews()->count();
-    }
-
-    public function getRatingCountAttribute()
-    {
-        return $this->reviews()->select('rating', DB::raw('count(*) as total'))->groupBy('rating')->get();
-    }
-
-    public function getMyReviewAttribute()
-    {
-        if (auth()->check()) {
-            return $this->reviews()->where('user_id', auth()->id())->get();
-        }
-
-        return null;
-    }
-
-    public function getInWishlistAttribute()
-    {
-        if (auth()->check()) {
-            return $this->wishlists()->where('user_id', auth()->id())->exists();
-        }
-
-        return false;
-    }
-
-    public function getBlockedDatesAttribute(): array
-    {
-        return $this->getBlockedDates();
-    }
-
-    public function getTranslatedLanguagesAttribute(): array
-    {
-        return static::where('slug', $this->slug)->pluck('language')->toArray();
-    }
-
-    public function getSoldAttribute()
-    {
-        return DB::table('order_product')
-            ->join('orders', 'orders.id', '=', 'order_product.order_id')
-            ->where('order_product.product_id', $this->id)
-            ->whereNull('orders.parent_id')
-            ->sum('order_quantity');
-    }
-
-    /**
-     * Get blocked dates for rental products.
-     */
-    private function getBlockedDates(): array
-    {
-        $availabilities = $this->availabilities()
-            ->whereDate('to', '>=', Carbon::now())
-            ->get();
-
-        $blocked = [];
-        foreach ($availabilities as $availability) {
-            $period = CarbonPeriod::create($availability->from, $availability->to);
-            foreach ($period as $date) {
-                $blocked[] = $date->toDateString();
-            }
-        }
-
-        return array_values(array_unique($blocked));
     }
 }

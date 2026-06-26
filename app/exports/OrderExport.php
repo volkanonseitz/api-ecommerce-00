@@ -43,10 +43,10 @@ class OrderExport implements FromCollection, WithHeadings
             return collect();
         }
 
-        $language = request()->input('language', config('shop.default_language', 'en'));
+        $language = request()->input('language', config('shop.default_language', 'id'));
         $settings = Settings::getData($language);
         $currency = $settings->options['currency'] ?? config('shop.default_currency', 'USD');
-        $locale = $settings->options['currencyOptions']['formation'] ?? config('shop.default_currency_formation', 'en-US');
+        $locale = $settings->options['currencyOptions']['formation'] ?? config('shop.default_currency_formation', 'id-ID');
 
         $results = [];
 

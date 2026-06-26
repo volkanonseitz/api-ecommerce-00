@@ -6,7 +6,7 @@ use NumberFormatter;
 
 class CurrencyFormatterService
 {
-    public function format($amount, string $currency = 'USD', string $locale = 'en-US'): string
+    public function format($amount, string $currency = 'USD', string $locale = 'id-ID'): string
     {
         if ($amount === null) {
             return '';

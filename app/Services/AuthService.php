@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTO\UserData;
 use App\Enums\Permission;
 use App\Enums\Role;
-use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class AuthService
         $user = User::where('email', $email)->first();
 
         if (! $user) {
-            usleep(random_int(300000, 700000));
+            Hash::check('dummy_password', '$2y$10$'.str_repeat('0', 53));
 
             return null;
         }
@@ -48,10 +49,7 @@ class AuthService
             ! $appValid
         ) {
             DB::transaction(function () use ($user, $request, $email) {
-
                 $user->increment('failed_login_attempts');
-
-                $user->refresh();
 
                 if ($user->failed_login_attempts >= 5) {
                     $user->update([
@@ -81,20 +79,10 @@ class AuthService
             'locked_until' => null,
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
-            'last_login_user_agent' => substr(
-                $request->userAgent() ?? 'Unknown',
-                0,
-                1000
-            ),
+            'last_login_user_agent' => substr($request->userAgent() ?? 'Unknown', 0, 1000),
         ]);
 
-        $token = $user->createToken(
-            substr(
-                $request->userAgent() ?? 'Unknown Device',
-                0,
-                255
-            )
-        );
+        $token = $user->createToken(substr($request->userAgent() ?? 'Unknown Device', 0, 255));
 
         return [
             'token' => $token->plainTextToken,
@@ -134,7 +122,20 @@ class AuthService
             throw new \Exception('Email not provided by social provider');
         }
 
-        $userExist = User::where('email', $email)->exists();
+        $existingUser = User::where('email', $email)->first();
+
+        if ($existingUser) {
+            $providerExists = $existingUser->providers()
+                ->where('provider', $provider)
+                ->exists();
+
+            if (! $providerExists) {
+                throw new \Exception(
+                    'Email already registered. Please link your '.$provider.
+                    ' account from your profile settings.'
+                );
+            }
+        }
 
         $user = User::firstOrCreate(
             ['email' => $email],
@@ -178,39 +179,23 @@ class AuthService
             }
         }
 
-        if (! $userExist) {
+        if (! $existingUser) {
             $settings = Settings::getData();
-
-            $signupPoints = data_get(
-                $settings,
-                'options.signupPoints',
-                0
-            );
+            $signupPoints = data_get($settings, 'options.signupPoints', 0);
 
             if ($signupPoints > 0) {
-                $this->walletService->addPoints(
-                    $user->id,
-                    (int) $signupPoints
-                );
+                $this->walletService->addPoints($user->id, (int) $signupPoints);
             }
         }
 
         $user->update([
             'last_login_at' => now(),
             'last_login_ip' => request()->ip(),
-            'last_login_user_agent' => substr(
-                request()->userAgent() ?? 'Unknown',
-                0,
-                1000
-            ),
+            'last_login_user_agent' => substr(request()->userAgent() ?? 'Unknown', 0, 1000),
         ]);
 
         $token = $user->createToken(
-            substr(
-                request()->userAgent() ?? "{$provider}-login",
-                0,
-                255
-            )
+            substr(request()->userAgent() ?? "{$provider}-login", 0, 255)
         )->plainTextToken;
 
         return [

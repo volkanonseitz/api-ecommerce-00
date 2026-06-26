@@ -1,16 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTO\AbusiveReportData;
 use App\Enums\AbusiveReportType;
 use App\Models\AbusiveReport;
+use App\Traits\AuthorizesShopAccess;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class AbusiveReportService
 {
-    public function getReports(int $perPage = 15)
+    use AuthorizesShopAccess;
+
+    public function getReports(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return AbusiveReport::query()
             ->with('user')
@@ -25,40 +31,35 @@ class AbusiveReportService
             ->findOrFail($id);
     }
 
-    public function createReport(AbusiveReportData $data): AbusiveReport
+    public function createReport(AbusiveReportData $data, Authenticatable $user): AbusiveReport
     {
         $modelClass = $data->getModelClass();
-
         $model = $modelClass::findOrFail($data->model_id);
 
         try {
-            return $model->abusive_reports()->create(
-                $data->toArray()
-            );
+            return $model->abusive_reports()->create($data->toArray());
         } catch (QueryException $e) {
             if ((int) $e->getCode() === 23000) {
-                throw new \RuntimeException(
-                    config('notice.YOU_HAVE_ALREADY_GIVEN_ABUSIVE_REPORT_FOR_THIS')
-                );
+                throw new \RuntimeException(config('notice.YOU_HAVE_ALREADY_GIVEN_ABUSIVE_REPORT_FOR_THIS'));
             }
-
             throw $e;
         }
     }
 
-    public function deleteReport(int $id): void
+    public function deleteReport(int $id, Authenticatable $user): void
     {
-        AbusiveReport::findOrFail($id)->delete();
+        $report = AbusiveReport::findOrFail($id);
+        if ($report->user_id !== $user->id && !$user->hasPermissionTo('super_admin')) {
+            abort(403, config('notice.NOT_AUTHORIZED'));
+        }
+        $report->delete();
     }
 
     public function acceptReport(string $modelType, int $modelId): void
     {
         DB::transaction(function () use ($modelType, $modelId) {
-
             $modelClass = AbusiveReportType::resolve($modelType);
-
             $model = $modelClass::findOrFail($modelId);
-
             $model->delete();
 
             AbusiveReport::query()
@@ -71,9 +72,7 @@ class AbusiveReportService
     public function rejectReport(string $modelType, int $modelId): void
     {
         DB::transaction(function () use ($modelType, $modelId) {
-
             $modelClass = AbusiveReportType::resolve($modelType);
-
             AbusiveReport::query()
                 ->where('model_id', $modelId)
                 ->where('model_type', $modelClass)
@@ -81,7 +80,7 @@ class AbusiveReportService
         });
     }
 
-    public function getUserReports(int $userId, int $perPage = 15)
+    public function getUserReports(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return AbusiveReport::query()
             ->where('user_id', $userId)

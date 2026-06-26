@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +14,10 @@ class Category extends Model
 {
     protected $table = 'categories';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name', 'slug', 'icon', 'image', 'banner_image',
+        'details', 'language', 'parent', 'type_id',
+    ];
 
     protected $casts = [
         'image' => 'json',
@@ -21,14 +26,15 @@ class Category extends Model
 
     protected $appends = ['parent_id'];
 
-    // Auto slug
-    public static function boot()
+    public static function boot(): void
     {
         parent::boot();
         static::creating(function ($model) {
             if (empty($model->slug)) {
                 $model->slug = Str::slug($model->name);
-                $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
+                $count = static::where('slug', $model->slug)
+                    ->where('language', $model->language)
+                    ->count();
                 if ($count > 0) {
                     $model->slug = $model->slug.'-'.($count + 1);
                 }
@@ -41,7 +47,6 @@ class Category extends Model
         return $this->parent;
     }
 
-    // Relations
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class, 'type_id');
@@ -54,11 +59,11 @@ class Category extends Model
 
     public function children(): HasMany
     {
-        return $this->hasMany(Category::class, 'parent', 'id')->with('children')->withCount('products');
+        return $this->hasMany(Category::class, 'parent', 'id');
     }
 
     public function parentCategory(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'parent', 'id')->with('parentCategory');
+        return $this->belongsTo(Category::class, 'parent', 'id');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Actions\CreateProductAction;
@@ -31,9 +33,6 @@ class ProductService
         private UpdateProductAction $updateProduct,
     ) {}
 
-    /**
-     * Check if user has permission to manage products in a shop
-     */
     public function hasPermission(?Authenticatable $user, ?int $shopId): bool
     {
         if (! $user) {
@@ -60,22 +59,23 @@ class ProductService
         return false;
     }
 
-    /**
-     * Build base products query with filters
-     */
     public function getProductsQuery(Request $request): Builder
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Product::where('language', $language);
 
-        // Filter by date range for rental
         if ($request->filled('date_range')) {
-            [$from, $to] = explode('//', $request->date_range);
+            $parts = explode('//', $request->date_range);
+            if (count($parts) !== 2) {
+                throw ValidationException::withMessages([
+                    'date_range' => ['Invalid date range format. Use FROM//TO'],
+                ]);
+            }
+            [$from, $to] = $parts;
             $unavailableIds = $this->getUnavailableProductIds($from, $to);
             $query->whereNotIn('id', $unavailableIds);
         }
 
-        // Apply flash sale filters
         if ($request->has('flash_sale_builder')) {
             $query = $this->applyFlashSaleFilters($request, $query);
         }
@@ -83,81 +83,63 @@ class ProductService
         return $query;
     }
 
-    /**
-     * Get products with pagination
-     */
     public function getProducts(Request $request, int $perPage = 15)
     {
         return $this->getProductsQuery($request)->paginate($perPage);
     }
 
-    /**
-     * Get single product by slug or id
-     */
     public function getProductByIdentifier(string $identifier, string $language): Product
     {
+        $query = Product::where('language', $language);
+
         if (is_numeric($identifier)) {
-            return Product::where('id', $identifier)->firstOrFail();
+            $query->where('id', $identifier);
+        } else {
+            $query->where('slug', $identifier);
         }
 
-        return Product::where('slug', $identifier)->where('language', $language)->firstOrFail();
+        return $query->firstOrFail();
     }
 
-    /**
-     * Get product with relations for detail page
-     */
     public function getProductDetail(Request $request, string $slug): Product
     {
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $user = $request->user();
         $limit = $request->limit ?? 10;
 
         $product = Product::where('language', $language)
-            ->where('slug', $slug)
-            ->orWhere('id', $slug)
+            ->where(function ($q) use ($slug) {
+                $q->where('slug', $slug)->orWhere('id', $slug);
+            })
             ->firstOrFail();
 
-        // Check permission for digital files
         if ($request->has('with') && (str_contains($request->with, 'digital_file') || str_contains($request->with, 'variation_options.digital_file'))) {
             if (! $this->hasPermission($user, $product->shop_id)) {
                 throw new \Exception(config('notice.NOT_AUTHORIZED'));
             }
         }
 
-        // Load related products
         $related = $this->getRelatedProducts($product, $limit, $language);
         $product->setRelation('related_products', $related);
 
         return $product;
     }
 
-    /**
-     * Create new product
-     */
     public function createProduct(ProductData $data, $settings): Product
     {
         return $this->createProduct->execute($data, $settings);
     }
 
-    /**
-     * Update existing product
-     */
     public function updateProduct(Product $product, ProductData $data, $settings): Product
     {
         return $this->updateProduct->execute($product, $data, $settings);
     }
 
-    /**
-     * Delete product
-     */
     public function deleteProduct(Product $product): bool
     {
         return $product->delete();
     }
 
-    /**
-     * Get unavailable product IDs for date range
-     */
     public function getUnavailableProductIds(string $from, string $to): array
     {
         $availabilities = Availability::whereDate('from', '<=', $from)
@@ -175,9 +157,6 @@ class ProductService
         return $unavailable;
     }
 
-    /**
-     * Check if product is available for booking
-     */
     public function isProductAvailable(string $from, string $to, int $productId, $blockedDates, int $requestedQuantity = 1): bool
     {
         $product = Product::findOrFail($productId);
@@ -205,23 +184,21 @@ class ProductService
         return ($product->quantity - $totalBooked) >= $requestedQuantity;
     }
 
-    /**
-     * Get best selling products
-     */
     public function getBestSellingProducts(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $range = $request->range ?? '';
         $typeId = $this->resolveTypeId($request, $language);
 
-        $query = Product::leftJoin('order_product', 'order_product.product_id', 'products.id')
-            ->leftJoin('orders', 'order_product.order_id', '=', 'orders.id')
+        $query = Product::select('products.*')
+            ->join('order_product', 'order_product.product_id', 'products.id')
+            ->join('orders', 'order_product.order_id', '=', 'orders.id')
             ->selectRaw('products.*, sum(order_product.order_quantity) as total_sales')
             ->whereNull('orders.parent_id')
             ->where('orders.order_status', 'order-completed')
             ->where('orders.language', $language)
-            ->groupBy('order_product.product_id')
+            ->groupBy('products.id')
             ->orderBy('total_sales', 'desc');
 
         if ($request->filled('shop_id')) {
@@ -237,17 +214,14 @@ class ProductService
         return $query->take($limit)->get();
     }
 
-    /**
-     * Get related products
-     */
     public function getRelatedProducts(
         Product $product,
         int $limit = 10,
         ?string $language = null
     ): Collection {
-        $language = $language ?? config('shop.default_language', 'en');
+        $language = $language ?? config('shop.default_language', 'id');
 
-        $categoryIds = $product->categories->pluck('id');
+        $categoryIds = $product->categories()->pluck('categories.id');
 
         if ($categoryIds->isEmpty()) {
             return collect();
@@ -261,13 +235,10 @@ class ProductService
             ->get();
     }
 
-    /**
-     * Get popular products (most ordered)
-     */
     public function getPopularProducts(Request $request)
     {
         $limit = $request->limit ?? 10;
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $range = $request->range ?? '';
         $typeId = $this->resolveTypeId($request, $language);
 
@@ -289,19 +260,13 @@ class ProductService
         return $query->take($limit)->get();
     }
 
-    /**
-     * Get top authors (for author controller, but keep here if needed)
-     */
-    // Not included, separate service
-
-    /**
-     * Get drafted products (for vendor dashboard)
-     */
     public function getDraftedProducts(Request $request)
     {
         $user = $request->user();
-        $language = $request->language ?? config('shop.default_language', 'en');
-        $query = Product::with(['type', 'shop'])->where('language', $language)->where('status', ProductStatus::DRAFT->value);
+        $language = $request->language ?? config('shop.default_language', 'id');
+        $query = Product::with(['type', 'shop'])
+            ->where('language', $language)
+            ->where('status', ProductStatus::DRAFT->value);
 
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             if ($request->filled('shop_id')) {
@@ -311,24 +276,21 @@ class ProductService
             if ($request->filled('shop_id')) {
                 $query->where('shop_id', $request->shop_id);
             } else {
-                $query->whereIn('shop_id', $user->shops->pluck('id'));
+                $query->whereIn('shop_id', $user->shops()->pluck('id'));
             }
         } elseif ($user->hasPermissionTo(Permission::STAFF->value)) {
             $query->where('shop_id', $user->managed_shop->id ?? null);
         } else {
-            return $query->whereRaw('1 = 0'); // empty
+            return $query->whereRaw('1 = 0');
         }
 
         return $query->paginate($request->limit ?? 15);
     }
 
-    /**
-     * Get products with low stock
-     */
     public function getProductStock(Request $request)
     {
         $user = $request->user();
-        $language = $request->language ?? config('shop.default_language', 'en');
+        $language = $request->language ?? config('shop.default_language', 'id');
         $query = Product::with(['type', 'shop'])
             ->where('language', $language)
             ->where('quantity', '<', 10)
@@ -342,7 +304,7 @@ class ProductService
             if ($request->filled('shop_id')) {
                 $query->where('shop_id', $request->shop_id);
             } else {
-                $query->whereIn('shop_id', $user->shops->pluck('id'));
+                $query->whereIn('shop_id', $user->shops()->pluck('id'));
             }
         } elseif ($user->hasPermissionTo(Permission::STAFF->value)) {
             $query->where('shop_id', $user->managed_shop->id ?? null);
@@ -353,9 +315,6 @@ class ProductService
         return $query->paginate($request->limit ?? 15);
     }
 
-    /**
-     * Get user's wishlist products
-     */
     public function getMyWishlists(Request $request)
     {
         $user = $request->user();
@@ -364,14 +323,10 @@ class ProductService
         return Product::whereIn('id', $productIds)->paginate($request->limit ?? 10);
     }
 
-    /**
-     * Calculate rental price for a product
-     */
     public function calculateRentalPrice(Request $request): array
     {
         $product = Product::findOrFail($request->product_id);
         if (! $product->is_rental) {
-            // throw new \Exception(config('notice.NOT_A_RENTAL_PRODUCT'));
             throw ValidationException::withMessages([
                 'product_id' => [config('notice.NOT_A_RENTAL_PRODUCT')],
             ]);
@@ -385,7 +340,6 @@ class ProductService
         $features = $request->features ?? [];
         $deposits = $request->deposits ?? [];
 
-        // Base price
         if ($request->filled('variation_id')) {
             $variation = Variation::findOrFail($request->variation_id);
             $basePrice = ($variation->sale_price ?: $variation->price) * $bookedDays * $quantity;
@@ -396,8 +350,8 @@ class ProductService
         $personPrice = $this->sumResourcePrices($persons);
         $featurePrice = $this->sumResourcePrices($features);
         $depositPrice = $this->sumResourcePrices($deposits);
-        $dropoffPrice = $request->filled('dropoff_location_id') ? $this->getResourcePrice($request->dropoff_location_id) : 0;
-        $pickupPrice = $request->filled('pickup_location_id') ? $this->getResourcePrice($request->pickup_location_id) : 0;
+        $dropoffPrice = $request->filled('dropoff_location_id') ? $this->getResourcePrice((int) $request->dropoff_location_id) : 0;
+        $pickupPrice = $request->filled('pickup_location_id') ? $this->getResourcePrice((int) $request->pickup_location_id) : 0;
 
         return [
             'totalPrice' => $basePrice + $personPrice + $depositPrice + $featurePrice + $dropoffPrice + $pickupPrice,
@@ -431,7 +385,9 @@ class ProductService
             return (int) $request->type_id;
         }
         if ($request->filled('type_slug')) {
-            $type = Type::where('slug', $request->type_slug)->where('language', $language)->first();
+            $type = Type::where('slug', $request->type_slug)
+                ->where('language', $language)
+                ->first();
 
             return $type?->id;
         }
@@ -468,12 +424,11 @@ class ProductService
                 }
             } else {
                 $query->where('in_flash_sale', true)
-                    ->whereIn('shop_id', $user->shops->pluck('id'));
+                    ->whereIn('shop_id', $user->shops()->pluck('id'));
             }
         } elseif ($user && $user->hasPermissionTo(Permission::STAFF->value)) {
             $query->where('in_flash_sale', true);
         } else {
-            // Customer or guest
             $query->where('in_flash_sale', true);
         }
 

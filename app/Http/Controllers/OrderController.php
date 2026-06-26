@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\DTO\OrderData;
@@ -53,7 +55,7 @@ class OrderController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $order = $this->orderService->getOrderByTrackingOrId($params, $language, $request->user());
-        // Attach payment intent jika perlu
+
         if (! in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'])) {
             $order->payment_intent = $this->paymentService->attachPaymentIntent($order->tracking_number);
         }
@@ -63,30 +65,43 @@ class OrderController extends BaseController
 
     public function findByTrackingNumber(Request $request, $tracking_number)
     {
-        $order = $this->orderService->getOrderByTrackingOrId($tracking_number, $request->language ?? config('shop.default_language', 'id'), $request->user());
+        $order = $this->orderService->getOrderByTrackingOrId(
+            $tracking_number,
+            $request->language ?? config('shop.default_language', 'id'),
+            $request->user()
+        );
 
         return new OrderResource($order);
     }
 
-    public function update(OrderUpdateRequest $request, $id)
+    public function update(OrderUpdateRequest $request, int $id)
     {
         $order = Order::findOrFail($id);
         $user = $request->user();
-        // Hanya super admin atau pemilik shop yang bisa update status
-        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && ! $this->orderService->hasPermission($user, $order->shop_id)) {
+
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            && ! $this->orderService->hasPermission($user, $order->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
+
         $updated = $this->orderService->updateOrderStatus($order, $request->order_status, $user);
 
         return $this->sendSuccess(new OrderResource($updated), 'Order updated');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, int $id)
     {
+        $user = $request->user();
         $order = Order::findOrFail($id);
+
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            && ! $this->orderService->hasPermission($user, $order->shop_id)) {
+            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
+        }
+
         $order->delete();
 
-        return response()->json(['success' => true]);
+        return $this->sendSuccess(null, 'Order deleted');
     }
 
     public function exportOrderUrl(Request $request, $shop_id = null)
@@ -100,13 +115,15 @@ class OrderController extends BaseController
         return response()->json(['url' => $url]);
     }
 
-    public function exportOrder($token)
+    public function exportOrder(Request $request, $token)
     {
-        $downloadToken = DownloadToken::where('token', $token)->firstOrFail();
-        $shopId = $downloadToken->payload;
+        $downloadToken = DownloadToken::where('token', $token)
+            ->where('user_id', $request->user()?->id)
+            ->firstOrFail();
+
+        $shopId = json_decode($downloadToken->payload, true);
         $downloadToken->delete();
 
-        // Ambil data order
         $query = Order::with(['customer', 'shop']);
         if ($shopId) {
             $query->where('shop_id', $shopId);
@@ -115,19 +132,12 @@ class OrderController extends BaseController
         }
         $orders = $query->get();
 
-        // Ambil service yang dibutuhkan
         $addressFormatter = app(AddressFormatterService::class);
         $currencyFormatter = app(CurrencyFormatterService::class);
         $settingsService = app(SettingsService::class);
 
         return Excel::download(
-            new OrderExport(
-                $orders,
-                $shopId,
-                $addressFormatter,
-                $currencyFormatter,
-                $settingsService
-            ),
+            new OrderExport($orders, $shopId, $addressFormatter, $currencyFormatter, $settingsService),
             'orders.xlsx'
         );
     }
@@ -142,21 +152,27 @@ class OrderController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         $isRtl = $request->is_rtl ?? false;
         $translatedText = $request->translated_text ?? [];
-        $url = $this->orderService->getInvoiceToken($user->id, $request->order_id, $language, $translatedText, $isRtl);
+        $url = $this->orderService->getInvoiceToken(
+            $user->id, (int) $request->order_id, $language, $translatedText, $isRtl
+        );
 
         return response()->json(['url' => $url]);
     }
 
-    public function downloadInvoice($token)
+    public function downloadInvoice(Request $request, $token)
     {
-        $downloadToken = DownloadToken::where('token', $token)->firstOrFail();
-        $payload = unserialize(
-            $downloadToken->payload,
-            ['allowed_classes' => false]
-        );
+        $downloadToken = DownloadToken::where('token', $token)
+            ->where('user_id', $request->user()?->id)
+            ->firstOrFail();
+
+        $payload = json_decode($downloadToken->payload, true);
         $downloadToken->delete();
 
-        $order = Order::with(['products', 'children.shop', 'parent_order', 'wallet_point'])->where('id', $payload['order_id'])->orWhere('tracking_number', $payload['order_id'])->firstOrFail();
+        $order = Order::with(['products', 'children.shop', 'parent_order', 'wallet_point'])
+            ->where('id', $payload['order_id'])
+            ->orWhere('tracking_number', $payload['order_id'])
+            ->firstOrFail();
+
         $settings = Settings::getData($payload['language'] ?? config('shop.default_language', 'id'));
         $invoiceData = [
             'order' => $order,
@@ -172,8 +188,6 @@ class OrderController extends BaseController
 
     public function submitPayment(Request $request)
     {
-        // Implementasi sesuai payment gateway, redirect ke payment processor
-        // Karena ini kompleks, kita lewati sementara. Bisa panggil PaymentService.
         throw new \Exception('Not implemented in this refactor');
     }
 }

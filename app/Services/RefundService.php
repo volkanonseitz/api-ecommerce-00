@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTO\RefundData;
@@ -9,9 +11,9 @@ use App\Models\Balance;
 use App\Models\Order;
 use App\Models\Refund;
 use App\Models\Shop;
-use App\Models\Wallet;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RefundService
 {
@@ -46,6 +48,7 @@ class RefundService
 
             return $query->where('shop_id', $request->shop_id);
         }
+
         if ($this->hasPermission($user, $request->shop_id)) {
             return $query->where('shop_id', $request->shop_id);
         }
@@ -61,6 +64,7 @@ class RefundService
     public function updateRefund(Refund $refund, RefundData $data): Refund
     {
         $refund->update($data->toArray());
+
         if ($refund->status === RefundStatus::APPROVED->value) {
             $this->processApprovedRefund($refund);
         }
@@ -70,22 +74,26 @@ class RefundService
 
     protected function processApprovedRefund(Refund $refund): void
     {
-        $order = Order::find($refund->order_id);
-        if ($order) {
-            foreach ($order->children as $child) {
-                $balance = Balance::where('shop_id', $child->shop_id)->first();
-                if ($balance) {
-                    $balance->total_earnings -= $child->amount;
-                    $balance->current_balance -= $child->amount;
-                    $balance->save();
-                }
+        DB::transaction(function () use ($refund) {
+            $order = Order::with('children')->find($refund->order_id);
+
+            if (! $order) {
+                return;
             }
-        }
-        $walletPoints = $this->walletService->currencyToWalletPoints($refund->amount);
-        $wallet = Wallet::firstOrCreate(['customer_id' => $refund->customer_id]);
-        $wallet->total_points += $walletPoints;
-        $wallet->available_points += $walletPoints;
-        $wallet->save();
+
+            foreach ($order->children as $child) {
+                Balance::where('shop_id', $child->shop_id)
+                    ->decrement('total_earnings', $child->amount);
+                Balance::where('shop_id', $child->shop_id)
+                    ->decrement('current_balance', $child->amount);
+            }
+
+            $walletPoints = $this->walletService->currencyToWalletPoints($refund->amount);
+
+            if ($walletPoints > 0) {
+                $this->walletService->addPoints($refund->customer_id, $walletPoints);
+            }
+        });
     }
 
     public function deleteRefund(Refund $refund): void

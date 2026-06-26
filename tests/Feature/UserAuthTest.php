@@ -16,7 +16,7 @@ class UserAuthTest extends TestCase
     public function test_user_can_register_as_customer()
     {
         // Create settings dummy
-        Settings::create(['language' => 'en', 'options' => ['useMustVerifyEmail' => false]]);
+        Settings::create(['language' => 'id', 'options' => ['useMustVerifyEmail' => false]]);
 
         $response = $this->postJson('/api/register', [
             'name' => 'Test User',

@@ -11,36 +11,93 @@ class Attribute extends Model
 {
     protected $table = 'attributes';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'slug',
+        'language',
+        'shop_id',
+        'translation_group',
+    ];
 
-    protected $appends = ['translated_languages'];
+    protected $appends = [
+        'translated_languages',
+    ];
 
-    public static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-        static::creating(function ($model) {
-            if (empty($model->slug)) {
-                $model->slug = Str::slug($model->name);
-                $count = static::where('slug', $model->slug)->where('language', $model->language)->count();
-                if ($count > 0) {
-                    $model->slug = $model->slug.'-'.($count + 1);
-                }
+        static::creating(function (self $attribute) {
+
+            if (empty($attribute->translation_group)) {
+                $attribute->translation_group = (string) Str::uuid();
+            }
+
+            if (empty($attribute->slug)) {
+                $attribute->slug = static::generateUniqueSlug(
+                    $attribute->name,
+                    $attribute->language
+                );
             }
         });
     }
 
-    public function getTranslatedLanguagesAttribute()
-    {
-        return static::where('slug', $this->slug)->pluck('language')->toArray();
+    protected static function generateUniqueSlug(
+        string $name,
+        string $language
+    ): string {
+        $baseSlug = Str::slug($name);
+
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (
+            static::where('slug', $slug)
+                ->where('language', $language)
+                ->exists()
+        ) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function values(): HasMany
     {
-        return $this->hasMany(AttributeValue::class, 'attribute_id');
+        return $this->hasMany(
+            AttributeValue::class,
+            'attribute_id'
+        );
     }
 
     public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class, 'shop_id');
+        return $this->belongsTo(
+            Shop::class,
+            'shop_id'
+        );
+    }
+
+    public function translations()
+    {
+        return static::query()
+            ->where(
+                'translation_group',
+                $this->translation_group
+            );
+    }
+
+    public function getTranslatedLanguagesAttribute(): array
+    {
+        if (! $this->translation_group) {
+            return [];
+        }
+
+        return static::query()
+            ->where(
+                'translation_group',
+                $this->translation_group
+            )
+            ->pluck('language')
+            ->toArray();
     }
 }

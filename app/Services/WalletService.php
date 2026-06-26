@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Settings;
 use App\Models\Wallet;
+use Illuminate\Support\Facades\DB;
 
 class WalletService
 {
@@ -12,10 +15,12 @@ class WalletService
         if ($points <= 0) {
             return;
         }
-        $wallet = Wallet::firstOrCreate(['customer_id' => $customerId]);
-        $wallet->total_points += $points;
-        $wallet->available_points += $points;
-        $wallet->save();
+
+        DB::transaction(function () use ($customerId, $points) {
+            $wallet = Wallet::lockForUpdate()->firstOrCreate(['customer_id' => $customerId]);
+            $wallet->increment('total_points', $points);
+            $wallet->increment('available_points', $points);
+        });
     }
 
     public function currencyToWalletPoints(float $currency): int
@@ -44,24 +49,30 @@ class WalletService
     {
         $settings = Settings::getData();
         $points = $settings->options['signupPoints'] ?? 0;
+
         if ($points <= 0) {
             return;
         }
-        $wallet = Wallet::firstOrCreate(['customer_id' => $customerId]);
-        $wallet->total_points += $points;
-        $wallet->available_points += $points;
-        $wallet->save();
+
+        $this->addPoints($customerId, (int) $points);
     }
 
     public function deductPoints(int $customerId, int $points): void
     {
-        $wallet = Wallet::where('customer_id', $customerId)->first();
-        if (! $wallet) {
+        if ($points <= 0) {
             return;
         }
-        $available = $wallet->available_points - $points;
-        $wallet->available_points = max($available, 0);
-        $wallet->points_used = ($wallet->points_used ?? 0) + min($points, $wallet->available_points + $wallet->points_used);
-        $wallet->save();
+
+        DB::transaction(function () use ($customerId, $points) {
+            $wallet = Wallet::lockForUpdate()->where('customer_id', $customerId)->first();
+
+            if (! $wallet) {
+                return;
+            }
+
+            $actualDeduction = min($points, $wallet->available_points);
+            $wallet->decrement('available_points', $actualDeduction);
+            $wallet->increment('points_used', $actualDeduction);
+        });
     }
 }

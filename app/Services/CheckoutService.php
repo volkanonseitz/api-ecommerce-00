@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTO\CheckoutVerifyData;
@@ -9,30 +11,33 @@ use App\Models\Shipping;
 use App\Models\Tax;
 use App\Models\User;
 use App\Models\Variation;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Arr;
 
 class CheckoutService
 {
     public function __construct(private WalletService $walletService) {}
 
-    /**
-     * Cek stok untuk setiap produk dalam keranjang
-     *
-     * @return array List product_id yang stok tidak mencukupi
-     */
     public function checkStock(array $products): array
     {
+        $productIds = array_column($products, 'product_id');
+        $variationIds = array_filter(array_column($products, 'variation_option_id'));
+
+        $productsById = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $variationsById = ! empty($variationIds)
+            ? Variation::whereIn('id', $variationIds)->get()->keyBy('id')
+            : collect();
+
         $unavailable = [];
         foreach ($products as $product) {
             $isUnavailable = false;
             if (isset($product['variation_option_id'])) {
-                $variation = Variation::find($product['variation_option_id']);
+                $variation = $variationsById->get($product['variation_option_id']);
                 if (! $variation || $product['order_quantity'] > $variation->quantity) {
                     $isUnavailable = true;
                 }
             } else {
-                $productModel = Product::find($product['product_id']);
+                $productModel = $productsById->get($product['product_id']);
                 if (! $productModel || $product['order_quantity'] > $productModel->quantity) {
                     $isUnavailable = true;
                 }
@@ -45,13 +50,9 @@ class CheckoutService
         return $unavailable;
     }
 
-    /**
-     * Hitung total amount dari produk yang tersedia (tidak unavailable)
-     */
     public function getOrderAmount(array $products, array $unavailableProducts): float
     {
         if (empty($unavailableProducts)) {
-            // amount sudah diberikan dari request, tapi kita hitung ulang untuk konsistensi
             return array_sum(array_column($products, 'subtotal'));
         }
         $amount = 0;
@@ -64,9 +65,6 @@ class CheckoutService
         return $amount;
     }
 
-    /**
-     * Hitung shipping charge
-     */
     public function calculateShippingCharge(array $products, float $amount): float
     {
         $orderedProducts = $products;
@@ -89,28 +87,27 @@ class CheckoutService
             }
         }
 
-        // Jika tidak ada shipping class global, hitung per product
         return $this->calculateShippingChargeByProduct($products);
     }
 
     private function calculateShippingChargeByProduct(array $products): float
     {
+        $productIds = array_column($products, 'product_id');
+        $productSubtotals = array_column($products, 'subtotal', 'product_id');
+        $products = Product::with('shipping')
+            ->whereIn('id', $productIds)
+            ->get()
+            ->keyBy('id');
+
         $total = 0;
-        foreach ($products as $product) {
-            $total += $this->calculateEachProductCharge($product['product_id'], $product['subtotal']);
+        foreach ($products as $productId => $product) {
+            $subtotal = $productSubtotals[$productId] ?? 0;
+            if ($product->shipping) {
+                $total += $this->getShippingCharge($product->shipping, $subtotal);
+            }
         }
 
         return $total;
-    }
-
-    private function calculateEachProductCharge(int $productId, float $subtotal): float
-    {
-        $product = Product::with('shipping')->find($productId);
-        if ($product && $product->shipping) {
-            return $this->getShippingCharge($product->shipping, $subtotal);
-        }
-
-        return 0;
     }
 
     private function getShippingCharge(Shipping $shipping, float $amount): float
@@ -122,9 +119,6 @@ class CheckoutService
         };
     }
 
-    /**
-     * Hitung tax
-     */
     public function calculateTax(?array $billingAddress, ?array $shippingAddress, float $amount, float $shippingCharge): float
     {
         $taxClass = $this->getTaxClass($billingAddress, $shippingAddress);
@@ -144,44 +138,30 @@ class CheckoutService
             return Tax::find($taxClassId);
         }
 
-        // Fallback ke tax berdasarkan alamat (jika diperlukan)
-        // Sesuai asli, hanya menggunakan global tax class
         return null;
     }
 
-    /**
-     * Verifikasi checkout: hitung tax, shipping, cek stok, wallet
-     */
     public function verify(CheckoutVerifyData $data, ?User $authUser): array
     {
-        // Tentukan user
-        $user = null;
-        if ($data->customer_id) {
-            $user = User::find($data->customer_id);
-            if (! $user) {
-                throw new ModelNotFoundException(config('notice.NOT_FOUND'));
-            }
-        } elseif ($authUser) {
-            $user = $authUser;
+        $user = $authUser;
+        if (! $user) {
+            throw new AuthorizationException('Authentication required');
         }
 
-        $wallet = $user?->wallet;
+        $wallet = $user->wallet;
 
         $settings = Settings::getData();
         $minimumOrderAmount = $settings->options['minimumOrderAmount'] ?? 0;
 
-        // Cek stok
         $unavailableProducts = $this->checkStock($data->products);
-
-        // Hitung amount (jika ada unavailable, kurangi)
         $amount = $this->getOrderAmount($data->products, $unavailableProducts);
 
-        // Hitung shipping (free shipping jika memenuhi syarat)
         $isFreeShippingEnabled = $settings->options['freeShipping'] ?? false;
         $freeShippingAmount = $settings->options['freeShippingAmount'] ?? 0;
-        $shippingCharge = ($isFreeShippingEnabled && $freeShippingAmount <= $amount) ? 0 : $this->calculateShippingCharge($data->products, $amount);
+        $shippingCharge = ($isFreeShippingEnabled && $freeShippingAmount <= $amount)
+            ? 0
+            : $this->calculateShippingCharge($data->products, $amount);
 
-        // Hitung tax
         $tax = $this->calculateTax($data->billing_address, $data->shipping_address, $amount, $shippingCharge);
 
         $total = $amount + $tax + $shippingCharge;

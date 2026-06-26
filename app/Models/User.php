@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Notifications\VerifyEmailNotification;
@@ -24,13 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'is_active',
         'shop_id',
-        'failed_login_attempts',
-        'locked_until',
-        'last_login_at',
-        'last_login_ip',
-        'last_login_user_agent',
     ];
 
     protected $hidden = [
@@ -54,7 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasVerifiedEmail();
     }
 
-    public function sendEmailVerificationNotification()
+    public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);
     }
@@ -94,7 +90,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class, 'customer_id');
     }
 
-    public function loadLastOrder()
+    public function loadLastOrder(): static
     {
         $lastOrder = $this->orders()
             ->whereNull('parent_id')

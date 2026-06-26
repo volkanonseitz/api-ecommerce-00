@@ -22,7 +22,7 @@ if (! function_exists('formatAPIResourcePaginate')) {
 }
 
 if (! function_exists('format_currency')) {
-    function format_currency($amount, $currency = 'USD', $locale = 'en-US')
+    function format_currency($amount, $currency = 'USD', $locale = 'id-ID')
     {
         if ($amount === null) {
             return '';
