@@ -13,7 +13,8 @@ class AnalyticsRevenueService
 {
     public function getTotalRevenue(?array $shopIds, bool $isSuperAdmin, int $cacheTtl = 300): float
     {
-        $cacheKey = 'analytics_revenue_total_' . ($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+        $cacheKey = 'analytics_revenue_total_'.($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+
         return Cache::remember($cacheKey, $cacheTtl, function () use ($shopIds, $isSuperAdmin) {
             return $this->calculateTotalRevenue($shopIds, $isSuperAdmin);
         });
@@ -21,7 +22,8 @@ class AnalyticsRevenueService
 
     public function getTodaysRevenue(?array $shopIds, bool $isSuperAdmin, int $cacheTtl = 60): float
     {
-        $cacheKey = 'analytics_revenue_today_' . ($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+        $cacheKey = 'analytics_revenue_today_'.($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+
         return Cache::remember($cacheKey, $cacheTtl, function () use ($shopIds, $isSuperAdmin) {
             return $this->calculateTodaysRevenue($shopIds, $isSuperAdmin);
         });

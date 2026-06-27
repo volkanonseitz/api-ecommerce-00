@@ -9,6 +9,10 @@ class OtpService
     // private OtpInterface $gateway; //nonaktifkan sementara untuk tujuan pengecekan
     private ?OtpInterface $gateway = null; // hapus atau nonaktifkan untuk menjalankan kembali gateway
 
+    public ?array $errors = null;
+
+    public ?int $id = null;
+
     public function __construct()
     {
         // $gatewayName = Config::get('auth.active_otp_gateway', 'twilio');

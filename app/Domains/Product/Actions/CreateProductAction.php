@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions;
+namespace App\Domains\Product\Actions;
 
-use App\DTO\ProductData;
+use App\Domains\Product\DTO\ProductData;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 

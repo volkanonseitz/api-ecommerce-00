@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
 use App\Enums\Permission;
-use App\Models\User;
 use App\Models\Shop;
+use App\Models\User;
 use App\Services\Analytics\AnalyticsOrderService;
 use App\Services\Analytics\AnalyticsProductService;
 use App\Services\Analytics\AnalyticsRevenueService;
@@ -29,8 +30,8 @@ class AnalyticsService
             return [];
         }
 
-        $cacheKey = 'analytics_dashboard_' . $user->id;
-        
+        $cacheKey = 'analytics_dashboard_'.$user->id;
+
         return Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
             return $this->buildAnalytics($user);
         });
@@ -43,21 +44,21 @@ class AnalyticsService
         $isSuperAdmin = $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
 
         // Konsistensikan passing data ke sub-services (Disarankan mengoper $user jika service butuh fleksibilitas)
-        $totalRevenue       = $this->revenue->getTotalRevenue($shops, $isSuperAdmin);
-        $todaysRevenue      = $this->revenue->getTodaysRevenue($shops, $isSuperAdmin);
-        $totalOrders        = $this->orders->getTotalOrders($shops, $isSuperAdmin);
-        
-        $orderStatusesToday   = $this->orders->getOrderStatusCounts($user, 1);
-        $orderStatusesWeekly  = $this->orders->getOrderStatusCounts($user, 7);
+        $totalRevenue = $this->revenue->getTotalRevenue($shops, $isSuperAdmin);
+        $todaysRevenue = $this->revenue->getTodaysRevenue($shops, $isSuperAdmin);
+        $totalOrders = $this->orders->getTotalOrders($shops, $isSuperAdmin);
+
+        $orderStatusesToday = $this->orders->getOrderStatusCounts($user, 1);
+        $orderStatusesWeekly = $this->orders->getOrderStatusCounts($user, 7);
         $orderStatusesMonthly = $this->orders->getOrderStatusCounts($user, 30);
-        $orderStatusesYearly  = $this->orders->getOrderStatusCounts($user, 365);
+        $orderStatusesYearly = $this->orders->getOrderStatusCounts($user, 365);
 
         // Menghitung jumlah toko dan vendor berdasarkan role
         if ($isSuperAdmin) {
             $totalVendors = User::whereHas('permissions', fn ($q) => $q->where('name', Permission::STORE_OWNER->value))->count();
-            $totalShops   = Shop::count();
+            $totalShops = Shop::count();
         } else {
-            $totalShops   = Shop::where('owner_id', $user->id)->count();
+            $totalShops = Shop::where('owner_id', $user->id)->count();
             $totalVendors = 0;
         }
 
@@ -66,36 +67,36 @@ class AnalyticsService
             ->count();
 
         return [
-            'totalRevenue'               => $totalRevenue,
-            'totalRefunds'               => $this->getTotalRefunds($shops, $isSuperAdmin),
-            'totalShops'                 => $totalShops,
-            'totalVendors'               => $totalVendors,
-            'todaysRevenue'              => $todaysRevenue,
-            'totalOrders'                => $totalOrders,
-            'newCustomers'               => $newCustomers,
-            'totalYearSaleByMonth'       => $this->getTotalYearSaleByMonthData($user, $shops, $isSuperAdmin), // Cache internal dihapus
-            'todayTotalOrderByStatus'    => $orderStatusesToday,
-            'weeklyTotalOrderByStatus'   => $orderStatusesWeekly,
-            'monthlyTotalOrderByStatus'  => $orderStatusesMonthly,
-            'yearlyTotalOrderByStatus'   => $orderStatusesYearly,
+            'totalRevenue' => $totalRevenue,
+            'totalRefunds' => $this->getTotalRefunds($shops, $isSuperAdmin),
+            'totalShops' => $totalShops,
+            'totalVendors' => $totalVendors,
+            'todaysRevenue' => $todaysRevenue,
+            'totalOrders' => $totalOrders,
+            'newCustomers' => $newCustomers,
+            'totalYearSaleByMonth' => $this->getTotalYearSaleByMonthData($user, $shops, $isSuperAdmin), // Cache internal dihapus
+            'todayTotalOrderByStatus' => $orderStatusesToday,
+            'weeklyTotalOrderByStatus' => $orderStatusesWeekly,
+            'monthlyTotalOrderByStatus' => $orderStatusesMonthly,
+            'yearlyTotalOrderByStatus' => $orderStatusesYearly,
         ];
     }
 
     protected function getTotalRefunds(array $shopIds, bool $isSuperAdmin): float
     {
         $query = DB::table('refunds')->where('created_at', '<', Carbon::now());
-        
+
         if ($isSuperAdmin) {
             // JIKA Super Admin ingin melihat TOTAL semua refund, hapus ->whereNull()
             // JIKA Super Admin hanya melihat refund sistem pusat, biarkan seperti ini
             return (float) ($query->whereNull('shop_id')->sum('amount') ?: 0.0);
         }
-        
+
         return (float) ($query->whereIn('shop_id', $shopIds)->sum('amount') ?: 0.0);
     }
 
     /**
-     * Mengambil data penjualan tahunan tanpa pembungkus Cache internal, 
+     * Mengambil data penjualan tahunan tanpa pembungkus Cache internal,
      * karena sudah dicache bersama di tingkat dashboard.
      */
     protected function getTotalYearSaleByMonthData(Authenticatable $user, array $shopIds, bool $isSuperAdmin): array
@@ -108,7 +109,7 @@ class AnalyticsService
 
         if ($isSuperAdmin) {
             $query = DB::table('orders')
-                ->where('order_status', \App\Enums\OrderStatus::COMPLETED->value)
+                ->where('order_status', OrderStatus::COMPLETED->value)
                 ->whereYear('created_at', $currentYear)
                 ->whereNull('parent_id')
                 ->select(
@@ -121,7 +122,7 @@ class AnalyticsService
             }
 
             $query = DB::table('orders')
-                ->where('order_status', \App\Enums\OrderStatus::COMPLETED->value)
+                ->where('order_status', OrderStatus::COMPLETED->value)
                 ->whereYear('created_at', $currentYear)
                 ->whereNotNull('parent_id')
                 ->whereIn('shop_id', $shopIds)

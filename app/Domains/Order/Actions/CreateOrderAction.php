@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Actions;
+declare(strict_types=1);
 
-use App\DTO\OrderData;
+namespace App\Domains\Order\Actions;
+
+use App\Domains\Order\DTO\OrderData;
 use App\Models\Order;
 
 class CreateOrderAction

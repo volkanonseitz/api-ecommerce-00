@@ -9,6 +9,7 @@ use App\Enums\AbusiveReportType;
 use App\Models\AbusiveReport;
 use App\Traits\AuthorizesShopAccess;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,7 @@ class AbusiveReportService
 {
     use AuthorizesShopAccess;
 
-    public function getReports(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getReports(int $perPage = 15): LengthAwarePaginator
     {
         return AbusiveReport::query()
             ->with('user')
@@ -49,7 +50,7 @@ class AbusiveReportService
     public function deleteReport(int $id, Authenticatable $user): void
     {
         $report = AbusiveReport::findOrFail($id);
-        if ($report->user_id !== $user->id && !$user->hasPermissionTo('super_admin')) {
+        if ($report->user_id !== $user->id && ! $user->hasPermissionTo('super_admin')) {
             abort(403, config('notice.NOT_AUTHORIZED'));
         }
         $report->delete();
@@ -80,7 +81,7 @@ class AbusiveReportService
         });
     }
 
-    public function getUserReports(int $userId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getUserReports(int $userId, int $perPage = 15): LengthAwarePaginator
     {
         return AbusiveReport::query()
             ->where('user_id', $userId)

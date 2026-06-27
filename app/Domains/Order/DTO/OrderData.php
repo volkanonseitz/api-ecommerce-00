@@ -1,9 +1,14 @@
 <?php
 
-namespace App\DTO;
+declare(strict_types=1);
 
-class OrderData
+namespace App\Domains\Order\DTO;
+
+final class OrderData
 {
+    /**
+     * @param  array<string, mixed>  $products
+     */
     public function __construct(
         public ?string $tracking_number = null,
         public ?int $customer_id = null,

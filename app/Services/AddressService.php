@@ -51,6 +51,7 @@ class AddressService
             }
 
             $address->update($data->toArray());
+
             return $address->fresh();
         });
     }
@@ -60,6 +61,7 @@ class AddressService
         if ($address->customer_id !== auth()->id()) {
             abort(403, config('notice.NOT_AUTHORIZED'));
         }
+
         return $address->delete();
     }
 }

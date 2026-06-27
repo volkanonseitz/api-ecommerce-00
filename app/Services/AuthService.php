@@ -7,6 +7,7 @@ namespace App\Services;
 use App\DTO\UserData;
 use App\Enums\Permission;
 use App\Enums\Role;
+use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions;
+namespace App\Domains\Product\Actions;
 
-use App\DTO\ProductData;
+use App\Domains\Product\DTO\ProductData;
 use App\DTO\VariationOptionData;
 use App\Events\DigitalProductUpdateEvent;
 use App\Events\ProductReviewApproved;

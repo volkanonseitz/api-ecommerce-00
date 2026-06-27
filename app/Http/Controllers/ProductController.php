@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\DTO\ProductData;
+use App\Domains\Product\DTO\ProductData;
+use App\Domains\Product\Services\ProductService;
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Resources\GetSingleProductResource;
@@ -10,7 +11,6 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\Settings;
 use App\Models\Variation;
-use App\Services\ProductService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;

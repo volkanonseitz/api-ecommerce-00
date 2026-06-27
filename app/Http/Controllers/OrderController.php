@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\DTO\OrderData;
+use App\Domains\Order\Actions\OrderManagementAction;
+use App\Domains\Order\DTO\OrderData;
+use App\Domains\Order\Services\OrderIdentityService;
+use App\Domains\Order\Services\OrderService;
 use App\Enums\Permission;
 use App\Exports\OrderExport;
 use App\Http\Requests\OrderCreateRequest;
@@ -15,7 +18,6 @@ use App\Models\Order;
 use App\Models\Settings;
 use App\Services\AddressFormatterService;
 use App\Services\CurrencyFormatterService;
-use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\SettingsService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -28,6 +30,7 @@ class OrderController extends BaseController
     public function __construct(
         private OrderService $orderService,
         private PaymentService $paymentService,
+        private OrderIdentityService $identityService
     ) {}
 
     public function index(Request $request)
@@ -37,16 +40,21 @@ class OrderController extends BaseController
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
         $limit = $request->limit ?? 10;
-        $orders = $this->orderService->getOrdersQuery($request, $user)->paginate($limit);
+        $orders = $this->orderService->getOrdersQuery($request, $user)->paginate((int) $limit);
 
         return OrderResource::collection($orders);
     }
 
-    public function store(OrderCreateRequest $request)
+    /**
+     * Menyimpan pesanan baru (Checkout) menggunakan OrderManagementAction.
+     */
+    public function store(OrderCreateRequest $request, OrderManagementAction $orderManagementAction)
     {
         $settings = Settings::first();
         $data = OrderData::fromRequest($request->validated());
-        $order = $this->orderService->createOrder($data, $settings, $request->user());
+
+        // Memanggil Action orkestrasi logika checkout yang baru
+        $order = $orderManagementAction->execute($data, $settings, $request->user());
 
         return new OrderResource($order);
     }
@@ -56,7 +64,7 @@ class OrderController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         $order = $this->orderService->getOrderByTrackingOrId($params, $language, $request->user());
 
-        if (! in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'])) {
+        if (! in_array($order->payment_gateway, ['cash', 'cash_on_delivery', 'full_wallet_payment'], true)) {
             $order->payment_intent = $this->paymentService->attachPaymentIntent($order->tracking_number);
         }
 
@@ -110,7 +118,9 @@ class OrderController extends BaseController
         if (! $this->orderService->hasPermission($user, $request->shop_id)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
-        $url = $this->orderService->getExportToken($user->id, $request->shop_id);
+
+        // Diarahkan ke OrderIdentityService
+        $url = $this->identityService->getExportToken($user->id, $request->shop_id ? (int) $request->shop_id : null);
 
         return response()->json(['url' => $url]);
     }
@@ -152,8 +162,10 @@ class OrderController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         $isRtl = $request->is_rtl ?? false;
         $translatedText = $request->translated_text ?? [];
-        $url = $this->orderService->getInvoiceToken(
-            $user->id, (int) $request->order_id, $language, $translatedText, $isRtl
+
+        // Menggunakan getInvoiceTokenSecure dari OrderIdentityService yang sudah aman dari Object Insecure Deserialization
+        $url = $this->identityService->getInvoiceTokenSecure(
+            $user->id, (int) $request->order_id, $language, $translatedText, (bool) $isRtl
         );
 
         return response()->json(['url' => $url]);

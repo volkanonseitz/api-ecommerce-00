@@ -6,6 +6,7 @@ namespace App\Traits;
 
 use App\Enums\Permission;
 use App\Models\Shop;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
 
@@ -14,11 +15,11 @@ trait AuthorizesShopAccess
     /**
      * Memeriksa apakah pengguna memiliki akses ke toko tertentu.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     protected function authorizeShop(?Authenticatable $user, ?int $shopId, string $ability = 'view'): void
     {
-        if (!$user) {
+        if (! $user) {
             abort(401, 'Unauthenticated.');
         }
 
@@ -26,12 +27,12 @@ trait AuthorizesShopAccess
             return;
         }
 
-        if (!$shopId) {
+        if (! $shopId) {
             abort(403, 'Shop ID is required.');
         }
 
         $shop = Shop::find($shopId);
-        if (!$shop) {
+        if (! $shop) {
             abort(404, 'Shop not found.');
         }
 

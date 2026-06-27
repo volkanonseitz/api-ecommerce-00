@@ -15,7 +15,8 @@ class AnalyticsOrderService
 {
     public function getTotalOrders(?array $shopIds, bool $isSuperAdmin, int $cacheTtl = 300): int
     {
-        $cacheKey = 'analytics_orders_total_' . ($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+        $cacheKey = 'analytics_orders_total_'.($isSuperAdmin ? 'admin' : implode('_', $shopIds ?? []));
+
         return Cache::remember($cacheKey, $cacheTtl, function () use ($shopIds, $isSuperAdmin) {
             return $this->calculateTotalOrders($shopIds, $isSuperAdmin);
         });
@@ -23,7 +24,8 @@ class AnalyticsOrderService
 
     public function getOrderStatusCounts(?Authenticatable $user, int $days, int $cacheTtl = 60): array
     {
-        $cacheKey = 'analytics_order_status_' . ($user?->id ?? 'guest') . '_' . $days;
+        $cacheKey = 'analytics_order_status_'.($user?->id ?? 'guest').'_'.$days;
+
         return Cache::remember($cacheKey, $cacheTtl, function () use ($user, $days) {
             return $this->orderCountingByStatus($user, $days);
         });
@@ -35,6 +37,7 @@ class AnalyticsOrderService
         if ($isSuperAdmin) {
             return $query->whereNull('parent_id')->count();
         }
+
         return $query->whereIn('shop_id', $shopIds ?? [])->count();
     }
 

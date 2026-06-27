@@ -5,12 +5,4 @@ includes:
 parameters:
     paths:
         - app
-    level: 1
-
-    # Ignore specific violations temporarily during migration
-    ignoreErrors:
-        - '#Method .* has no return type specified#'
-        - '#Property .* has no type specified#'
-
-    checkUninitializedProperties: true
-    checkExplicitMixedMissingReturn: true
+    level: 2
