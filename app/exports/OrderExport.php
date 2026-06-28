@@ -3,7 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Settings;
-use App\Services\AddressFormatterService;
+use App\Modules\Address\Services\AddressFormatterService;
 use App\Services\CurrencyFormatterService;
 use App\Services\SettingsService;
 use Illuminate\Support\Carbon;

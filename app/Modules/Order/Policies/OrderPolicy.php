@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Order\Policies;
+
+use App\Enums\Permission;
+use App\Models\Order;
+use App\Models\User;
+
+class OrderPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            || $user->hasPermissionTo(Permission::STORE_OWNER->value)
+            || $user->hasPermissionTo(Permission::STAFF->value);
+    }
+
+    public function view(User $user, Order $order): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+
+        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+            return $order->shop && $order->shop->owner_id === $user->id;
+        }
+
+        if ($user->hasPermissionTo(Permission::STAFF->value)) {
+            return $order->shop && $order->shop->staffs->contains($user->id);
+        }
+
+        return $order->customer_id === $user->id;
+    }
+
+    public function create(User $user): bool
+    {
+        // Setiap user yang login bisa membuat order (checkout)
+        return $user !== null;
+    }
+
+    public function update(User $user, Order $order): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+
+        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+            return $order->shop && $order->shop->owner_id === $user->id;
+        }
+
+        if ($user->hasPermissionTo(Permission::STAFF->value)) {
+            return $order->shop && $order->shop->staffs->contains($user->id);
+        }
+
+        return false;
+    }
+
+    public function delete(User $user, Order $order): bool
+    {
+        return $this->update($user, $order);
+    }
+
+    public function export(User $user, ?int $shopId = null): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+
+        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+            if ($shopId) {
+                return $user->shops()->where('id', $shopId)->exists();
+            }
+
+            return true; // bisa export semua tokonya
+        }
+
+        if ($user->hasPermissionTo(Permission::STAFF->value)) {
+            return $shopId && $user->shop_id === $shopId;
+        }
+
+        return false;
+    }
+}

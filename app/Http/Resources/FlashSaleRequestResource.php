@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Modules\Product\Http\Resources\ProductResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class FlashSaleRequestResource extends JsonResource

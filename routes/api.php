@@ -1,10 +1,6 @@
 <?php
 
 use App\Enums\Permission;
-use App\Http\Controllers\AbusiveReportController;
-use App\Http\Controllers\AddressController;
-use App\Http\Controllers\AnalyticsController;
-use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\AuthorController;
@@ -23,7 +19,6 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotifyLogsController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OwnershipTransferController;
 use App\Http\Controllers\PaymentIntentController;
 use App\Http\Controllers\PaymentMethodController;
@@ -46,6 +41,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebHookController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\WithdrawController;
+use App\Modules\AbusiveReport\Http\Controllers\AbusiveReportController;
+use App\Modules\Address\Http\Controllers\AddressController;
+use App\Modules\Analytics\Http\Controllers\AnalyticsController;
+use App\Modules\Attachment\Http\Controllers\AttachmentController;
+use App\Modules\Order\Http\Controllers\OrderController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;

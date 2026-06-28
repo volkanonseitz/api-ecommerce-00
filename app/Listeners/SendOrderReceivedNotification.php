@@ -27,7 +27,5 @@ class SendOrderReceivedNotification implements ShouldQueue
             $vendor = $order->shop->owner;
             $vendor->notify(new NewOrderReceived($order));
         }
-
-        // Jika perlu juga notifikasi ke admin, tambahkan di sini.
     }
 }

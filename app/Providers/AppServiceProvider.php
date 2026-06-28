@@ -2,9 +2,18 @@
 
 namespace App\Providers;
 
+use App\Enums\Permission;
+use App\Models\AbusiveReport;
 use App\Models\Address;
-use App\Policies\AddressPolicy;
-use App\Services\AddressFormatterService;
+use App\Models\Attachment;
+use App\Models\Order;
+use App\Models\Product;
+use App\Modules\AbusiveReport\Policies\AbusiveReportPolicy;
+use App\Modules\Address\Policies\AddressPolicy;
+use App\Modules\Address\Services\AddressFormatterService;
+use App\Modules\Attachment\Policies\AttachmentPolicy;
+use App\Modules\Order\Policies\OrderPolicy;
+use App\Modules\Product\Policies\ProductPolicy;
 use App\Services\CurrencyFormatterService;
 use App\Services\Otp\OtpService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -55,6 +64,17 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // Registrasi Policy
         Gate::policy(Address::class, AddressPolicy::class);
+        Gate::policy(AbusiveReport::class, AbusiveReportPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Attachment::class, AttachmentPolicy::class);
+
+        Gate::define('view-analytics', function ($user) {
+            return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||
+                   $user->hasPermissionTo(Permission::STORE_OWNER->value) ||
+                   $user->hasPermissionTo(Permission::STAFF->value);
+        });
     }
 }
