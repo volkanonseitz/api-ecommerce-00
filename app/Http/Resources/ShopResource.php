@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Modules\Category\Http\Resources\CategoryResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ShopResource extends JsonResource

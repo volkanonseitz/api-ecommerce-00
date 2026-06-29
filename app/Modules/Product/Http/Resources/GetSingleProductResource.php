@@ -2,8 +2,8 @@
 
 namespace App\Modules\Product\Http\Resources;
 
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\TagResource;
+use App\Modules\Category\Http\Resources\CategoryResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GetSingleProductResource extends JsonResource

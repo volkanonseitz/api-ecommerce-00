@@ -6,71 +6,51 @@ namespace App\Modules\Attachment\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Attachment;
-use App\Modules\Attachment\Actions\UploadAttachmentAction;
 use App\Modules\Attachment\DTO\AttachmentData;
 use App\Modules\Attachment\Http\Requests\AttachmentRequest;
 use App\Modules\Attachment\Http\Resources\AttachmentResource;
 use App\Modules\Attachment\Services\AttachmentService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AttachmentController extends BaseController
 {
-    public function __construct(
-        private readonly AttachmentService $queryService,
-        private readonly UploadAttachmentAction $uploadAction,
-    ) {}
+    public function __construct(private AttachmentService $attachmentService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Attachment::class);
+        $attachments = $this->attachmentService->getAll();
 
-        $perPage = (int) $request->input('limit', 15);
-        $perPage = max(1, min($perPage, 100));
-
-        $attachments = $this->queryService->getAll($perPage);
-
-        return $this->sendPaginated(
-            $attachments,
-            AttachmentResource::collection($attachments->getCollection()),
-            'Daftar attachment berhasil diambil.'
-        );
+        return AttachmentResource::collection($attachments);
     }
 
-    public function store(AttachmentRequest $request): JsonResponse
+    public function store(AttachmentRequest $request)
     {
         $this->authorize('create', Attachment::class);
-
         $data = AttachmentData::fromRequest($request->validated());
-        $results = $this->uploadAction->execute($data);
+        $results = $this->attachmentService->upload($data);
 
-        return response()->json($results, 201);
+        return response()->json($results);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(int $id)
     {
-        $attachment = $this->queryService->findOrFail($id);
+        $attachment = $this->attachmentService->find($id);
         $this->authorize('view', $attachment);
 
-        return $this->sendSuccess(
-            new AttachmentResource($attachment),
-            'Data attachment berhasil diambil.'
-        );
+        return new AttachmentResource($attachment);
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, int $id)
     {
-        // Tidak ada update untuk attachment
         return response()->json(false);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id)
     {
-        $attachment = $this->queryService->findOrFail($id);
-        $this->authorize('delete', $attachment);
+        $this->authorize('delete', Attachment::class);
+        $this->attachmentService->delete($id);
 
-        $this->queryService->delete($attachment);
-
-        return $this->sendSuccess(null, 'Attachment deleted successfully.');
+        return $this->sendSuccess(null, 'Attachment deleted successfully');
     }
 }

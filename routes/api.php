@@ -1,15 +1,6 @@
 <?php
 
 use App\Enums\Permission;
-use App\Http\Controllers\AttributeController;
-use App\Http\Controllers\AttributeValueController;
-use App\Http\Controllers\AuthorController;
-use App\Http\Controllers\BecameSellerController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\ConversationController;
-use App\Http\Controllers\CouponController;
-use App\Http\Controllers\DeliveryTimeController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\FaqsController;
 use App\Http\Controllers\FeedbackController;
@@ -45,6 +36,15 @@ use App\Modules\AbusiveReport\Http\Controllers\AbusiveReportController;
 use App\Modules\Address\Http\Controllers\AddressController;
 use App\Modules\Analytics\Http\Controllers\AnalyticsController;
 use App\Modules\Attachment\Http\Controllers\AttachmentController;
+use App\Modules\Attribute\Http\Controllers\AttributeController;
+use App\Modules\Attribute\Http\Controllers\AttributeValueController;
+use App\Modules\Author\Http\Controllers\AuthorController;
+use App\Modules\BecameSeller\Http\Controllers\BecameSellerController;
+use App\Modules\Category\Http\Controllers\CategoryController;
+use App\Modules\Checkout\Http\Controllers\CheckoutController;
+use App\Modules\Conversation\Http\Controllers\ConversationController;
+use App\Modules\Coupon\Http\Controllers\CouponController;
+use App\Modules\DeliveryTime\Http\Controllers\DeliveryTimeController;
 use App\Modules\Order\Http\Controllers\OrderController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
