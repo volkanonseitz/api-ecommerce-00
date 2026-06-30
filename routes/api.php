@@ -1,19 +1,7 @@
 <?php
 
 use App\Enums\Permission;
-use App\Http\Controllers\DownloadController;
-use App\Http\Controllers\FaqsController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\FlashSaleController;
-use App\Http\Controllers\FlashSaleVendorController;
-use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\ManufacturerController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\NotifyLogsController;
-use App\Http\Controllers\OwnershipTransferController;
-use App\Http\Controllers\PaymentIntentController;
 use App\Http\Controllers\PaymentMethodController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\RefundPolicyController;
@@ -45,7 +33,19 @@ use App\Modules\Checkout\Http\Controllers\CheckoutController;
 use App\Modules\Conversation\Http\Controllers\ConversationController;
 use App\Modules\Coupon\Http\Controllers\CouponController;
 use App\Modules\DeliveryTime\Http\Controllers\DeliveryTimeController;
+use App\Modules\Download\Http\Controllers\DownloadController;
+use App\Modules\Faqs\Http\Controllers\FaqsController;
+use App\Modules\Feedback\Http\Controllers\FeedbackController;
+use App\Modules\FlashSale\Http\Controllers\FlashSaleController;
+use App\Modules\FlashSaleRequest\Http\Controllers\FlashSaleRequestController;
+use App\Modules\Language\Http\Controllers\LanguageController;
+use App\Modules\Manufacturer\Http\Controllers\ManufacturerController;
+use App\Modules\Message\Http\Controllers\MessageController;
+use App\Modules\NotifyLogs\Http\Controllers\NotifyLogsController;
 use App\Modules\Order\Http\Controllers\OrderController;
+use App\Modules\OwnershipTransfer\Http\Controllers\OwnershipTransferController;
+use App\Modules\PaymentIntent\Http\Controllers\PaymentIntentController;
+use App\Modules\Product\Http\Controllers\ProductController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
@@ -326,9 +326,9 @@ Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permis
     // CouponController
     Route::apiResource('/coupons', CouponController::class)->only(['update']);
 
-    // FlashSaleVendorController
-    Route::get('/requested-products-for-flash-sale', [FlashSaleVendorController::class, 'getRequestedProductsForFlashSale']);
-    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorController::class)->only(['index', 'show', 'store', 'destroy']);
+    // FlashSaleRequestController
+    Route::get('/requested-products-for-flash-sale', [FlashSaleRequestController::class, 'getRequestedProductsForFlashSale']);
+    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleRequestController::class)->only(['index', 'show', 'store', 'destroy']);
 });
 
 // ========================
@@ -454,10 +454,10 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     Route::post('/approve-coupon', [CouponController::class, 'approveCoupon']);
     Route::post('/disapprove-coupon', [CouponController::class, 'disApproveCoupon']);
 
-    // FlashSaleVendorController
-    Route::post('/approve-flash-sale-requested-products', [FlashSaleVendorController::class, 'approveFlashSaleProductsRequest']);
-    Route::post('/disapprove-flash-sale-requested-products', [FlashSaleVendorController::class, 'disapproveFlashSaleProductsRequest']);
-    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleVendorController::class)->only(['update']);
+    // FlashSaleRequestController
+    Route::post('/approve-flash-sale-requested-products', [FlashSaleRequestController::class, 'approveFlashSaleProductsRequest']);
+    Route::post('/disapprove-flash-sale-requested-products', [FlashSaleRequestController::class, 'disapproveFlashSaleProductsRequest']);
+    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleRequestController::class)->only(['update']);
 
     // OwnershipTransferController
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['update', 'destroy']);

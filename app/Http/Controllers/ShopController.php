@@ -6,12 +6,12 @@ use App\DTO\ShopData;
 use App\Enums\Permission;
 use App\Http\Requests\ShopCreateRequest;
 use App\Http\Requests\ShopUpdateRequest;
-use App\Http\Requests\TransferShopOwnerShipRequest;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Resources\ShopResource;
 use App\Models\Settings;
 use App\Models\Shop;
 use App\Models\User;
+use App\Modules\OwnershipTransfer\Http\Requests\OwnershipTransferRequest;
 use App\Services\ShopService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -184,7 +184,7 @@ class ShopController extends BaseController
         return ShopResource::collection($shops);
     }
 
-    public function transferShopOwnership(TransferShopOwnerShipRequest $request)
+    public function transferShopOwnership(OwnershipTransferRequest $request)
     {
         $shop = Shop::findOrFail($request->shop_id);
         if (! $this->shopService->hasPermission($request->user(), $shop->id)) {

@@ -13,7 +13,17 @@ use App\Models\BecameSeller;
 use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\Coupon;
+use App\Models\Faqs;
+use App\Models\Feedback;
+use App\Models\FlashSale;
+use App\Models\FlashSaleRequest;
+use App\Models\Language;
+use App\Models\Manufacturer;
+use App\Models\Message;
+use App\Models\NotifyLogs;
 use App\Models\Order;
+use App\Models\OrderedFile;
+use App\Models\PaymentIntent;
 use App\Models\Product;
 use App\Models\User;
 use App\Modules\AbusiveReport\Policies\AbusiveReportPolicy;
@@ -28,7 +38,17 @@ use App\Modules\Category\Policies\CategoryPolicy;
 use App\Modules\Checkout\Policies\CheckoutPolicy;
 use App\Modules\Conversation\Policies\ConversationPolicy;
 use App\Modules\Coupon\Policies\CouponPolicy;
+use App\Modules\Download\Policies\DownloadPolicy;
+use App\Modules\Faqs\Policies\FaqsPolicy;
+use App\Modules\Feedback\Policies\FeedbackPolicy;
+use App\Modules\FlashSale\Policies\FlashSalePolicy;
+use App\Modules\FlashSaleRequest\Policies\FlashSaleRequestPolicy;
+use App\Modules\Language\Policies\LanguagePolicy;
+use App\Modules\Manufacturer\Policies\ManufacturerPolicy;
+use App\Modules\Message\Policies\MessagePolicy;
+use App\Modules\NotifyLogs\Policies\NotifyLogsPolicy;
 use App\Modules\Order\Policies\OrderPolicy;
+use App\Modules\PaymentIntent\Policies\PaymentIntentPolicy;
 use App\Modules\Product\Policies\ProductPolicy;
 use App\Services\CurrencyFormatterService;
 use App\Services\Otp\OtpService;
@@ -94,6 +114,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, CheckoutPolicy::class);
         Gate::policy(Conversation::class, ConversationPolicy::class);
         Gate::policy(Coupon::class, CouponPolicy::class);
+        Gate::policy(OrderedFile::class, DownloadPolicy::class);
+        Gate::policy(Faqs::class, FaqsPolicy::class);
+        Gate::policy(Feedback::class, FeedbackPolicy::class);
+        Gate::policy(FlashSale::class, FlashSalePolicy::class);
+        Gate::policy(FlashSaleRequest::class, FlashSaleRequestPolicy::class);
+        Gate::policy(Language::class, LanguagePolicy::class);
+        Gate::policy(Manufacturer::class, ManufacturerPolicy::class);
+        Gate::policy(Message::class, MessagePolicy::class);
+        Gate::policy(NotifyLogs::class, NotifyLogsPolicy::class);
+        Gate::policy(PaymentIntent::class, PaymentIntentPolicy::class); // sedang tidak digunakan
 
         Gate::define('view-analytics', function ($user) {
             return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||

@@ -135,4 +135,9 @@ class Product extends Model
     {
         return $this->belongsTo(Shipping::class);
     }
+
+    public function flashSales(): BelongsToMany
+    {
+        return $this->belongsToMany(FlashSale::class, 'flash_sale_products')->withPivot('flash_sale_id', 'product_id');
+    }
 }

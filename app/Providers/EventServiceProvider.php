@@ -6,6 +6,7 @@ use App\Events\DigitalProductUpdateEvent;
 use App\Events\OrderCreated;
 use App\Events\OrderProcessed;
 use App\Events\OrderReceived;
+use App\Events\OwnershipTransferStatusControl;
 use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
 use App\Listeners\DigitalProductNotifyLogsListener;
@@ -47,6 +48,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         ProductReviewRejected::class => [
             ProductReviewRejectedListener::class,
+        ],
+        OwnershipTransferStatusControl::class => [
+            // Tambahkan listener jika diperlukan
         ],
     ];
 

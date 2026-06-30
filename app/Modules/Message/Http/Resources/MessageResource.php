@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Message\Http\Resources;
+
+use App\Http\Resources\UserResource;
+use App\Models\Message;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin Message
+ */
+class MessageResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'conversation_id' => $this->conversation_id,
+            'user_id' => $this->user_id,
+            'user' => new UserResource($this->whenLoaded('user')),
+            'body' => $this->body,
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+        ];
+    }
+}
