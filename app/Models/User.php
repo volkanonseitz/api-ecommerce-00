@@ -38,6 +38,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'shop_id',
+        'locked_until',
+        'failed_login_attempts',
+        'last_login_at',
+        'last_login_ip',
+        'last_login_user_agent',
     ];
 
     /**
@@ -46,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'failed_login_attempts',
     ];
 
     /**
@@ -59,7 +65,13 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',
+            'failed_login_attempts' => 'integer',
         ];
+    }
+    
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
     }
 
     /**

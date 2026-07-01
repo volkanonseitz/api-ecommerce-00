@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\DTO\RefundPolicyData;
+use App\Modules\Refund\DTO\RefundPolicyData;
 use App\Models\RefundPolicy;
 
 class CreateRefundPolicyAction

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\User\Actions;
 
 use App\Models\User;
+use App\Modules\User\Services\UserSecurityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,10 @@ use Illuminate\Support\Facades\Log;
  */
 final class AttemptLoginAction
 {
+    public function __construct(
+        private readonly UserSecurityService $userSecurityService
+    ) {}
+
     /**
      * @return array{status: string, user?: User, locked_until?: \Illuminate\Support\Carbon}
      */
@@ -35,7 +40,7 @@ final class AttemptLoginAction
         }
 
         if (! $user->is_active || ! Hash::check($password, $user->password)) {
-            $this->registerFailedAttempt($user, $request, $email);
+            $this->userSecurityService->handleFailedLoginAttempt($user, $request);
 
             return ['status' => 'invalid'];
         }
@@ -47,25 +52,6 @@ final class AttemptLoginAction
         $this->registerSuccessfulLogin($user, $request);
 
         return ['status' => 'success', 'user' => $user->fresh()];
-    }
-
-    private function registerFailedAttempt(User $user, Request $request, string $email): void
-    {
-        DB::transaction(function () use ($user, $request, $email): void {
-            $user->increment('failed_login_attempts');
-
-            if ($user->failed_login_attempts >= 5) {
-                $user->update(['locked_until' => now()->addMinutes(15)]);
-            }
-
-            // Tidak mencatat password ke log -> mencegah Sensitive Data Exposure.
-            Log::warning('Login gagal', [
-                'user_id' => $user->id,
-                'email' => $email,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
-        });
     }
 
     private function registerSuccessfulLogin(User $user, Request $request): void

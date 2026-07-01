@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +16,15 @@ class RefundPolicy extends Model
 
     protected $table = 'refund_policies';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'title',
+        'slug',
+        'target',
+        'status',
+        'description',
+        'shop_id',
+        'language',
+    ];
 
     protected $appends = ['translated_languages'];
 

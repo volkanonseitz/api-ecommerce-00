@@ -75,4 +75,44 @@ class ProductPolicy
     {
         return $this->create($user, $shopId);
     }
+
+    public function viewMetrics(User $user, Product $product): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        
+        return $this->update($user, $product);
+    }
+
+    public function manageRental(User $user, Product $product): bool
+    {
+        if (!$product->is_rental) {
+            return false;
+        }
+
+        return $this->update($user, $product);
+    }
+
+    public function updateStock(User $user, Product $product): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+        
+        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+            return $product->shop && $product->shop->owner_id === $user->id;
+        }
+        
+        if ($user->hasPermissionTo(Permission::STAFF->value)) {
+            return $product->shop && $product->shop->staffs->contains($user->id);
+        }
+
+        return false;
+    }
+
+    public function viewWishlist(User $user, Product $product): bool
+    {
+        return $user->id === $product->author_id || $this->view($user, $product);
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Product\Http\Resources;
 
-use App\Http\Resources\TagResource;
+use App\Modules\Tag\Http\Resources\TagResource;
 use App\Modules\Category\Http\Resources\CategoryResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 

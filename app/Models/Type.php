@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,16 @@ class Type extends Model
 {
     protected $table = 'types';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'slug',
+        'language',
+        'promotional_sliders',
+        'images',
+        'settings',
+        'icon',
+        'description',
+    ];
 
     protected $casts = [
         'promotional_sliders' => 'json',

@@ -12,6 +12,7 @@ use App\Modules\User\Http\Requests\LoginRequest;
 use App\Modules\User\Http\Requests\RegisterRequest;
 use App\Modules\User\Http\Requests\SocialLoginRequest;
 use App\Modules\User\Services\AuthService;
+use App\Modules\User\Services\UserSecurityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,12 +23,23 @@ use Illuminate\Http\Request;
  */
 final class AuthController extends BaseController
 {
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly UserSecurityService $securityService
+    ) {}
 
     public function login(LoginRequest $request): JsonResponse
     {
+        // Rate limiting
+        $ip = $request->ip();
+        $email = $request->validated('email');
+        
+        if (!$this->securityService->enforceRateLimit($ip, $email)) {
+            return $this->sendError('Terlalu banyak percobaan login. Silakan coba lagi nanti.', 429);
+        }
+
         $result = $this->authService->attemptLogin(
-            $request->validated('email'),
+            $email,
             $request->validated('password'),
             $request
         );
@@ -46,6 +58,9 @@ final class AuthController extends BaseController
     {
         $token = $this->authService->issueToken($user, $request->userAgent());
 
+        // Track session activity
+        $this->securityService->trackSessionActivity($user, $request);
+
         event(new ProcessUserData);
 
         return $this->sendSuccess([
@@ -53,6 +68,7 @@ final class AuthController extends BaseController
             'permissions' => $user->getPermissionNames(),
             'email_verified' => true,
             'role' => $user->getRoleNames()->first(),
+            'session_id' => $user->currentAccessToken()?->id,
         ], 'Login successful');
     }
 

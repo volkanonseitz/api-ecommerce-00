@@ -60,4 +60,42 @@ class UserPolicy
             || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value)
             || $actor->hasPermissionTo(Permission::STORE_OWNER->value);
     }
+
+    public function changePassword(User $actor, User $target): bool
+    {
+        // Users can change their own password
+        // Super admins can change any password (password reset feature)
+        return $actor->id === $target->id
+            || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
+
+    public function viewSessions(User $actor, User $target): bool
+    {
+        // Users can view their own active sessions
+        // Super admins can view any user sessions (security audit)
+        return $actor->id === $target->id
+            || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
+
+    public function revokeSessions(User $actor, User $target): bool
+    {
+        // Users can revoke their own sessions (logout from all devices)
+        // Super admins can revoke any user sessions (security incident response)
+        return $actor->id === $target->id
+            || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
+
+    public function viewAuditLogs(User $actor, User $target): bool
+    {
+        // Only super admins can view user audit logs
+        return $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
+
+    public function updateSecuritySettings(User $actor, User $target): bool
+    {
+        // Users can update their own security settings (2FA, etc.)
+        // Super admins can update any user's security settings
+        return $actor->id === $target->id
+            || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
 }

@@ -5,7 +5,7 @@ namespace App\Exports;
 use App\Models\Settings;
 use App\Modules\Address\Services\AddressFormatterService;
 use App\Services\CurrencyFormatterService;
-use App\Services\SettingsService;
+use App\Modules\Settings\Services\SettingsService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;

@@ -27,8 +27,11 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email:rfc,dns', 'unique:users,email'],
             'password' => [
-                'required', 'string', 'min:8', 'max:128',
+                'required', 'string', 'min:12', 'max:128',
                 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[0-9]/',
+                'regex:/[!@#$%^&*(),.?":{}|<>]/',
+                'not_regex:/(\d)\1{2,}/',
+                'not_regex:/([A-Za-z])\1{2,}/',
             ],
             'profile' => ['nullable', 'array'],
             'profile.avatar' => ['nullable', 'string', 'max:2048'],

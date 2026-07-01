@@ -20,7 +20,7 @@ use App\Modules\Order\Services\OrderIdentityService;
 use App\Modules\Order\Services\OrderService;
 use App\Services\CurrencyFormatterService;
 use App\Services\Payment\PaymentService;
-use App\Services\SettingsService;
+use App\Modules\Settings\Services\SettingsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;

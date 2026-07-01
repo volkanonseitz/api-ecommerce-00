@@ -21,9 +21,12 @@ class ChangePasswordRequest extends FormRequest
         return [
             'old_password' => ['required', 'string'],
             'new_password' => [
-                'required', 'string', 'min:8', 'max:128',
+                'required', 'string', 'min:12', 'max:128',
                 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[0-9]/',
+                'regex:/[!@#$%^&*(),.?":{}|<>]/',
                 'different:old_password',
+                'not_regex:/(\d)\1{2,}/',
+                'not_regex:/([A-Za-z])\1{2,}/',
             ],
         ];
     }

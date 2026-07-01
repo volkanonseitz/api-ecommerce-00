@@ -73,7 +73,7 @@ class OrderPolicy
                 return $user->shops()->where('id', $shopId)->exists();
             }
 
-            return true; // bisa export semua tokonya
+            return true;
         }
 
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
@@ -81,5 +81,41 @@ class OrderPolicy
         }
 
         return false;
+    }
+
+    public function updateStatus(User $user, Order $order): bool
+    {
+        return $this->update($user, $order);
+    }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        // Customer can only cancel their own pending orders
+        if ($order->customer_id === $user->id) {
+            return in_array($order->order_status, ['order-pending', 'order-processing']);
+        }
+
+        // Admins can always cancel
+        return $this->update($user, $order);
+    }
+
+    public function updatePaymentStatus(User $user, Order $order): bool
+    {
+        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+            return true;
+        }
+
+        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+            return $order->shop && $order->shop->owner_id === $user->id;
+        }
+
+        return false;
+    }
+
+    public function viewStats(User $user): bool
+    {
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            || $user->hasPermissionTo(Permission::STORE_OWNER->value)
+            || $user->hasPermissionTo(Permission::STAFF->value);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +13,15 @@ class Tag extends Model
 {
     protected $table = 'tags';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'slug',
+        'type_id',
+        'icon',
+        'image',
+        'details',
+        'language',
+    ];
 
     protected $casts = ['image' => 'json'];
 

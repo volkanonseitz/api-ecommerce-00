@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Events\RefundRequested;
@@ -11,7 +13,17 @@ class Refund extends Model
 {
     protected $table = 'refunds';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'title',
+        'description',
+        'images',
+        'refund_reason_id',
+        'customer_id',
+        'shop_id',
+        'amount',
+        'status',
+    ];
 
     protected $casts = ['images' => 'json'];
 

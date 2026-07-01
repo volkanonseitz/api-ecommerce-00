@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\DTO\TagData;
+use App\Modules\Tag\DTO\TagData;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 

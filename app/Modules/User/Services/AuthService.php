@@ -21,6 +21,7 @@ final class AuthService
         private readonly AttemptLoginAction $attemptLoginAction,
         private readonly RegisterUserAction $registerUserAction,
         private readonly SocialLoginService $socialLoginService,
+        private readonly UserSecurityService $userSecurityService
     ) {}
 
     /**
@@ -33,7 +34,9 @@ final class AuthService
 
     public function register(RegisterUserData $data): User
     {
-        return $this->registerUserAction->execute($data);
+        $user = $this->registerUserAction->execute($data);
+        $this->userSecurityService->recordPasswordChange($user, $data->password); // Record initial password
+        return $user;
     }
 
     public function socialLogin(string $provider, string $accessToken): User
@@ -45,13 +48,31 @@ final class AuthService
     {
         $token = $user->currentAccessToken();
 
-        return $token ? (bool) $token->delete() : false;
+        if ($token) {
+            $deleted = (bool) $token->delete();
+            // Optional: Remove session tracking entry
+            \App\Models\UserSession::where('user_id', $user->id)
+                                    ->where('token_id', $token->id)
+                                    ->delete();
+            return $deleted;
+        }
+
+        return false;
     }
 
     public function issueToken(User $user, ?string $deviceName = null): string
     {
         $name = substr($deviceName ?: 'auth_token', 0, 255);
-
-        return $user->createToken($name)->plainTextToken;
+        $token = $user->createToken($name);
+        
+        \App\Models\UserSession::create([
+            'user_id' => $user->id,
+            'token_id' => (string) $token->accessToken->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'last_activity_at' => now(),
+        ]);
+        
+        return $token->plainTextToken;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\DTO\ReviewData;
+use App\Modules\Review\DTO\ReviewData;
 use App\Models\Review;
 
 class CreateReviewAction
