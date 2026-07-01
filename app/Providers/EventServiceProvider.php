@@ -17,6 +17,7 @@ use App\Listeners\SendOrderCreationNotification;
 use App\Listeners\SendOrderReceivedNotification;
 use App\Listeners\StoredOrderNotifyLogsListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use App\Events\PaymentMethods;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -50,8 +51,9 @@ class EventServiceProvider extends ServiceProvider
             ProductReviewRejectedListener::class,
         ],
         OwnershipTransferStatusControl::class => [
-            // Tambahkan listener jika diperlukan
         ],
+    PaymentMethods::class => [
+    ],
     ];
 
     public function boot(): void

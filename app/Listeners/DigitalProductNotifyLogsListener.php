@@ -6,13 +6,15 @@ use App\Events\DigitalProductUpdateEvent;
 use App\Models\NotifyLogs;
 use App\Models\User;
 use App\Notifications\DigitalProductUpdated;
-use App\Services\UserService;
+use App\Modules\User\Services\UserQueryService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 
 class DigitalProductNotifyLogsListener implements ShouldQueue
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserQueryService $userService
+    ) {}
 
     public function handle(DigitalProductUpdateEvent $event)
     {

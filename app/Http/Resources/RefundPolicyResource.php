@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Modules\Shop\Http\Resources\ShopResource;
 
 class RefundPolicyResource extends JsonResource
 {

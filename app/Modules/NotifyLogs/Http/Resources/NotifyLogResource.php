@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\NotifyLogs\Http\Resources;
 
-use App\Http\Resources\UserResource;
+use App\Modules\User\Http\Resources\UserResource;
 use App\Models\NotifyLogs;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

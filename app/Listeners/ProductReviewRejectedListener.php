@@ -4,12 +4,14 @@ namespace App\Listeners;
 
 use App\Events\ProductReviewRejected;
 use App\Models\NotifyLogs;
-use App\Services\UserService;
+use App\Modules\User\Services\UserQueryService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class ProductReviewRejectedListener implements ShouldQueue
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserQueryService $userService
+    ) {}
 
     public function handle(ProductReviewRejected $event)
     {

@@ -19,7 +19,7 @@ use App\Modules\Order\Http\Resources\OrderResource;
 use App\Modules\Order\Services\OrderIdentityService;
 use App\Modules\Order\Services\OrderService;
 use App\Services\CurrencyFormatterService;
-use App\Services\PaymentService;
+use App\Services\Payment\PaymentService;
 use App\Services\SettingsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;

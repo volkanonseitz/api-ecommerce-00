@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\OwnershipTransfer\Http\Resources;
 
-use App\Http\Resources\ShopResource;
-use App\Http\Resources\UserResource;
+use App\Modules\Shop\Http\Resources\ShopResource;
+use App\Modules\User\Http\Resources\UserResource;
 use App\Models\OwnershipTransfer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

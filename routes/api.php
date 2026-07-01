@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\Permission;
-use App\Http\Controllers\PaymentMethodController;
+use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\RefundPolicyController;
@@ -10,13 +10,13 @@ use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShippingController;
-use App\Http\Controllers\ShopController;
+use App\Modules\Shop\Http\Controllers\ShopController;
 use App\Http\Controllers\StoreNoticeController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\TermsAndConditionsController;
 use App\Http\Controllers\TypeController;
-use App\Http\Controllers\UserController;
+use App\Modules\User\Http\Controllers\UserController;
 use App\Http\Controllers\WebHookController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\WithdrawController;
@@ -137,9 +137,9 @@ Route::post('/import-attributes', [AttributeController::class, 'importAttributes
 Route::get('/export-attributes/{shop_id}', [AttributeController::class, 'exportAttributes']);
 
 // ShopController (public)
-Route::apiResource('/shops', ShopController::class)->only(['index', 'show']);
-Route::get('/near-by-shop/{lat}/{lng}', [ShopController::class, 'nearByShop']);
-Route::post('/shop-maintenance-event', [ShopController::class, 'shopMaintenanceEvent']);
+Route::get('/shops', [ShopController::class, 'index']);
+Route::get('/shops/{shop:slug}', [ShopController::class, 'show']);
+Route::get('/near-by-shop', [ShopController::class, 'nearByShop']); // lat & lng via query string, divalidasi NearbyShopRequest
 
 // SettingsController (public)
 Route::apiResource('/settings', SettingsController::class)->only(['index']);
@@ -184,19 +184,19 @@ Route::get('/store-notices', [StoreNoticeController::class, 'index'])->name('sto
 Route::get('/download_url/token/{token}', [DownloadController::class, 'downloadFile'])->name('download_url.token');
 
 // WebHookController (public)
-Route::prefix('/webhooks')->group(function () {
-    Route::post('/razorpay', [WebHookController::class, 'razorpay']);
-    Route::post('/stripe', [WebHookController::class, 'stripe']);
-    Route::post('/paypal', [WebHookController::class, 'paypal']);
-    Route::post('/mollie', [WebHookController::class, 'mollie']);
-    Route::post('/paystack', [WebHookController::class, 'paystack']);
-    Route::post('/paymongo', [WebHookController::class, 'paymongo']);
-    Route::post('/xendit', [WebHookController::class, 'xendit']);
-    Route::post('/iyzico', [WebHookController::class, 'iyzico']);
-    Route::post('/bkash', [WebHookController::class, 'bkash']);
-    Route::post('/flutterwave', [WebHookController::class, 'flutterwave']);
-});
-Route::get('/callback/flutterwave', [WebHookController::class, 'callback'])->name('callback.flutterwave');
+// Route::prefix('/webhooks')->group(function () {
+//     Route::post('/razorpay', [WebHookController::class, 'razorpay']);
+//     Route::post('/stripe', [WebHookController::class, 'stripe']);
+//     Route::post('/paypal', [WebHookController::class, 'paypal']);
+//     Route::post('/mollie', [WebHookController::class, 'mollie']);
+//     Route::post('/paystack', [WebHookController::class, 'paystack']);
+//     Route::post('/paymongo', [WebHookController::class, 'paymongo']);
+//     Route::post('/xendit', [WebHookController::class, 'xendit']);
+//     Route::post('/iyzico', [WebHookController::class, 'iyzico']);
+//     Route::post('/bkash', [WebHookController::class, 'bkash']);
+//     Route::post('/flutterwave', [WebHookController::class, 'flutterwave']);
+// });
+// Route::get('/callback/flutterwave', [WebHookController::class, 'callback'])->name('callback.flutterwave');
 
 // BecameSellerController (public)
 Route::apiResource('/became-seller', BecameSellerController::class);
@@ -263,9 +263,13 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
 
     // PaymentMethodController
-    Route::apiResource('/cards', PaymentMethodController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::post('/set-default-card', [PaymentMethodController::class, 'setDefaultCard']);
-    Route::post('/save-payment-method', [PaymentMethodController::class, 'savePaymentMethod']);
+        Route::get('/', [PaymentMethodController::class, 'index']);
+    Route::get('/gateways', [PaymentMethodController::class, 'gateways']);
+    Route::post('/', [PaymentMethodController::class, 'store']);
+    Route::delete('/{id}', [PaymentMethodController::class, 'destroy']);
+    Route::post('/save', [PaymentMethodController::class, 'savePaymentMethod']);
+    Route::post('/setup-intent', [PaymentMethodController::class, 'saveCardIntent']);
+    Route::post('/set-default', [PaymentMethodController::class, 'setDefaultCard']);
 
     // NotifyLogsController
     Route::apiResource('/notify-logs', NotifyLogsController::class)->only(['index', 'show']);
@@ -336,12 +340,14 @@ Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permis
 // ========================
 Route::group(['middleware' => ['permission:'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']], function () {
     // ShopController
-    Route::apiResource('/shops', ShopController::class)->only(['store', 'update', 'destroy']);
+    Route::post('/shops', [ShopController::class, 'store']);
+    Route::put('/shops/{shop}', [ShopController::class, 'update']);
+    Route::delete('/shops/{shop}', [ShopController::class, 'destroy']);
     Route::get('/my-shops', [ShopController::class, 'myShops']);
     Route::post('/transfer-shop-ownership', [ShopController::class, 'transferShopOwnership']);
-    Route::post('/staffs', [ShopController::class, 'addStaff']);
-    Route::delete('/staffs/{id}', [ShopController::class, 'deleteStaff']);
-    Route::get('/staffs', [UserController::class, 'staffs']);
+    Route::post('/shops/{shop}/staffs', [ShopController::class, 'addStaff']);
+    Route::delete('/staffs/{staff}', [ShopController::class, 'deleteStaff']);
+    Route::post('/shops/{shop}/maintenance', [ShopController::class, 'shopMaintenanceEvent']);
 
     // WithdrawController
     Route::apiResource('/withdraws', WithdrawController::class)->only(['store', 'index', 'show']);
@@ -433,8 +439,8 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     Route::apiResource('/shippings', ShippingController::class);
 
     // ShopController (approve/disapprove, new shops)
-    Route::post('/approve-shop', [ShopController::class, 'approveShop']);
-    Route::post('/disapprove-shop', [ShopController::class, 'disApproveShop']);
+    Route::post('/shops/{shop}/approve', [ShopController::class, 'approveShop']);
+    Route::post('/shops/{shop}/disapprove', [ShopController::class, 'disApproveShop']);
     Route::get('/new-shops', [ShopController::class, 'newOrInActiveShops']);
 
     // RefundController

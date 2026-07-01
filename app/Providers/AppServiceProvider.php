@@ -57,6 +57,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use App\Models\PaymentMethod;
+use App\Modules\PaymentMethod\Policies\PaymentMethodPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -124,6 +126,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Message::class, MessagePolicy::class);
         Gate::policy(NotifyLogs::class, NotifyLogsPolicy::class);
         Gate::policy(PaymentIntent::class, PaymentIntentPolicy::class); // sedang tidak digunakan
+        Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
 
         Gate::define('view-analytics', function ($user) {
             return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||

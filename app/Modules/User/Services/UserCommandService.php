@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\User\Services;
+
+use App\Jobs\SendForgetPasswordEmailJob;
+use App\Models\User;
+use App\Modules\User\Actions\AdminUpdateUserAction;
+use App\Modules\User\Actions\CreateUserAction;
+use App\Modules\User\Actions\UpdateUserAction;
+use App\Modules\User\DTO\UpdateUserData;
+
+/**
+ * Berisi operasi tulis (write) seputar User. Logika tulis sesungguhnya
+ * didelegasikan ke kelas Action masing-masing (Single Responsibility),
+ * Service ini hanya bertindak sebagai orchestrator tipis.
+ */
+final class UserCommandService
+{
+    public function __construct(
+        private readonly CreateUserAction $createUserAction,
+        private readonly UpdateUserAction $updateUserAction,
+        private readonly AdminUpdateUserAction $adminUpdateUserAction,
+    ) {}
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public function createByAdmin(array $validated): User
+    {
+        return $this->createUserAction->execute($validated);
+    }
+
+    public function updateSelf(User $user, UpdateUserData $data): User
+    {
+        return $this->updateUserAction->execute($user, $data);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public function updateByAdmin(User $target, array $validated): User
+    {
+        return $this->adminUpdateUserAction->execute($target, $validated);
+    }
+
+    public function updateEmail(User $user, string $newEmail): void
+    {
+        $user->forceFill([
+            'email' => $newEmail,
+            'email_verified_at' => null,
+        ])->save();
+
+        $user->sendEmailVerificationNotification();
+    }
+
+    /**
+     * Email dikirim lewat Queue -> tidak memblokir response HTTP (proses berat).
+     */
+    public function sendResetPasswordEmail(string $email, string $token): void
+    {
+        SendForgetPasswordEmailJob::dispatch($email, $token);
+    }
+}

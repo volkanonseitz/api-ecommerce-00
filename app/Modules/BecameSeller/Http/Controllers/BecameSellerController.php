@@ -9,7 +9,7 @@ use App\Models\BecameSeller;
 use App\Modules\BecameSeller\DTO\BecameSellerData;
 use App\Modules\BecameSeller\Http\Requests\BecameSellersRequest;
 use App\Modules\BecameSeller\Services\BecameSellerService;
-use App\Services\CommissionService;
+use App\Modules\BecameSeller\Services\CommissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 

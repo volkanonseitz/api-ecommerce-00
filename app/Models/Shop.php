@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,45 +11,87 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property int $owner_id
+ * @property string $name
+ * @property string $slug
+ * @property bool $is_active
+ */
 class Shop extends Model
 {
     protected $table = 'shops';
 
-    protected $guarded = [];
-
-    protected $casts = [
-        'logo' => 'json',
-        'cover_image' => 'json',
-        'address' => 'json',
-        'settings' => 'json',
-        'is_active' => 'boolean',
+    /**
+     * SECURITY FIX: sebelumnya `protected $guarded = []` yang membuat SEMUA kolom
+     * bisa diisi lewat mass assignment, termasuk kolom sensitif yang seharusnya
+     * hanya bisa diubah lewat Action/flow tertentu (mis. `is_active` hanya lewat
+     * ApproveShopAction, bukan lewat create()/update() biasa).
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'owner_id',
+        'name',
+        'slug',
+        'description',
+        'cover_image',
+        'logo',
+        'address',
+        'settings',
+        'notifications',
     ];
 
-    // Auto-generate slug without external package
-    public static function boot()
+    /**
+     * `is_active` SENGAJA tidak dimasukkan ke $fillable. Status aktif toko
+     * hanya boleh diubah lewat ApproveShopAction / DisapproveShopAction /
+     * EnableShopMaintenanceAction, agar tidak ada jalur lain (mis. lewat
+     * UpdateShopAction) yang bisa mengaktifkan toko tanpa approval SUPER_ADMIN.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'logo' => 'json',
+            'cover_image' => 'json',
+            'address' => 'json',
+            'settings' => 'json',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    protected static function boot(): void
     {
         parent::boot();
-        static::creating(function ($model) {
+
+        static::creating(function (self $model): void {
             if (empty($model->slug)) {
-                $model->slug = Str::slug($model->name);
-                $count = static::where('slug', $model->slug)->count();
-                if ($count > 0) {
-                    $model->slug = $model->slug.'-'.($count + 1);
-                }
+                $model->slug = self::generateUniqueSlug((string) $model->name);
             }
         });
-        static::updating(function ($model) {
+
+        static::updating(function (self $model): void {
             if ($model->isDirty('name') && empty($model->slug)) {
-                $model->slug = Str::slug($model->name);
-                $count = static::where('slug', $model->slug)->where('id', '!=', $model->id)->count();
-                if ($count > 0) {
-                    $model->slug = $model->slug.'-'.($count + 1);
-                }
+                $model->slug = self::generateUniqueSlug((string) $model->name, $model->id);
             }
         });
     }
 
-    // Relationships
+    protected static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $slug = Str::slug($name);
+
+        $query = self::where('slug', $slug);
+        if ($ignoreId !== null) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        $count = $query->count();
+
+        return $count > 0 ? $slug.'-'.($count + 1) : $slug;
+    }
+
     public function balance(): HasOne
     {
         return $this->hasOne(Balance::class, 'shop_id');
@@ -73,7 +117,7 @@ class Shop extends Model
         return $this->belongsToMany(Category::class, 'category_shop');
     }
 
-    public function users(): BelongsToMany
+    public function followers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_shop');
     }
@@ -83,16 +127,9 @@ class Shop extends Model
         return $this->hasMany(Order::class, 'shop_id');
     }
 
-    public function ownership_history(): HasOne
+    public function ownershipHistory(): HasOne
     {
         return $this->hasOne(OwnershipTransfer::class, 'shop_id');
-    }
-
-    // Helper untuk get commission rate (contoh)
-    public function getCommissionRate($totalEarnings)
-    {
-        // default logic, bisa disesuaikan
-        return 10; // percentage
     }
 
     public function refunds(): HasMany
@@ -103,5 +140,15 @@ class Shop extends Model
     public function withdraws(): HasMany
     {
         return $this->hasMany(Withdraw::class);
+    }
+
+    /**
+     * Default commission rate. Logika bisa dikembangkan (mis. tiered by total earnings),
+     * tapi TIDAK PERNAH boleh menerima nilai dari user input mentah tanpa melalui
+     * ApproveShopAction yang sudah tervalidasi lewat FormRequest & Policy SUPER_ADMIN.
+     */
+    public function getDefaultCommissionRate(float $totalEarnings): float
+    {
+        return 10.0;
     }
 }

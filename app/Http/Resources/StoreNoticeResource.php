@@ -3,6 +3,8 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Modules\User\Http\Resources\UserResource;
+use App\Modules\Shop\Http\Resources\ShopResource;
 
 class StoreNoticeResource extends JsonResource
 {

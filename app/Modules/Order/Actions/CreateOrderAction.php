@@ -21,7 +21,7 @@ use App\Models\User;
 use App\Models\Variation;
 use App\Modules\Order\DTO\OrderData;
 use App\Modules\Order\Services\OrderIdentityService;
-use App\Services\PaymentService;
+use App\Services\Payment\PaymentService;
 use App\Services\WalletService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;

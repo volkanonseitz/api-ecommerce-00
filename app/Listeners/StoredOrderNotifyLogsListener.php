@@ -5,16 +5,15 @@ namespace App\Listeners;
 use App\Events\OrderCreated;
 use App\Models\NotifyLogs;
 use App\Models\Shop;
-use App\Services\UserService;
+use App\Modules\User\Services\UserQueryService;
 
 class StoredOrderNotifyLogsListener
 {
-    protected UserService $userService;
+    // protected UserService $userService;
 
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
+    public function __construct(
+        private UserQueryService $userService
+    ) {}
 
     public function handle(OrderCreated $event)
     {

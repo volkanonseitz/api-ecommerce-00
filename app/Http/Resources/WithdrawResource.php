@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Withdraw;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Modules\Shop\Http\Resources\ShopResource;
 
 /**
  * @mixin Withdraw

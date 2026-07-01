@@ -7,7 +7,7 @@ namespace App\Modules\PaymentIntent\Services;
 use App\Models\Order;
 use App\Models\PaymentIntent;
 use App\Models\Settings;
-use App\Services\PaymentService;
+use App\Services\Payment\PaymentService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

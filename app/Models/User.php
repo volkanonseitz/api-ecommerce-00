@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,12 +17,22 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property bool $is_active
+ * @property int|null $shop_id
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     protected string $guard_name = 'api';
 
+    /**
+     * @var list<string>
+     */
     protected $fillable = [
         'name',
         'email',
@@ -29,18 +40,31 @@ class User extends Authenticatable implements MustVerifyEmail
         'shop_id',
     ];
 
+    /**
+     * @var list<string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'locked_until' => 'datetime',
-        'last_login_at' => 'datetime',
-        'is_active' => 'boolean',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'locked_until' => 'datetime',
+            'last_login_at' => 'datetime',
+            'is_active' => 'boolean',
+            'password' => 'hashed',
+        ];
+    }
 
+    /**
+     * @var list<string>
+     */
     protected $appends = [
         'email_verified',
     ];
@@ -106,5 +130,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function follow_shops(): BelongsToMany
     {
         return $this->belongsToMany(Shop::class, 'user_shop');
+    }
+
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query->with(['profile', 'address']);
     }
 }
