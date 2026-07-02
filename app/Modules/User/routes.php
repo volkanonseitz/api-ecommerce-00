@@ -8,7 +8,7 @@ use App\Modules\User\Http\Controllers\UserManagementController;
 use App\Modules\User\Http\Controllers\UserSecurityController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('api')->group(function () {
     // Public Auth Routes
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

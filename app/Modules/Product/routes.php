@@ -9,7 +9,7 @@ use App\Modules\Product\Http\Controllers\ProductRentalController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes (tanpa authentication)
-Route::prefix('api/v1')->group(function () {
+Route::prefix('api')->group(function () {
     // Public product queries
     Route::get('/popular-products', [ProductMetricController::class, 'popular']);
     Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
@@ -21,7 +21,7 @@ Route::prefix('api/v1')->group(function () {
 });
 
 // Authenticated Routes
-Route::prefix('api/v1')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('api')->middleware(['auth:sanctum'])->group(function () {
     // Wishlist
     Route::get('/my-wishlists', [ProductQueryController::class, 'myWishlists']);
 

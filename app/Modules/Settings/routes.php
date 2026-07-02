@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')->middleware(['auth:sanctum', 'permission:super_admin'])->group(function () {
+Route::prefix('api')->middleware(['auth:sanctum', 'permission:super_admin'])->group(function () {
     // Settings (Super Admin only)
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::post('/settings', [SettingsController::class, 'store']); // Use store to create/update
@@ -14,6 +14,6 @@ Route::prefix('api/v1')->middleware(['auth:sanctum', 'permission:super_admin'])-
 });
 
 // Publicly accessible settings (read-only for general info)
-Route::prefix('api/v1')->group(function () {
+Route::prefix('api')->group(function () {
     Route::get('/public-settings', [SettingsController::class, 'index']); // Public view, maybe filtered
 });

@@ -7,13 +7,13 @@ use App\Modules\Order\Http\Controllers\OrderTransactionController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes (tanpa authentication)
-Route::prefix('api/v1')->group(function () {
+Route::prefix('api')->group(function () {
     // Track order (guest access)
     Route::get('/orders/track/{identifier}', [OrderQueryController::class, 'show']);
 });
 
 // Authenticated Routes
-Route::prefix('api/v1')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('api')->middleware(['auth:sanctum'])->group(function () {
     // Customer orders
     Route::get('/my-orders', [OrderQueryController::class, 'myOrders']);
     Route::post('/orders', [OrderTransactionController::class, 'store']);
