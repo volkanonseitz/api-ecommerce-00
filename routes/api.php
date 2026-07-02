@@ -14,7 +14,6 @@ use App\Modules\Tag\Http\Controllers\TagController;
 use App\Modules\Tax\Http\Controllers\TaxController;
 use App\Modules\Terms\Http\Controllers\TermsAndConditionsController;
 use App\Modules\Type\Http\Controllers\TypeController;
-use App\Http\Controllers\WebHookController;
 use App\Modules\Wishlist\Http\Controllers\WishlistController;
 use App\Modules\Withdraw\Http\Controllers\WithdrawController;
 use App\Modules\AbusiveReport\Http\Controllers\AbusiveReportController;
@@ -22,7 +21,7 @@ use App\Modules\Address\Http\Controllers\AddressController;
 use App\Modules\Analytics\Http\Controllers\AnalyticsController;
 use App\Modules\Attachment\Http\Controllers\AttachmentController;
 use App\Modules\Attribute\Http\Controllers\AttributeController;
-use App\Modules\Attribute\Http\Controllers\AttributeValueController;
+use App\Modules\AttributeValue\Http\Controllers\AttributeValueController;
 use App\Modules\Author\Http\Controllers\AuthorController;
 use App\Modules\BecameSeller\Http\Controllers\BecameSellerController;
 use App\Modules\Category\Http\Controllers\CategoryController;
@@ -45,7 +44,8 @@ use App\Modules\PaymentIntent\Http\Controllers\PaymentIntentController;
 use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
 use App\Modules\Product\Http\Controllers\ProductController;
 use App\Modules\Shop\Http\Controllers\ShopController;
-use App\Modules\User\Http\Controllers\UserController;
+use App\Modules\User\Http\Controllers\AuthController;
+use App\Modules\User\Http\Controllers\UserManagementController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
@@ -65,22 +65,22 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // PUBLIC ROUTES (no auth)
 // ========================
 
-// UserController (public)
-Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmail'])->name('verification.verify');
-Route::post('/register', [UserController::class, 'register']);
-Route::post('/token', [UserController::class, 'token'])->middleware('throttle:login');
-Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
-Route::post('/forget-password', [UserController::class, 'forgetPassword'])->middleware('throttle:password-reset');
-Route::post('/verify-forget-password-token', [UserController::class, 'verifyForgetPasswordToken']);
-Route::post('/reset-password', [UserController::class, 'resetPassword'])->middleware('throttle:password-reset');
-Route::post('/contact-us', [UserController::class, 'contactAdmin']);
-Route::post('/social-login-token', [UserController::class, 'socialLogin']);
-Route::post('/send-otp-code', [UserController::class, 'sendOtpCode'])->middleware('throttle:otp');
-Route::post('/verify-otp-code', [UserController::class, 'verifyOtpCode']);
-Route::post('/otp-login', [UserController::class, 'otpLogin'])->middleware('throttle:otp');
-Route::post('/subscribe-to-newsletter', [UserController::class, 'subscribeToNewsletter'])->name('subscribeToNewsletter');
-Route::post('/license-key/verify', [UserController::class, 'verifyLicenseKey']);
-Route::post('/email/verification-notification', [UserController::class, 'sendVerificationEmail'])->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+// AuthController (public)
+// Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify'); // Method not implemented
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/token', [AuthController::class, 'token'])->middleware('throttle:login');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+// Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->middleware('throttle:password-reset'); // Method not implemented
+// Route::post('/verify-forget-password-token', [AuthController::class, 'verifyForgetPasswordToken']); // Method not implemented
+// Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset'); // Method not implemented
+// Route::post('/contact-us', [AuthController::class, 'contactAdmin']); // Method not implemented
+Route::post('/social-login-token', [AuthController::class, 'socialLogin']);
+// Route::post('/send-otp-code', [AuthController::class, 'sendOtpCode'])->middleware('throttle:otp'); // Method not implemented
+// Route::post('/verify-otp-code', [AuthController::class, 'verifyOtpCode']); // Method not implemented
+// Route::post('/otp-login', [AuthController::class, 'otpLogin'])->middleware('throttle:otp'); // Method not implemented
+// Route::post('/subscribe-to-newsletter', [AuthController::class, 'subscribeToNewsletter'])->name('subscribeToNewsletter'); // Method not implemented
+// Route::post('/license-key/verify', [AuthController::class, 'verifyLicenseKey']); // Method not implemented
+// Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send'); // Method not implemented
 
 // ProductController (public)
 Route::get('/popular-products', [ProductController::class, 'popularProducts']);
@@ -158,7 +158,7 @@ Route::post('/orders/checkout/verify', [CheckoutController::class, 'verify']);
 
 // OrderController (public)
 Route::apiResource('/orders', OrderController::class)->only(['show', 'store']);
-Route::post('/orders/payment', [OrderController::class, 'submitPayment']);
+// Route::post('/orders/payment', [OrderController::class, 'submitPayment']); // Method not implemented
 Route::get('/export-order/token/{token}', [OrderController::class, 'exportOrder'])->name('export_order.token');
 Route::get('/download-invoice/token/{token}', [OrderController::class, 'downloadInvoice'])->name('download_invoice.token');
 
@@ -183,21 +183,6 @@ Route::get('/store-notices', [StoreNoticeController::class, 'index'])->name('sto
 // DownloadController (public)
 Route::get('/download_url/token/{token}', [DownloadController::class, 'downloadFile'])->name('download_url.token');
 
-// WebHookController (public)
-// Route::prefix('/webhooks')->group(function () {
-//     Route::post('/razorpay', [WebHookController::class, 'razorpay']);
-//     Route::post('/stripe', [WebHookController::class, 'stripe']);
-//     Route::post('/paypal', [WebHookController::class, 'paypal']);
-//     Route::post('/mollie', [WebHookController::class, 'mollie']);
-//     Route::post('/paystack', [WebHookController::class, 'paystack']);
-//     Route::post('/paymongo', [WebHookController::class, 'paymongo']);
-//     Route::post('/xendit', [WebHookController::class, 'xendit']);
-//     Route::post('/iyzico', [WebHookController::class, 'iyzico']);
-//     Route::post('/bkash', [WebHookController::class, 'bkash']);
-//     Route::post('/flutterwave', [WebHookController::class, 'flutterwave']);
-// });
-// Route::get('/callback/flutterwave', [WebHookController::class, 'callback'])->name('callback.flutterwave');
-
 // BecameSellerController (public)
 Route::apiResource('/became-seller', BecameSellerController::class);
 
@@ -205,16 +190,16 @@ Route::apiResource('/became-seller', BecameSellerController::class);
 // CUSTOMER (auth:sanctum, email.verified, permission:CUSTOMER)
 // ========================
 Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::CUSTOMER->value]], function () {
-    // UserController
-    Route::post('/update-email', [UserController::class, 'updateUserEmail']);
-    Route::get('/me', [UserController::class, 'me']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::post('/change-password', [UserController::class, 'changePassword']);
-    Route::post('/update-contact', [UserController::class, 'updateContact']);
+    // AuthController
+    Route::post('/update-email', [AuthController::class, 'updateUserEmail']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/users/{id}', [AuthController::class, 'update']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    // Route::post('/update-contact', [AuthController::class, 'updateContact']); // Method not implemented
 
     // OrderController
     Route::apiResource('/orders', OrderController::class)->only(['index']);
-    Route::get('/orders/tracking-number/{tracking_number}', [OrderController::class, 'findByTrackingNumber']);
+    // Route::get('/orders/tracking-number/{tracking_number}', [OrderController::class, 'findByTrackingNumber']); // Method not implemented
 
     // ReviewController
     Route::apiResource('/reviews', ReviewController::class)->only(['store', 'update']);
@@ -235,7 +220,7 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::get('/conversations/{conversation_id}', [ConversationController::class, 'show']);
     Route::get('/messages/conversations/{conversation_id}', [MessageController::class, 'index']);
     Route::post('/messages/conversations/{conversation_id}', [MessageController::class, 'store']);
-    Route::post('/messages/seen/{conversation_id}', [MessageController::class, 'seen']);
+    // Route::post('/messages/seen/{conversation_id}', [MessageController::class, 'seen']); // Method not implemented
 
     // WishlistController
     Route::post('/wishlists/toggle', [WishlistController::class, 'toggle']);
@@ -263,13 +248,11 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
 
     // PaymentMethodController
-    Route::get('/', [PaymentMethodController::class, 'index']);
-    Route::get('/gateways', [PaymentMethodController::class, 'gateways']);
-    Route::post('/', [PaymentMethodController::class, 'store']);
-    Route::delete('/{id}', [PaymentMethodController::class, 'destroy']);
-    Route::post('/save', [PaymentMethodController::class, 'savePaymentMethod']);
-    Route::post('/setup-intent', [PaymentMethodController::class, 'saveCardIntent']);
-    Route::post('/set-default', [PaymentMethodController::class, 'setDefaultCard']);
+    Route::apiResource('/payment-methods', PaymentMethodController::class)->only(['index', 'store', 'destroy']);
+    Route::get('/payment-methods/gateways', [PaymentMethodController::class, 'gateways']);
+    Route::post('/payment-methods/save', [PaymentMethodController::class, 'savePaymentMethod']);
+    Route::post('/payment-methods/setup-intent', [PaymentMethodController::class, 'saveCardIntent']);
+    Route::post('/payment-methods/set-default', [PaymentMethodController::class, 'setDefaultCard']);
 
     // NotifyLogsController
     Route::apiResource('/notify-logs', NotifyLogsController::class)->only(['index', 'show']);
@@ -362,8 +345,8 @@ Route::group(['middleware' => ['permission:'.Permission::STORE_OWNER->value, 'au
     // CouponController
     Route::apiResource('/coupons', CouponController::class)->only(['store', 'destroy']);
 
-    // UserController (vendor list)
-    Route::get('/vendors/list', [UserController::class, 'vendors']);
+    // AuthController (vendor list)
+    Route::get('/vendors/list', [AuthController::class, 'vendors']);
 
     // OwnershipTransferController
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['index', 'show']);
@@ -415,16 +398,17 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     // SettingsController
     Route::apiResource('/settings', SettingsController::class)->only(['store']);
 
-    // UserController
-    Route::apiResource('/users', UserController::class);
-    Route::post('/users/block-user', [UserController::class, 'banUser']);
-    Route::post('/users/unblock-user', [UserController::class, 'activeUser']);
-    Route::post('/add-points', [UserController::class, 'addPoints']);
-    Route::post('/users/make-admin', [UserController::class, 'makeOrRevokeAdmin']);
-    Route::get('/admin/list', [UserController::class, 'admins']);
-    Route::get('/customers/list', [UserController::class, 'customers']);
-    Route::get('/my-staffs', [UserController::class, 'myStaffs']);
-    Route::get('/all-staffs', [UserController::class, 'allStaffs']);
+    // AuthController
+    Route::apiResource('/users', AuthController::class);
+    // Route::post('/users/block-user', [AuthController::class, 'banUser']); // Method not implemented - use UserManagementController
+    // Route::post('/users/unblock-user', [AuthController::class, 'activeUser']); // Method not implemented - use UserManagementController
+    // Route::post('/add-points', [AuthController::class, 'addPoints']); // Method not implemented
+    // Route::post('/users/make-admin', [AuthController::class, 'makeOrRevokeAdmin']); // Method not implemented - use UserManagementController
+    // Route::get('/admin/list', [AuthController::class, 'admins']); // Method not implemented
+    // Route::get('/customers/list', [AuthController::class, 'customers']); // Method not implemented
+    // Route::get('/my-staffs', [AuthController::class, 'myStaffs']); // Method not implemented
+    // Route::get('/all-staffs', [AuthController::class, 'allStaffs']); // Method not implemented
+    // Route::get('/vendors/list', [AuthController::class, 'vendors']); // Method not implemented
 
     // AuthorController
     Route::apiResource('/authors', AuthorController::class)->only(['update', 'destroy']);

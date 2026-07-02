@@ -30,7 +30,6 @@ use Illuminate\Support\Str;
 class CreateOrderAction
 {
     public function __construct(
-        private CreateOrderAction $createOrderDb,
         private OrderIdentityService $identityService,
         private WalletService $walletService,
         private PaymentService $paymentService,
@@ -261,7 +260,7 @@ class CreateOrderAction
                 isFullWalletPayment: false,
             );
 
-            $childOrder = $this->createOrderDb->execute($childData);
+            $childOrder = resolve(self::class)->execute($childData);
             $this->attachProducts($childOrder, $cartProducts);
             event(new OrderReceived($childOrder));
         }
