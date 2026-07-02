@@ -57,6 +57,7 @@ class ProductQueryService
     public function getPaginatedProducts(Request $request, int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->buildQuery($request, $request->user());
+
         return $query->paginate($perPage);
     }
 
@@ -76,14 +77,14 @@ class ProductQueryService
     {
         $query = $this->buildQuery($request, $request->user());
         $query->where('shop_id', $shopId);
-        
+
         return $query->paginate($request->get('limit', 15));
     }
 
     public function getPopularProducts(Request $request): Collection
     {
         $query = $this->buildQuery($request, $request->user());
-        
+
         return $query
             ->where('status', ProductStatus::PUBLISH->value)
             ->where('visibility', ProductVisibilityStatus::VISIBILITY_PUBLIC->value)
@@ -98,7 +99,7 @@ class ProductQueryService
         $threshold = (int) $request->get('threshold', 10);
 
         $query = $this->buildQuery($request, $user);
-        
+
         return $query
             ->where('quantity', '<=', $threshold)
             ->whereHas('shop', function ($q) use ($user) {
@@ -203,8 +204,8 @@ class ProductQueryService
         $sortOrder = $request->get('sort_order', 'desc');
 
         $validSortColumns = [
-            'name', 'price', 'created_at', 'updated_at', 
-            'sold_quantity', 'quantity', 'rating'
+            'name', 'price', 'created_at', 'updated_at',
+            'sold_quantity', 'quantity', 'rating',
         ];
 
         if (in_array($sortBy, $validSortColumns, true)) {

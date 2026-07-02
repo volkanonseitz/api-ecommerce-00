@@ -38,6 +38,7 @@ class TagService
     public function updateTag(Tag $tag, TagData $data, User $user): Tag
     {
         $tag->update($data->toArray());
+
         return $tag->fresh();
     }
 

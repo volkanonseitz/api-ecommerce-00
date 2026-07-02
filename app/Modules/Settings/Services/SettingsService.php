@@ -33,12 +33,12 @@ class SettingsService
 
     public function getSettings(string $language): ?Settings
     {
-        $cacheKey = 'settings:' . $language;
+        $cacheKey = 'settings:'.$language;
 
         return Cache::rememberForever($cacheKey, function () use ($language) {
             $settings = Settings::where('language', $language)->first();
 
-            if (!$settings) {
+            if (! $settings) {
                 $settings = Settings::where('language', config('shop.default_language', 'id'))->first();
             }
 
@@ -74,7 +74,7 @@ class SettingsService
     public function storeOrUpdate(SettingsData $data, bool $isCreation = false, ?User $user = null): Settings
     {
         $language = $data->language;
-        $cacheKey = 'settings:' . $language;
+        $cacheKey = 'settings:'.$language;
 
         $existing = Settings::where('language', $language)->first();
         $mergedOptions = array_merge(

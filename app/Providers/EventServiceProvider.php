@@ -7,6 +7,7 @@ use App\Events\OrderCreated;
 use App\Events\OrderProcessed;
 use App\Events\OrderReceived;
 use App\Events\OwnershipTransferStatusControl;
+use App\Events\PaymentMethods;
 use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
 use App\Listeners\DigitalProductNotifyLogsListener;
@@ -17,7 +18,6 @@ use App\Listeners\SendOrderCreationNotification;
 use App\Listeners\SendOrderReceivedNotification;
 use App\Listeners\StoredOrderNotifyLogsListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Events\PaymentMethods;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -52,8 +52,8 @@ class EventServiceProvider extends ServiceProvider
         ],
         OwnershipTransferStatusControl::class => [
         ],
-    PaymentMethods::class => [
-    ],
+        PaymentMethods::class => [
+        ],
     ];
 
     public function boot(): void

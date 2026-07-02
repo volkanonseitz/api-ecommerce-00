@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Payment\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Models\PaymentMethod;
 use App\Modules\Payment\Actions\DeletePaymentMethodAction;
 use App\Modules\Payment\Actions\GetPaymentMethodsAction;
 use App\Modules\Payment\Actions\InitializePaymentMethodAction;
@@ -33,11 +34,14 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="List of user's payment methods",
+     *
      *         @OA\JsonContent(
      *             type="array",
+     *
      *             @OA\Items(ref="#/components/schemas/PaymentMethodResource")
      *         )
      *     )
@@ -45,7 +49,7 @@ final class PaymentMethodController extends BaseController
      */
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', \App\Models\PaymentMethod::class);
+        $this->authorize('viewAny', PaymentMethod::class);
 
         $gateway = $request->query('gateway');
         $methods = $this->getPaymentMethodsAction->execute($request->user(), $gateway);
@@ -58,11 +62,14 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods/gateways",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="List of available payment gateways",
+     *
      *         @OA\JsonContent(
      *             type="object",
+     *
      *             @OA\Property(property="gateways", type="array", @OA\Items(type="string"))
      *         )
      *     )
@@ -80,20 +87,24 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/PaymentMethodStoreRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
      *         description="Payment method created successfully",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/PaymentMethodResource")
      *     )
      * )
      */
     public function store(PaymentMethodStoreRequest $request): JsonResponse
     {
-        $this->authorize('create', \App\Models\PaymentMethod::class);
+        $this->authorize('create', PaymentMethod::class);
 
         $method = $this->storePaymentMethodAction->execute(
             $request->validated(),
@@ -110,12 +121,15 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods/{id}",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=204,
      *         description="Payment method deleted successfully"
@@ -140,15 +154,20 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods/setup-intent",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/PaymentGatewayRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Payment method initialization data",
+     *
      *         @OA\JsonContent(
      *             type="object",
+     *
      *             @OA\Property(property="client_secret", type="string", nullable=true),
      *             @OA\Property(property="token", type="string", nullable=true),
      *             @OA\Property(property="redirect_url", type="string", nullable=true)
@@ -158,7 +177,7 @@ final class PaymentMethodController extends BaseController
      */
     public function setupIntent(PaymentGatewayRequest $request): JsonResponse
     {
-        $this->authorize('create', \App\Models\PaymentMethod::class);
+        $this->authorize('create', PaymentMethod::class);
 
         $intent = $this->initializePaymentMethodAction->execute(
             $request->user(),
@@ -173,13 +192,17 @@ final class PaymentMethodController extends BaseController
      *     path="/payment-methods/set-default",
      *     tags={"Payment Methods"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/SetDefaultPaymentMethodRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Payment method set as default",
+     *
      *         @OA\JsonContent(ref="#/components/schemas/PaymentMethodResource")
      *     )
      * )
@@ -187,7 +210,7 @@ final class PaymentMethodController extends BaseController
     public function setDefault(SetDefaultPaymentMethodRequest $request): JsonResponse
     {
         $method = $request->getPaymentMethod();
-        
+
         $this->authorize('setDefault', $method);
 
         $updatedMethod = $this->setDefaultPaymentMethodAction->execute($method);

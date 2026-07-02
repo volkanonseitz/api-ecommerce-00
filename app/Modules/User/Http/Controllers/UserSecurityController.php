@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\User\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
-use App\Models\User;
 use App\Modules\User\Http\Requests\ChangePasswordRequest;
 use App\Modules\User\Services\UserSecurityService;
 use Illuminate\Http\JsonResponse;
@@ -22,17 +21,17 @@ class UserSecurityController extends BaseController
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $this->authorize('changePassword', $user);
 
-        if (!Hash::check($request->old_password, $user->password)) {
+        if (! Hash::check($request->old_password, $user->password)) {
             throw ValidationException::withMessages([
                 'old_password' => ['Password lama tidak cocok.'],
             ]);
         }
 
         $passwordErrors = $this->securityService->validatePasswordStrength($request->new_password);
-        if (!empty($passwordErrors)) {
+        if (! empty($passwordErrors)) {
             throw ValidationException::withMessages([
                 'new_password' => $passwordErrors,
             ]);
@@ -46,7 +45,7 @@ class UserSecurityController extends BaseController
 
         $user->password = Hash::make($request->new_password);
         $user->save();
-        
+
         $this->securityService->recordPasswordChange($user, $request->new_password);
 
         return $this->sendSuccess(null, 'Password berhasil diubah.');
@@ -56,7 +55,7 @@ class UserSecurityController extends BaseController
     {
         $user = $request->user();
         $this->authorize('revokeSessions', $user);
-        
+
         $this->securityService->logoutFromAllDevices($user);
 
         return $this->sendSuccess(null, 'Berhasil logout dari semua perangkat.');
@@ -87,13 +86,13 @@ class UserSecurityController extends BaseController
         $this->authorize('revokeSessions', $user);
 
         $token = $user->tokens()->where('id', $sessionId)->firstOrFail();
-        
+
         if ($token->id === $user->currentAccessToken()->id) {
             throw ValidationException::withMessages([
                 'session_id' => ['Tidak bisa mencabut sesi saat ini.'],
             ]);
         }
-        
+
         $token->delete();
 
         return $this->sendSuccess(null, 'Sesi berhasil dicabut.');

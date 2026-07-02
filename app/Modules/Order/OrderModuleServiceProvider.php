@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Order;
 
+use App\Models\Order;
 use App\Modules\Order\Actions\CreateOrderAction;
 use App\Modules\Order\Actions\UpdateOrderStatusAction;
 use App\Modules\Order\Policies\OrderPolicy;
@@ -11,7 +12,6 @@ use App\Modules\Order\Services\OrderCacheService;
 use App\Modules\Order\Services\OrderInventoryService;
 use App\Modules\Order\Services\OrderQueryService;
 use App\Modules\Order\Services\OrderTransactionService;
-use App\Models\Order;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,7 +33,7 @@ class OrderModuleServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Load module routes
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         // Register Authorization Policy
         $this->registerPolicies();

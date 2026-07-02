@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 class ProductCacheService
 {
     private const CACHE_TTL = 300; // 5 minutes
+
     private const LONG_CACHE_TTL = 3600; // 1 hour for less dynamic data
 
     public function __construct(
@@ -22,7 +23,7 @@ class ProductCacheService
     public function getCachedProducts(Request $request, int $perPage = 15): LengthAwarePaginator
     {
         $cacheKey = $this->generateCacheKey('products', $request);
-        
+
         return Cache::tags(['products', 'product-list'])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request, $perPage) {
                 return $this->queryService->getPaginatedProducts($request, $perPage);
@@ -32,7 +33,7 @@ class ProductCacheService
     public function getCachedProduct(string $identifier, Request $request): Product
     {
         $cacheKey = $this->generateCacheKey("product:{$identifier}", $request);
-        
+
         return Cache::tags(['products', "product:{$identifier}"])
             ->remember($cacheKey, self::LONG_CACHE_TTL, function () use ($identifier, $request) {
                 return $this->queryService->getSingleProduct($identifier, $request);
@@ -42,7 +43,7 @@ class ProductCacheService
     public function getCachedPopularProducts(Request $request): Collection
     {
         $cacheKey = $this->generateCacheKey('popular-products', $request);
-        
+
         return Cache::tags(['products', 'metrics'])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request) {
                 return $this->queryService->getPopularProducts($request);
@@ -52,7 +53,7 @@ class ProductCacheService
     public function getCachedShopProducts(int $shopId, Request $request): LengthAwarePaginator
     {
         $cacheKey = $this->generateCacheKey("shop:{$shopId}:products", $request);
-        
+
         return Cache::tags(['products', "shop:{$shopId}"])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($shopId, $request) {
                 return $this->queryService->getProductsByShop($shopId, $request);
@@ -80,7 +81,7 @@ class ProductCacheService
     {
         $queryParams = $this->getCacheableQueryParams($request);
         $paramsHash = md5(serialize($queryParams));
-        
+
         return "{$prefix}:{$paramsHash}";
     }
 

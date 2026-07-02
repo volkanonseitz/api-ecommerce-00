@@ -87,18 +87,18 @@ class PaymentMethodController extends BaseController
      * POST /payment-methods/setup-intent
      */
     public function saveCardIntent(Request $request)
-{
-    $this->authorize('create', PaymentMethod::class);
+    {
+        $this->authorize('create', PaymentMethod::class);
 
-    $request->validate([
-        'gateway' => ['nullable', 'string', 'in:stripe,midtrans,xendit'],
-    ]);
+        $request->validate([
+            'gateway' => ['nullable', 'string', 'in:stripe,midtrans,xendit'],
+        ]);
 
-    $gateway = $request->input('gateway', 'xendit');
-    $intent = $this->pmService->createSetupIntent($request->user(), $gateway);
+        $gateway = $request->input('gateway', 'xendit');
+        $intent = $this->pmService->createSetupIntent($request->user(), $gateway);
 
-    return response()->json($intent ?? ['status' => 'not_supported']);
-}
+        return response()->json($intent ?? ['status' => 'not_supported']);
+    }
 
     /**
      * POST /payment-methods/set-default

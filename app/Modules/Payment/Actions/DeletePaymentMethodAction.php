@@ -20,7 +20,7 @@ final class DeletePaymentMethodAction
     {
         DB::transaction(function () use ($method) {
             $provider = $this->gatewayFactory->create($method->paymentGateway->gateway_name);
-            
+
             try {
                 $provider->detachPaymentMethod($method->method_key, $method->method_type);
             } catch (\Exception $e) {

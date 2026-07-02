@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Modules\Tag\DTO\TagData;
 use App\Models\Tag;
+use App\Modules\Tag\DTO\TagData;
 use Illuminate\Support\Str;
 
 class UpdateTagAction

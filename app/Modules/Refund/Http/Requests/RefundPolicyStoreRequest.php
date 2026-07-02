@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Refund\Http\Requests;
 
-use App\Enums\Permission;
 use App\Enums\RefundPolicyStatus;
 use App\Enums\RefundPolicyTarget;
 use App\Models\RefundPolicy;

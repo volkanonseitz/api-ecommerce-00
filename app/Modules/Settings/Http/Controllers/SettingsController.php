@@ -19,7 +19,7 @@ class SettingsController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Settings::class);
-        
+
         $language = $request->get('language', config('shop.default_language', 'id'));
         $settings = $this->settingsService->getSettingsWithMaintenance($language);
 
@@ -29,7 +29,7 @@ class SettingsController extends BaseController
     public function store(SettingsRequest $request): JsonResponse
     {
         $this->authorize('create', Settings::class);
-        
+
         $data = SettingsData::fromRequest($request);
         $settings = $this->settingsService->storeOrUpdate($data, true, $request->user());
 
@@ -40,7 +40,7 @@ class SettingsController extends BaseController
     {
         $settings = Settings::findOrFail($id); // Assuming ID is unique for settings
         $this->authorize('view', $settings);
-        
+
         return $this->sendSuccess($settings, 'Settings detail retrieved successfully');
     }
 
@@ -48,7 +48,7 @@ class SettingsController extends BaseController
     {
         $settings = Settings::findOrFail($id); // Assuming ID is unique for settings
         $this->authorize('update', $settings);
-        
+
         $data = SettingsData::fromRequest($request);
         $updatedSettings = $this->settingsService->storeOrUpdate($data, false, $request->user());
 

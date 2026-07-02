@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\DTO\QuestionData;
 use App\Models\Question;
+use App\Modules\Question\DTO\QuestionData;
 
 class UpdateQuestionAction
 {

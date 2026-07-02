@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Attribute\Actions;
+namespace App\Modules\AttributeValue\Actions;
 
 use App\Models\AttributeValue;
-use App\Modules\Attribute\DTO\AttributeValueData;
+use App\Modules\AttributeValue\DTO\AttributeValueData;
 
 class UpdateAttributeValueAction
 {

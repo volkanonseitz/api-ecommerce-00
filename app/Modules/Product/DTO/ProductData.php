@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Product\DTO;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -108,8 +107,6 @@ class ProductData
             is_rental: isset($data['is_rental']) ? (bool) $data['is_rental'] : null,
         );
     }
-
-
 
     public static function fromArray(array $data): self
     {

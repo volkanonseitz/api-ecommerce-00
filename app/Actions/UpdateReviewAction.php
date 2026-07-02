@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Modules\Review\DTO\ReviewData;
 use App\Models\Review;
+use App\Modules\Review\DTO\ReviewData;
 
 class UpdateReviewAction
 {

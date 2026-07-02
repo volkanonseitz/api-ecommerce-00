@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\User\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Modules\User\Actions\ChangePasswordAction;
 use App\Modules\User\DTO\UpdateUserData;
 use App\Modules\User\Http\Requests\ChangePasswordRequest;
 use App\Modules\User\Http\Requests\UserUpdateRequest;
@@ -44,7 +45,7 @@ final class ProfileController extends BaseController
         return $this->sendSuccess(new UserResource($updated), 'User updated');
     }
 
-    public function changePassword(ChangePasswordRequest $request, \App\Modules\User\Actions\ChangePasswordAction $action): JsonResponse
+    public function changePassword(ChangePasswordRequest $request, ChangePasswordAction $action): JsonResponse
     {
         $user = $request->user();
         $success = $action->execute($user, $request->validated('old_password'), $request->validated('new_password'));

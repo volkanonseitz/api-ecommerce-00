@@ -5,8 +5,8 @@ namespace App\Listeners;
 use App\Events\DigitalProductUpdateEvent;
 use App\Models\NotifyLogs;
 use App\Models\User;
-use App\Notifications\DigitalProductUpdated;
 use App\Modules\User\Services\UserQueryService;
+use App\Notifications\DigitalProductUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 

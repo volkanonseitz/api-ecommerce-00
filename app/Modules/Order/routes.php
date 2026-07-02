@@ -19,16 +19,16 @@ Route::prefix('api/v1')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/orders', [OrderTransactionController::class, 'store']);
     Route::get('/orders/{identifier}', [OrderQueryController::class, 'show']);
     Route::post('/orders/{id}/cancel', [OrderTransactionController::class, 'cancel']);
-    
+
     // Admin/Staff Order Management
     Route::middleware(['permission:super_admin|store_owner|staff'])->group(function () {
         Route::get('/orders', [OrderQueryController::class, 'index']);
         Route::patch('/orders/{id}/status', [OrderTransactionController::class, 'updateStatus']);
         Route::patch('/orders/{id}/payment-status', [OrderTransactionController::class, 'updatePaymentStatus']);
-        
+
         // Shop-specific orders
         Route::get('/shops/{shopId}/orders', [OrderQueryController::class, 'showByShop']);
-        
+
         // Order statistics
         Route::get('/orders/stats', [OrderQueryController::class, 'stats']);
     });

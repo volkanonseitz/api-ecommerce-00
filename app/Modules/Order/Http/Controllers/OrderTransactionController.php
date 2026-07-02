@@ -23,7 +23,7 @@ class OrderTransactionController extends BaseController
     public function store(CreateOrderRequest $request): JsonResponse
     {
         $this->authorize('create', Order::class);
-        
+
         $data = OrderData::fromRequest($request->validated());
         $order = $this->transactionService->createOrder($data, $request->user());
 
@@ -38,10 +38,10 @@ class OrderTransactionController extends BaseController
     {
         $order = Order::findOrFail($id);
         $this->authorize('update', $order);
-        
+
         $updatedOrder = $this->transactionService->updateOrderStatus(
-            $id, 
-            $request->order_status, 
+            $id,
+            $request->order_status,
             $request->user()
         );
 
@@ -59,11 +59,11 @@ class OrderTransactionController extends BaseController
 
         $order = Order::findOrFail($id);
         $this->authorize('update', $order);
-        
+
         $reason = $request->get('reason');
         $cancelledOrder = $this->transactionService->cancelOrder(
-            $id, 
-            $request->user(), 
+            $id,
+            $request->user(),
             $reason
         );
 
@@ -82,7 +82,7 @@ class OrderTransactionController extends BaseController
 
         $order = Order::findOrFail($id);
         $this->authorize('update', $order);
-        
+
         $order->payment_status = $request->get('payment_status');
         $order->payment_note = $request->get('payment_note');
         $order->save();

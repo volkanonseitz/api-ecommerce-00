@@ -1,51 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Modules\Type\Services;
 
 use App\Models\Type;
 use App\Modules\Type\Actions\CreateTypeAction;
-use App\Modules\Type\Actions\DeleteTypeAction;
 use App\Modules\Type\Actions\UpdateTypeAction;
 use App\Modules\Type\DTO\TypeData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
 
 class TypeService
 {
     public function __construct(
         private CreateTypeAction $createType,
-        private UpdateTypeAction $updateType,
-        private DeleteTypeAction $deleteType
+        private UpdateTypeAction $updateType
     ) {}
 
-    public function getAllTypes(string $language, int $perPage = 15): LengthAwarePaginator
+    public function getTypesByLanguage(string $language, int $limit): LengthAwarePaginator
     {
-        return Type::where('language', $language)
-            ->with('banners')
-            ->paginate($perPage);
+        return Type::where('language', $language)->paginate($limit);
     }
 
-    public function getTypesWithCache(string $language, int $perPage = 15): LengthAwarePaginator
-    {
-        $cacheKey = $this->generateCacheKey($language, $perPage);
-        
-        return Cache::remember($cacheKey, 3600, function () use ($language, $perPage) {
-            return $this->getAllTypes($language, $perPage);
-        });
-    }
-
-    public function getTypeById(int $id): Type
-    {
-        return Type::with('banners')->findOrFail($id);
-    }
-
-    public function getTypeByIdentifier(string $identifier, string $language): Type
+    public function getTypeByIdOrSlug($identifier, string $language): Type
     {
         if (is_numeric($identifier)) {
-            return $this->getTypeById((int) $identifier);
+            return Type::with('banners')->findOrFail($identifier);
         }
 
         return Type::with('banners')
@@ -56,32 +34,17 @@ class TypeService
 
     public function createType(TypeData $data): Type
     {
-        $type = $this->createType->execute($data);
-        $this->invalidateCache($data->language);
-        return $type;
+        return $this->createType->execute($data);
     }
 
     public function updateType(Type $type, TypeData $data): Type
     {
-        $updatedType = $this->updateType->execute($type, $data);
-        $this->invalidateCache($data->language);
-        return $updatedType;
+        return $this->updateType->execute($type, $data);
     }
 
     public function deleteType(Type $type): void
     {
-        $language = $type->language;
-        $this->deleteType->execute($type);
-        $this->invalidateCache($language);
-    }
-
-    private function generateCacheKey(string $language, int $perPage): string
-    {
-        return "types:{$language}:{$perPage}";
-    }
-
-    private function invalidateCache(string $language): void
-    {
-        Cache::tags(["types:{$language}"])->flush();
+        $type->banners()->delete();
+        $type->delete();
     }
 }

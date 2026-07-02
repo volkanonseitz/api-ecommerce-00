@@ -10,6 +10,16 @@ use App\Models\User;
 
 final class AddressPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return true; // All authenticated users can view their own addresses
+    }
+
+    public function create(User $user): bool
+    {
+        return true; // All authenticated users can create addresses
+    }
+
     public function view(User $user, Address $address): bool
     {
         return $user->id === $address->customer_id

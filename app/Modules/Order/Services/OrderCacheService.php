@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Cache;
 class OrderCacheService
 {
     private const CACHE_TTL = 300; // 5 minutes for list queries
+
     private const STATS_CACHE_TTL = 600; // 10 minutes for stats
+
     private const LONG_CACHE_TTL = 3600; // 1 hour for less dynamic data
 
     public function __construct(
@@ -28,7 +30,7 @@ class OrderCacheService
         }
 
         $cacheKey = $this->generateCacheKey('orders', $request, $user);
-        
+
         return Cache::tags(['orders', "user:{$user->id}"])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request, $user, $perPage) {
                 return $this->queryService->getPaginatedOrders($request, $user, $perPage);
@@ -38,7 +40,7 @@ class OrderCacheService
     public function getCachedOrder(string $identifier, Request $request, User $user): Order
     {
         $cacheKey = $this->generateCacheKey("order:{$identifier}", $request, $user);
-        
+
         return Cache::tags(['orders', "user:{$user->id}", "order:{$identifier}"])
             ->remember($cacheKey, self::LONG_CACHE_TTL, function () use ($identifier, $request, $user) {
                 return $this->queryService->getSingleOrder($identifier, $request, $user);
@@ -47,10 +49,10 @@ class OrderCacheService
 
     public function getCachedOrderStats(User $user, ?int $shopId = null): array
     {
-        $cacheKey = $shopId 
-            ? "order-stats:shop:{$shopId}" 
+        $cacheKey = $shopId
+            ? "order-stats:shop:{$shopId}"
             : "order-stats:user:{$user->id}";
-        
+
         return Cache::tags(['order-stats', "user:{$user->id}"])
             ->remember($cacheKey, self::STATS_CACHE_TTL, function () use ($user, $shopId) {
                 return $this->queryService->getOrderStats($user, $shopId);
@@ -77,8 +79,8 @@ class OrderCacheService
     private function shouldSkipCache(Request $request): bool
     {
         // Skip cache for dynamic queries
-        return $request->has('search') || 
-               $request->has('start_date') || 
+        return $request->has('search') ||
+               $request->has('start_date') ||
                $request->has('end_date') ||
                $request->has('min_amount') ||
                $request->has('max_amount');
@@ -87,9 +89,9 @@ class OrderCacheService
     private function generateCacheKey(string $prefix, Request $request, User $user): string
     {
         $queryParams = $this->getCacheableQueryParams($request);
-        $userHash = md5($user->id . $user->email);
+        $userHash = md5($user->id.$user->email);
         $paramsHash = md5(serialize($queryParams));
-        
+
         return "{$prefix}:{$userHash}:{$paramsHash}";
     }
 

@@ -26,7 +26,7 @@ final class ShopData
     ) {}
 
     /**
-     * @param array<string, mixed> $data hasil dari FormRequest::validated()
+     * @param  array<string, mixed>  $data  hasil dari FormRequest::validated()
      */
     public static function fromValidated(array $data): self
     {

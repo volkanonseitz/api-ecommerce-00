@@ -23,9 +23,9 @@ class ProductMetricController extends BaseController
     public function bestSelling(Request $request): JsonResponse
     {
         $this->authorize('viewMetrics', Product::class);
-        
-        $cacheKey = 'metrics:best-selling:' . md5($request->fullUrl());
-        
+
+        $cacheKey = 'metrics:best-selling:'.md5($request->fullUrl());
+
         $products = Cache::tags(['products', 'metrics'])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request) {
                 return $this->metricService->getBestSellingProducts($request);
@@ -40,9 +40,9 @@ class ProductMetricController extends BaseController
     public function popular(Request $request): JsonResponse
     {
         $this->authorize('viewMetrics', Product::class);
-        
-        $cacheKey = 'metrics:popular:' . md5($request->fullUrl());
-        
+
+        $cacheKey = 'metrics:popular:'.md5($request->fullUrl());
+
         $products = Cache::tags(['products', 'metrics'])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request) {
                 return $this->metricService->getPopularProducts($request);
@@ -57,10 +57,10 @@ class ProductMetricController extends BaseController
     public function lowStock(Request $request): JsonResponse
     {
         $this->authorize('viewMetrics', Product::class);
-        
+
         $threshold = (int) $request->get('threshold', 10);
-        $cacheKey = 'metrics:low-stock:' . $threshold;
-        
+        $cacheKey = 'metrics:low-stock:'.$threshold;
+
         $products = Cache::tags(['products', 'metrics'])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($request, $threshold) {
                 return $this->metricService->getLowStockProducts($request, $threshold);
@@ -75,12 +75,12 @@ class ProductMetricController extends BaseController
     public function sales(Request $request): JsonResponse
     {
         $this->authorize('viewMetrics', Product::class);
-        
+
         $shopId = $request->get('shop_id');
         $period = $request->get('period', 'week');
-        
+
         $cacheKey = "metrics:sales:{$shopId}:{$period}";
-        
+
         $metrics = Cache::tags(['products', 'metrics', "shop:{$shopId}"])
             ->remember($cacheKey, self::CACHE_TTL, function () use ($shopId, $period) {
                 return $this->metricService->getSalesMetrics($shopId, $period);

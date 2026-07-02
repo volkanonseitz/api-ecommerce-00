@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Payment\Actions;
 
 use App\Models\PaymentMethod;
-use App\Modules\Payment\Contracts\PaymentGatewayFactoryInterface;
-use App\Modules\Payment\DTO\PaymentMethodData;
 use App\Modules\Payment\Services\PaymentMethodQueryService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;

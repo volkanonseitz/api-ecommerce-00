@@ -19,7 +19,7 @@ enum PaymentMethodType: string
 
     public static function getGatewaySpecificTypes(string $gateway): array
     {
-        return match($gateway) {
+        return match ($gateway) {
             'stripe' => [
                 self::CARD->value,
                 'ideal',
@@ -27,7 +27,7 @@ enum PaymentMethodType: string
                 'sofort',
                 'bancontact',
                 'alipay',
-                'wechat_pay'
+                'wechat_pay',
             ],
             'xendit' => [
                 self::CARD->value,
@@ -39,7 +39,7 @@ enum PaymentMethodType: string
                 self::DANA->value,
                 self::GOPAY->value,
                 self::LINKAJA->value,
-                self::SHOPEEPAY->value
+                self::SHOPEEPAY->value,
             ],
             'midtrans' => [
                 self::CARD->value,
@@ -48,7 +48,7 @@ enum PaymentMethodType: string
                 self::E_WALLET->value,
                 self::BANK_TRANSFER->value,
                 self::GOPAY->value,
-                self::SHOPEEPAY->value
+                self::SHOPEEPAY->value,
             ],
             default => [self::CARD->value, self::VIRTUAL_ACCOUNT->value]
         };
@@ -77,13 +77,13 @@ enum PaymentMethodType: string
             self::DANA->value,
             self::GOPAY->value,
             self::LINKAJA->value,
-            self::SHOPEEPAY->value
+            self::SHOPEEPAY->value,
         ]);
     }
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::CARD => 'Credit/Debit Card',
             self::VIRTUAL_ACCOUNT => 'Virtual Account',
             self::QRIS => 'QRIS',

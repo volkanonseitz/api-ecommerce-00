@@ -11,7 +11,6 @@ use App\Jobs\GiveSignupPointsJob;
 use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
 
 /**

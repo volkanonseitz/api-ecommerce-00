@@ -11,7 +11,6 @@ use App\Modules\Refund\Http\Requests\RefundPolicyStoreRequest;
 use App\Modules\Refund\Http\Requests\RefundPolicyUpdateRequest;
 use App\Modules\Refund\Http\Resources\RefundPolicyResource;
 use App\Modules\Refund\Services\RefundPolicyService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -34,7 +33,7 @@ class RefundPolicyController extends BaseController
     public function store(RefundPolicyStoreRequest $request): JsonResponse
     {
         $this->authorize('create', RefundPolicy::class);
-        
+
         $data = RefundPolicyData::fromRequest($request);
         $policy = $this->policyService->createPolicy($data, $request->user());
 
@@ -49,7 +48,7 @@ class RefundPolicyController extends BaseController
     {
         $language = $request->get('language', config('shop.default_language', 'id'));
         $policy = $this->policyService->findPolicy($slug, $language);
-        
+
         $this->authorize('view', $policy);
 
         return $this->sendSuccess(
@@ -62,7 +61,7 @@ class RefundPolicyController extends BaseController
     {
         $policy = RefundPolicy::findOrFail($id);
         $this->authorize('update', $policy);
-        
+
         $data = RefundPolicyData::fromRequest($request);
         $updated = $this->policyService->updatePolicy($policy, $data, $request->user());
 
@@ -76,7 +75,7 @@ class RefundPolicyController extends BaseController
     {
         $policy = RefundPolicy::findOrFail($id);
         $this->authorize('delete', $policy);
-        
+
         $this->policyService->deletePolicy($policy, $request->user());
 
         return $this->sendSuccess(

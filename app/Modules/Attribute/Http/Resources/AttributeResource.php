@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Attribute\Http\Resources;
 
+use App\Modules\AttributeValue\Http\Resources\AttributeValueResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AttributeResource extends JsonResource

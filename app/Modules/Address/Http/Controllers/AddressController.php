@@ -30,6 +30,7 @@ final class AddressController extends BaseController
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Address::class);
         $addresses = $this->getUserAddressesQuery->execute(
             user: $request->user(),
             perPage: min($request->integer('per_page', 15), 100)
@@ -43,6 +44,7 @@ final class AddressController extends BaseController
      */
     public function store(AddressRequest $request)
     {
+        $this->authorize('create', Address::class);
         $address = $this->createAddressAction->execute(
             $request->user(),
             AddressData::fromRequest($request->validated())

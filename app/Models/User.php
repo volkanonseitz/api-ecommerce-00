@@ -68,7 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'failed_login_attempts' => 'integer',
         ];
     }
-    
+
     public function sessions(): HasMany
     {
         return $this->hasMany(UserSession::class);

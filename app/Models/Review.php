@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Order;
-use App\Models\Shop;
 
 class Review extends Model
 {
@@ -56,5 +54,4 @@ class Review extends Model
     {
         return $this->belongsTo(Shop::class, 'shop_id');
     }
-
 }

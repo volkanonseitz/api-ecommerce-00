@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Attribute\Http\Requests;
+namespace App\Modules\AttributeValue\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;

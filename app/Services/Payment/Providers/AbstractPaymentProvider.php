@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment\Providers;
 
+use App\Models\PaymentMethod;
 use App\Services\Payment\Contracts\PaymentProviderInterface;
 
 abstract class AbstractPaymentProvider implements PaymentProviderInterface
@@ -33,7 +34,7 @@ abstract class AbstractPaymentProvider implements PaymentProviderInterface
         // Do nothing by default
     }
 
-    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): \App\Models\PaymentMethod
+    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): PaymentMethod
     {
         throw new \BadMethodCallException('Method savePaymentMethod not implemented');
     }

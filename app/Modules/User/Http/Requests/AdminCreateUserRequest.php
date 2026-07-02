@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AdminCreateUserRequest extends FormRequest
@@ -13,7 +14,7 @@ class AdminCreateUserRequest extends FormRequest
         // Otorisasi berlapis: route sudah dibatasi middleware permission:super_admin,
         // tapi kita cek ulang di Form Request (defense in depth / IDOR-proofing)
         // sehingga FormRequest ini tidak bisa "dipinjam" controller lain tanpa cek ulang.
-        return $this->user()?->can('create', \App\Models\User::class) ?? false;
+        return $this->user()?->can('create', User::class) ?? false;
     }
 
     /**

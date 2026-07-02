@@ -11,18 +11,22 @@ use App\Modules\Faqs\DTO\FaqsData;
 use App\Modules\Faqs\Http\Requests\FaqsCreateRequest;
 use App\Modules\Faqs\Http\Requests\FaqsUpdateRequest;
 use App\Modules\Faqs\Http\Resources\FaqResource;
-use App\Modules\Faqs\Services\FaqsService;
+use App\Modules\Faqs\Services\FaqsQueryService;
+use App\Modules\Faqs\Services\FaqsWriteService;
 use Illuminate\Http\Request;
 
 class FaqsController extends BaseController
 {
-    public function __construct(private FaqsService $faqsService) {}
+    public function __construct(
+        private readonly FaqsQueryService $faqsQueryService,
+        private readonly FaqsWriteService $faqsWriteService
+    ) {}
 
     public function index(Request $request)
     {
         $this->authorize('viewAny', Faqs::class);
         $limit = (int) ($request->limit ?? 10);
-        $faqs = $this->faqsService->getFaqsQuery($request, $request->user())->paginate($limit);
+        $faqs = $this->faqsQueryService->getFaqsQuery($request, $request->user())->paginate($limit);
 
         return FaqResource::collection($faqs);
     }
@@ -60,14 +64,14 @@ class FaqsController extends BaseController
             issued_by: $issuedBy,
         );
 
-        $faq = $this->faqsService->store($data);
+        $faq = $this->faqsWriteService->store($data);
 
         return new FaqResource($faq);
     }
 
     public function show(int $id)
     {
-        $faq = $this->faqsService->findOrFail($id);
+        $faq = $this->faqsQueryService->findOrFail($id);
         $this->authorize('view', $faq);
 
         return new FaqResource($faq);
@@ -79,7 +83,7 @@ class FaqsController extends BaseController
         $this->authorize('update', $faq);
 
         $data = FaqsData::fromRequest($request->validated(), $faq->user_id);
-        $updated = $this->faqsService->update($faq, $data);
+        $updated = $this->faqsWriteService->update($faq, $data);
 
         return new FaqResource($updated);
     }
@@ -88,7 +92,7 @@ class FaqsController extends BaseController
     {
         $faq = Faqs::findOrFail($id);
         $this->authorize('delete', $faq);
-        $this->faqsService->delete($faq);
+        $this->faqsWriteService->delete($faq);
 
         return $this->sendSuccess(null, 'FAQ deleted successfully');
     }

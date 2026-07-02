@@ -11,19 +11,23 @@ use App\Modules\Coupon\DTO\CouponData;
 use App\Modules\Coupon\Http\Requests\CouponCreateRequest;
 use App\Modules\Coupon\Http\Requests\CouponUpdateRequest;
 use App\Modules\Coupon\Http\Resources\CouponResource;
-use App\Modules\Coupon\Services\CouponService;
+use App\Modules\Coupon\Services\CouponQueryService;
+use App\Modules\Coupon\Services\CouponWriteService;
 use Illuminate\Http\Request;
 
 class CouponController extends BaseController
 {
-    public function __construct(private CouponService $couponService) {}
+    public function __construct(
+        private readonly CouponQueryService $couponQueryService,
+        private readonly CouponWriteService $couponWriteService
+    ) {}
 
     public function index(Request $request)
     {
         $this->authorize('viewAny', Coupon::class);
 
         $limit = (int) ($request->limit ?? 15);
-        $query = $this->couponService->getCouponsQuery($request, $request->user());
+        $query = $this->couponQueryService->getCouponsQuery($request, $request->user());
         $coupons = $query->paginate($limit);
 
         return CouponResource::collection($coupons);
@@ -37,7 +41,7 @@ class CouponController extends BaseController
 
         $isSuperAdmin = $user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
         $data = CouponData::fromRequest($request->validated(), $user?->id);
-        $coupon = $this->couponService->createCoupon($data, $isSuperAdmin);
+        $coupon = $this->couponWriteService->createCoupon($data, $isSuperAdmin);
 
         return new CouponResource($coupon);
     }
@@ -45,7 +49,7 @@ class CouponController extends BaseController
     public function show(Request $request, string $params)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        $coupon = $this->couponService->findCoupon($params, $language);
+        $coupon = $this->couponQueryService->findCoupon($params, $language);
         $this->authorize('view', $coupon);
 
         return new CouponResource($coupon);
@@ -58,7 +62,7 @@ class CouponController extends BaseController
             'sub_total' => 'required|numeric',
         ]);
 
-        $result = $this->couponService->verifyCoupon(
+        $result = $this->couponQueryService->verifyCoupon(
             $request->code,
             (float) $request->sub_total,
             $request->item,
@@ -76,7 +80,7 @@ class CouponController extends BaseController
         $user = $request->user();
         $isSuperAdmin = $user && $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
         $data = CouponData::fromRequest($request->validated(), $user?->id);
-        $updated = $this->couponService->updateCoupon($coupon, $data, $isSuperAdmin);
+        $updated = $this->couponWriteService->updateCoupon($coupon, $data, $isSuperAdmin);
 
         return new CouponResource($updated);
     }
@@ -85,7 +89,7 @@ class CouponController extends BaseController
     {
         $coupon = Coupon::findOrFail($id);
         $this->authorize('delete', $coupon);
-        $this->couponService->deleteCoupon($coupon);
+        $this->couponWriteService->deleteCoupon($coupon);
 
         return $this->sendSuccess(null, 'Coupon deleted successfully');
     }
@@ -96,7 +100,7 @@ class CouponController extends BaseController
 
         $request->validate(['id' => 'required|exists:coupons,id']);
         $coupon = Coupon::findOrFail($request->id);
-        $this->couponService->approveCoupon($coupon);
+        $this->couponWriteService->approveCoupon($coupon);
 
         return new CouponResource($coupon);
     }
@@ -107,7 +111,7 @@ class CouponController extends BaseController
 
         $request->validate(['id' => 'required|exists:coupons,id']);
         $coupon = Coupon::findOrFail($request->id);
-        $this->couponService->disapproveCoupon($coupon);
+        $this->couponWriteService->disapproveCoupon($coupon);
 
         return new CouponResource($coupon);
     }

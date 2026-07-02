@@ -2,25 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Attribute\Http\Controllers;
+namespace App\Modules\AttributeValue\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
-use App\Modules\Attribute\DTO\AttributeValueData;
-use App\Modules\Attribute\Http\Requests\AttributeValueRequest;
-use App\Modules\Attribute\Http\Resources\AttributeValueResource;
-use App\Modules\Attribute\Services\AttributeValueService;
+use App\Modules\AttributeValue\DTO\AttributeValueData;
+use App\Modules\AttributeValue\Http\Requests\AttributeValueRequest;
+use App\Modules\AttributeValue\Http\Resources\AttributeValueResource;
+use App\Modules\AttributeValue\Services\AttributeValueQueryService;
+use App\Modules\AttributeValue\Services\AttributeValueWriteService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
 class AttributeValueController extends BaseController
 {
     public function __construct(
-        private readonly AttributeValueService $attributeValueService
+        private readonly AttributeValueQueryService $attributeValueQueryService,
+        private readonly AttributeValueWriteService $attributeValueWriteService
     ) {}
 
     public function index()
     {
-        $values = $this->attributeValueService->getAllAttributeValues();
+        $values = $this->attributeValueQueryService->getAllAttributeValues();
 
         return $this->sendSuccess(
             AttributeValueResource::collection($values),
@@ -32,12 +34,12 @@ class AttributeValueController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        if (! $this->attributeValueService->hasPermission($user, $shopId)) {
+        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = AttributeValueData::fromRequest($request->validated());
-        $value = $this->attributeValueService->createAttributeValue($data);
+        $value = $this->attributeValueWriteService->createAttributeValue($data);
 
         return $this->sendSuccess(
             new AttributeValueResource($value),
@@ -48,7 +50,7 @@ class AttributeValueController extends BaseController
 
     public function show(int $id)
     {
-        $value = $this->attributeValueService->getAttributeValueById($id);
+        $value = $this->attributeValueQueryService->getAttributeValueById($id);
 
         return $this->sendSuccess(
             new AttributeValueResource($value),
@@ -58,15 +60,15 @@ class AttributeValueController extends BaseController
 
     public function update(AttributeValueRequest $request, int $id)
     {
-        $value = $this->attributeValueService->getAttributeValueById($id);
+        $value = $this->attributeValueQueryService->getAttributeValueById($id);
         $user = $request->user();
         $shopId = $request->shop_id ?? $value->shop_id;
-        if (! $this->attributeValueService->hasPermission($user, $shopId)) {
+        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = AttributeValueData::fromRequest($request->validated());
-        $updated = $this->attributeValueService->updateAttributeValue($value, $data);
+        $updated = $this->attributeValueWriteService->updateAttributeValue($value, $data);
 
         return $this->sendSuccess(
             new AttributeValueResource($updated),
@@ -76,14 +78,14 @@ class AttributeValueController extends BaseController
 
     public function destroy(Request $request, int $id)
     {
-        $value = $this->attributeValueService->getAttributeValueById($id);
+        $value = $this->attributeValueQueryService->getAttributeValueById($id);
         $user = $request->user();
         $shopId = $value->shop_id;
-        if (! $this->attributeValueService->hasPermission($user, $shopId)) {
+        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
-        $this->attributeValueService->deleteAttributeValue($value);
+        $this->attributeValueWriteService->deleteAttributeValue($value);
 
         return $this->sendSuccess(null, 'Attribute value deleted');
     }

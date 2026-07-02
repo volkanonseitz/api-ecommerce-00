@@ -25,7 +25,7 @@ class PaymentMethodPolicy
 
     public function view(User $user, PaymentMethod $method): bool
     {
-        if (!$method->paymentGateway) {
+        if (! $method->paymentGateway) {
             return false;
         }
 
@@ -40,7 +40,7 @@ class PaymentMethodPolicy
 
     public function update(User $user, PaymentMethod $method): bool
     {
-        if (!$method->paymentGateway) {
+        if (! $method->paymentGateway) {
             return false;
         }
 
@@ -50,7 +50,7 @@ class PaymentMethodPolicy
 
     public function delete(User $user, PaymentMethod $method): bool
     {
-        if (!$method->paymentGateway) {
+        if (! $method->paymentGateway) {
             return false;
         }
 
@@ -60,7 +60,7 @@ class PaymentMethodPolicy
 
     public function setDefault(User $user, PaymentMethod $method): bool
     {
-        if (!$method->paymentGateway) {
+        if (! $method->paymentGateway) {
             return false;
         }
 

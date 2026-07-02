@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Enums\Permission;
 use App\Models\AbusiveReport;
 use App\Models\Address;
 use App\Models\Attachment;
@@ -24,14 +23,22 @@ use App\Models\NotifyLogs;
 use App\Models\Order;
 use App\Models\OrderedFile;
 use App\Models\PaymentIntent;
+use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\Question;
+use App\Models\RefundReason;
+use App\Models\Resource;
+use App\Models\Shipping;
+use App\Models\Tax;
 use App\Models\User;
+use App\Models\Wishlist;
 use App\Modules\AbusiveReport\Policies\AbusiveReportPolicy;
 use App\Modules\Address\Policies\AddressPolicy;
 use App\Modules\Address\Services\AddressFormatterService;
+use App\Modules\Analytics\Policies\AnalyticsPolicy;
 use App\Modules\Attachment\Policies\AttachmentPolicy;
 use App\Modules\Attribute\Policies\AttributePolicy;
-use App\Modules\Attribute\Policies\AttributeValuePolicy;
+use App\Modules\AttributeValue\Policies\AttributeValuePolicy;
 use App\Modules\Author\Policies\AuthorPolicy;
 use App\Modules\BecameSeller\Policies\BecameSellerPolicy;
 use App\Modules\Category\Policies\CategoryPolicy;
@@ -48,17 +55,22 @@ use App\Modules\Manufacturer\Policies\ManufacturerPolicy;
 use App\Modules\Message\Policies\MessagePolicy;
 use App\Modules\NotifyLogs\Policies\NotifyLogsPolicy;
 use App\Modules\Order\Policies\OrderPolicy;
+use App\Modules\Otp\Services\OtpService;
 use App\Modules\PaymentIntent\Policies\PaymentIntentPolicy;
+use App\Modules\PaymentMethod\Policies\PaymentMethodPolicy;
 use App\Modules\Product\Policies\ProductPolicy;
+use App\Modules\Question\Policies\QuestionPolicy;
+use App\Modules\RefundReason\Policies\RefundReasonPolicy;
+use App\Modules\Resource\Policies\ResourcePolicy;
+use App\Modules\Shipping\Policies\ShippingPolicy;
+use App\Modules\Tax\Policies\TaxPolicy;
+use App\Modules\Wishlist\Policies\WishlistPolicy;
 use App\Services\CurrencyFormatterService;
-use App\Services\Otp\OtpService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use App\Models\PaymentMethod;
-use App\Modules\PaymentMethod\Policies\PaymentMethodPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -108,6 +120,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Attachment::class, AttachmentPolicy::class);
+        Gate::policy(Attachment::class, AttachmentPolicy::class);
         Gate::policy(Attribute::class, AttributePolicy::class);
         Gate::policy(AttributeValue::class, AttributeValuePolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
@@ -127,15 +140,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(NotifyLogs::class, NotifyLogsPolicy::class);
         Gate::policy(PaymentIntent::class, PaymentIntentPolicy::class); // sedang tidak digunakan
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
+        Gate::policy(Question::class, QuestionPolicy::class);
+        Gate::policy(RefundReason::class, RefundReasonPolicy::class);
+        Gate::policy(Resource::class, ResourcePolicy::class);
+        Gate::policy(Shipping::class, ShippingPolicy::class);
+        Gate::policy(Tax::class, TaxPolicy::class);
+        Gate::policy(Wishlist::class, WishlistPolicy::class);
+        Gate::policy(User::class, AnalyticsPolicy::class); // Analytics policies are often tied to the User model as the subject of the action
 
-        Gate::define('view-analytics', function ($user) {
-            return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||
-                   $user->hasPermissionTo(Permission::STORE_OWNER->value) ||
-                   $user->hasPermissionTo(Permission::STAFF->value);
-        });
-
-        Gate::define('verify-checkout', function ($user) {
-            return $user !== null;
-        });
     }
 }

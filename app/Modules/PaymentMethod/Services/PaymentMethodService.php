@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\PaymentMethod\Services;
 
 use App\Events\PaymentMethods;
+use App\Models\PaymentGateway;
 use App\Models\PaymentMethod;
+use App\Modules\Payment\Factory\PaymentProviderFactory;
 use App\Modules\PaymentMethod\DTO\PaymentMethodData;
-use App\Services\Payment\Factory\PaymentProviderFactory;
-use App\Services\Payment\Providers\AbstractPaymentProvider;
+use App\Services\Payment\Contracts\PaymentProviderInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -18,7 +19,7 @@ class PaymentMethodService
     /**
      * Get all payment methods for a user.
      *
-     * @param Authenticatable&object{id: int} $user
+     * @param  Authenticatable&object{id: int}  $user
      * @return Collection<int, PaymentMethod>
      */
     public function getUserPaymentMethods(Authenticatable $user): Collection
@@ -31,7 +32,7 @@ class PaymentMethodService
     /**
      * Get payment methods by gateway for a user.
      *
-     * @param Authenticatable&object{id: int} $user
+     * @param  Authenticatable&object{id: int}  $user
      * @return Collection<int, PaymentMethod>
      */
     public function getUserPaymentMethodsByGateway(Authenticatable $user, string $gateway): Collection
@@ -45,8 +46,7 @@ class PaymentMethodService
     /**
      * Get payment methods by type for a user.
      *
-     * @param Authenticatable&object{id: int} $user
-     * @param string $type
+     * @param  Authenticatable&object{id: int}  $user
      * @return Collection<int, PaymentMethod>
      */
     public function getUserPaymentMethodsByType(Authenticatable $user, string $type): Collection
@@ -58,7 +58,8 @@ class PaymentMethodService
 
     /**
      * Store a new payment method.
-     * @param Authenticatable&object{id: int, email: string, name: string} $user
+     *
+     * @param  Authenticatable&object{id: int, email: string, name: string}  $user
      */
     public function storePaymentMethod(PaymentMethodData $data, Authenticatable $user): PaymentMethod
     {
@@ -80,6 +81,7 @@ class PaymentMethodService
         if ($attached !== null) {
             $methodToSave = $attached;
         }
+
         return $provider->savePaymentMethod($methodToSave, $user, $data->method_type);
     }
 
@@ -89,6 +91,7 @@ class PaymentMethodService
     public function savePaymentMethod(Request $request): PaymentMethod
     {
         $data = PaymentMethodData::fromRequest($request->all());
+
         return $this->storePaymentMethod($data, $request->user());
     }
 
@@ -117,7 +120,7 @@ class PaymentMethodService
     public function deletePaymentMethod(int $id): void
     {
         $method = PaymentMethod::findOrFail($id);
-        /** @var \App\Models\PaymentGateway $paymentGateway */
+        /** @var PaymentGateway $paymentGateway */
         $paymentGateway = $method->paymentGateway;
         $provider = PaymentProviderFactory::create($paymentGateway->gateway_name);
         $provider->detachPaymentMethod($method->method_key, $method->method_type);
@@ -126,12 +129,13 @@ class PaymentMethodService
 
     /**
      * Initialize a payment method for adding.
-     * @param Authenticatable&object{id: int, email: string, name: string} $user
+     *
+     * @param  Authenticatable&object{id: int, email: string, name: string}  $user
      */
     public function initializePaymentMethod(Authenticatable $user, string $gateway = 'stripe', array $options = []): ?array
     {
         $provider = PaymentProviderFactory::create($gateway);
-        
+
         // Check if gateway requires customer creation
         $customerId = null;
         if ($provider->getGatewayName() === 'stripe' || $provider->getGatewayName() === 'xendit') {
@@ -139,14 +143,14 @@ class PaymentMethodService
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'name' => $user->name,
-                ...$options
+                ...$options,
             ]);
             $customerId = $customer['customer_id'];
         }
 
         return $provider->initializePaymentMethod([
             'customer_id' => $customerId,
-            ...$options
+            ...$options,
         ]);
     }
 
@@ -156,6 +160,7 @@ class PaymentMethodService
     public function getSupportedPaymentMethods(string $gateway): array
     {
         $provider = PaymentProviderFactory::create($gateway);
+
         return $provider->getSupportedPaymentMethods();
     }
 
@@ -165,9 +170,9 @@ class PaymentMethodService
     public function createPayment(array $data, string $gateway, Authenticatable $user): array
     {
         $provider = PaymentProviderFactory::create($gateway);
-        
+
         // Add customer info if not provided
-        if (!isset($data['customer_id']) && $user) {
+        if (! isset($data['customer_id']) && $user) {
             // Get or create customer
             $customer = $provider->createCustomer([
                 'user_id' => $user->id,
@@ -183,7 +188,7 @@ class PaymentMethodService
     /**
      * Get the provider for a specific gateway.
      */
-    public function getProvider(string $gateway): \App\Services\Payment\Contracts\PaymentProviderInterface
+    public function getProvider(string $gateway): PaymentProviderInterface
     {
         return PaymentProviderFactory::create($gateway);
     }

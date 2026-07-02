@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\PaymentMethod\Http\Resources;
 
+use App\Models\PaymentGateway;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin PaymentMethod
- * @property-read \App\Models\PaymentGateway $paymentGateway
+ *
+ * @property-read PaymentGateway $paymentGateway
  * @property string $brand
  * @property string $exp_month
  * @property string $exp_year

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Shop\Services;
 
+use App\Enums\Permission;
+use App\Models\Product;
 use App\Models\Settings;
 use App\Models\Shop;
 use App\Models\User;
@@ -34,7 +36,7 @@ final class ShopQueryService
             ? $query->where('id', $identifier)->firstOrFail()
             : $query->where('slug', $identifier)->firstOrFail();
 
-        if ($user && ($user->hasPermissionTo(\App\Enums\Permission::SUPER_ADMIN->value)
+        if ($user && ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)
                 || $user->shops()->whereKey($shop->id)->exists())) {
             $shop->load('balance');
         }
@@ -85,13 +87,13 @@ final class ShopQueryService
     }
 
     /**
-     * @return Collection<int, \App\Models\Product>
+     * @return Collection<int, Product>
      */
     public function followedShopsPopularProducts(User $user, int $limit): Collection
     {
         $followedIds = $user->follow_shops()->pluck('shops.id');
 
-        return \App\Models\Product::query()
+        return Product::query()
             ->withCount('orders')
             ->with('shop')
             ->whereIn('shop_id', $followedIds)

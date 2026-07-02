@@ -33,8 +33,8 @@ final class AuthController extends BaseController
         // Rate limiting
         $ip = $request->ip();
         $email = $request->validated('email');
-        
-        if (!$this->securityService->enforceRateLimit($ip, $email)) {
+
+        if (! $this->securityService->enforceRateLimit($ip, $email)) {
             return $this->sendError('Terlalu banyak percobaan login. Silakan coba lagi nanti.', 429);
         }
 

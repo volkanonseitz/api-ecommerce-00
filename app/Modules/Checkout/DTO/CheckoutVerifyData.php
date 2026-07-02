@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Checkout\DTO;
 
 class CheckoutVerifyData
 {
     public function __construct(
-        // public readonly float $amount,
         public readonly ?int $customer_id,
         public readonly array $products,
         public readonly ?array $billing_address,

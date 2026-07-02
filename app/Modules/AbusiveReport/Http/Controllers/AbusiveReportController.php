@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\AbusiveReport\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use App\Models\AbusiveReport;
 use App\Modules\AbusiveReport\Actions\AcceptReportAction;
 use App\Modules\AbusiveReport\Actions\CreateReportAction;
@@ -18,7 +18,7 @@ use App\Modules\AbusiveReport\Services\AbusiveReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class AbusiveReportController extends Controller
+class AbusiveReportController extends BaseController
 {
     public function __construct(
         private readonly AbusiveReportService $queryService,
@@ -120,35 +120,5 @@ class AbusiveReportController extends Controller
             AbusiveReportResource::collection($paginator->getCollection()),
             'Daftar laporan Anda berhasil diambil.'
         );
-    }
-
-    /**
-     * Helper untuk response paginated (disesuaikan dengan BaseController)
-     */
-    private function sendPaginated($paginator, $resourceCollection, string $message): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $resourceCollection,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-            ],
-        ]);
-    }
-
-    /**
-     * Helper untuk response sukses
-     */
-    private function sendSuccess($data, string $message, int $status = 200): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data,
-        ], $status);
     }
 }

@@ -21,7 +21,7 @@ class RefundController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Refund::class);
-        
+
         $limit = (int) $request->get('limit', 15);
         $refunds = $this->refundService->getRefundsQuery($request, $request->user())->paginate($limit);
 
@@ -35,7 +35,7 @@ class RefundController extends BaseController
     public function store(RefundRequest $request): JsonResponse
     {
         $this->authorize('create', Refund::class);
-        
+
         $data = RefundData::fromRequest($request);
         $refund = $this->refundService->storeRefund($data, $request->user());
 
@@ -49,7 +49,7 @@ class RefundController extends BaseController
     public function show(int $id): JsonResponse
     {
         $refund = Refund::with(['shop', 'order', 'customer', 'refundPolicy', 'refundReason'])->findOrFail($id);
-        
+
         $this->authorize('view', $refund);
 
         return $this->sendSuccess(
@@ -62,7 +62,7 @@ class RefundController extends BaseController
     {
         $refund = Refund::findOrFail($id);
         $this->authorize('update', $refund);
-        
+
         $data = RefundData::fromRequest($request);
         $updated = $this->refundService->updateRefund($refund, $data, $request->user());
 
@@ -76,7 +76,7 @@ class RefundController extends BaseController
     {
         $refund = Refund::findOrFail($id);
         $this->authorize('delete', $refund);
-        
+
         $this->refundService->deleteRefund($refund, $request->user());
 
         return $this->sendSuccess(

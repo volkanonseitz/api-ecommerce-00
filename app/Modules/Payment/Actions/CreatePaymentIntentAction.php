@@ -18,12 +18,12 @@ final class CreatePaymentIntentAction
     public function execute(array $data, Authenticatable $user): array
     {
         $gateway = $data['gateway'] ?? 'stripe';
-        
+
         try {
             $provider = $this->gatewayFactory->create($gateway);
-            
+
             // Add customer info if not provided
-            if (!isset($data['customer_id']) && $user) {
+            if (! isset($data['customer_id']) && $user) {
                 $customer = $provider->createCustomer([
                     'user_id' => $user->id,
                     'email' => $user->email,
@@ -31,7 +31,7 @@ final class CreatePaymentIntentAction
                 ]);
                 $data['customer_id'] = $customer['customer_id'];
             }
-            
+
             return $provider->createPayment($data);
         } catch (\InvalidArgumentException $e) {
             $this->logger->warning('Invalid payment intent creation attempt', [
@@ -39,8 +39,8 @@ final class CreatePaymentIntentAction
                 'gateway' => $gateway,
                 'error' => $e->getMessage(),
             ]);
-            
-            throw new \InvalidArgumentException('Invalid payment request: ' . $e->getMessage());
+
+            throw new \InvalidArgumentException('Invalid payment request: '.$e->getMessage());
         } catch (\RuntimeException $e) {
             $this->logger->error('Payment intent creation failed', [
                 'user_id' => $user->id,
@@ -48,7 +48,7 @@ final class CreatePaymentIntentAction
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw new \RuntimeException('Payment creation failed. Please try again later.');
         } catch (\Exception $e) {
             $this->logger->critical('Unexpected error during payment intent creation', [
@@ -57,7 +57,7 @@ final class CreatePaymentIntentAction
                 'error' => $e->getMessage(),
                 'exception' => get_class($e),
             ]);
-            
+
             throw new \RuntimeException('An unexpected error occurred. Please contact support.');
         }
     }

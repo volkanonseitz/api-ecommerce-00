@@ -31,7 +31,7 @@ class TagData
             language: $request->input('language', config('shop.default_language', 'id')),
         );
     }
-    
+
     public function toArray(): array
     {
         return [

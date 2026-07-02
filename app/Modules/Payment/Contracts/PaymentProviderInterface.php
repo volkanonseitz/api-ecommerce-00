@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Payment\Contracts;
 
-use App\Models\PaymentMethod;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 interface PaymentProviderInterface

@@ -74,12 +74,12 @@ class PaymentMethod extends Model
 
     public function getDisplayName(): string
     {
-        return match($this->method_type) {
-            'card' => $this->brand . ' ****' . $this->last4,
-            'virtual_account' => 'Virtual Account ' . $this->bank_code . ' ' . $this->va_number,
+        return match ($this->method_type) {
+            'card' => $this->brand.' ****'.$this->last4,
+            'virtual_account' => 'Virtual Account '.$this->bank_code.' '.$this->va_number,
             'qris' => 'QRIS',
-            'ewallet' => ucfirst($this->ewallet_type) . ' Wallet',
-            'direct_debit' => 'Direct Debit ' . $this->account_last4,
+            'ewallet' => ucfirst($this->ewallet_type).' Wallet',
+            'direct_debit' => 'Direct Debit '.$this->account_last4,
             default => $this->method_type,
         };
     }

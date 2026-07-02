@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 abstract class AbstractPaymentProvider implements PaymentProviderInterface
 {
     protected string $gatewayName;
-    
+
     public function __construct(
         protected readonly LoggerInterface $logger,
     ) {}
@@ -65,9 +65,9 @@ abstract class AbstractPaymentProvider implements PaymentProviderInterface
     protected function validatePaymentData(array $data): void
     {
         $required = ['amount', 'currency'];
-        
+
         foreach ($required as $field) {
-            if (!isset($data[$field])) {
+            if (! isset($data[$field])) {
                 throw new \InvalidArgumentException(
                     sprintf('Payment data missing required field: %s', $field)
                 );

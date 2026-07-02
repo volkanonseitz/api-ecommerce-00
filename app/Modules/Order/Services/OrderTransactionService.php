@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Order\Services;
 
+use App\Events\OrderDelivered;
 use App\Models\Order;
+use App\Models\Refund;
 use App\Models\User;
 use App\Modules\Order\Actions\CreateOrderAction;
 use App\Modules\Order\Actions\UpdateOrderStatusAction;
@@ -27,31 +29,31 @@ class OrderTransactionService
             try {
                 // Validate inventory availability
                 $this->inventoryService->validateInventoryAvailability($data);
-                
+
                 // Create order
                 $order = $this->createOrder->execute($data, $user);
-                
+
                 // Decrement inventory
                 $this->inventoryService->decrementInventory($order);
-                
+
                 // Invalidate cache
                 $this->cacheService->invalidateAllOrderCache();
-                
+
                 // Log order creation
                 Log::info('Order created', [
                     'order_id' => $order->id,
                     'tracking_number' => $order->tracking_number,
                     'user_id' => $user->id,
                     'total' => $order->total,
-                    'action' => 'create'
+                    'action' => 'create',
                 ]);
-                
+
                 return $order;
             } catch (\Exception $e) {
                 Log::error('Order creation failed', [
                     'error' => $e->getMessage(),
                     'user_id' => $user->id,
-                    'data' => $data->toArray()
+                    'data' => $data->toArray(),
                 ]);
                 throw $e;
             }
@@ -66,28 +68,28 @@ class OrderTransactionService
             try {
                 // Update status
                 $updatedOrder = $this->updateOrderStatus->execute($order, $status);
-                
+
                 // Handle status-specific logic
                 $this->handleStatusChange($updatedOrder, $status, $user);
-                
+
                 // Invalidate cache
                 $this->cacheService->invalidateOrderCache($order->id, $user->id);
-                
+
                 // Log status update
                 Log::info('Order status updated', [
                     'order_id' => $order->id,
                     'old_status' => $order->order_status,
                     'new_status' => $status,
                     'user_id' => $user->id,
-                    'action' => 'update_status'
+                    'action' => 'update_status',
                 ]);
-                
+
                 return $updatedOrder;
             } catch (\Exception $e) {
                 Log::error('Order status update failed', [
                     'order_id' => $order->id,
                     'error' => $e->getMessage(),
-                    'user_id' => $user->id
+                    'user_id' => $user->id,
                 ]);
                 throw $e;
             }
@@ -107,30 +109,30 @@ class OrderTransactionService
                     $order->note = $reason;
                 }
                 $order->save();
-                
+
                 // Restore inventory
                 $this->inventoryService->restoreInventory($order);
-                
+
                 // Handle refund if payment was made
                 $this->handleRefund($order, $user);
-                
+
                 // Invalidate cache
                 $this->cacheService->invalidateOrderCache($order->id, $user->id);
-                
+
                 // Log cancellation
                 Log::info('Order cancelled', [
                     'order_id' => $order->id,
                     'user_id' => $user->id,
                     'reason' => $reason,
-                    'action' => 'cancel'
+                    'action' => 'cancel',
                 ]);
-                
+
                 return $order->fresh();
             } catch (\Exception $e) {
                 Log::error('Order cancellation failed', [
                     'order_id' => $order->id,
                     'error' => $e->getMessage(),
-                    'user_id' => $user->id
+                    'user_id' => $user->id,
                 ]);
                 throw $e;
             }
@@ -163,20 +165,20 @@ class OrderTransactionService
         }
 
         // Emit event for completed order
-        event(new \App\Events\OrderDelivered($order));
+        event(new OrderDelivered($order));
     }
 
     private function handleRefund(Order $order, User $user): void
     {
         // Create refund record
         if ($order->payment_status === 'paid') {
-            \App\Models\Refund::create([
+            Refund::create([
                 'order_id' => $order->id,
                 'amount' => $order->total,
                 'reason' => 'Order cancelled',
                 'status' => 'pending',
             ]);
-            
+
             $order->payment_status = 'refunded';
             $order->save();
         }

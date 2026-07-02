@@ -26,7 +26,7 @@ class ReviewController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Review::class);
-        
+
         $limit = (int) $request->get('limit', 15);
         $reviews = $this->reviewService->getReviews($request, $request->user())->paginate($limit);
 
@@ -40,7 +40,7 @@ class ReviewController extends BaseController
     public function store(ReviewCreateRequest $request): JsonResponse
     {
         $this->authorize('create', Review::class);
-        
+
         $settings = $this->settingsService->getSettings(config('shop.default_language', 'id'));
         $settingsOptions = $settings?->options ?? [];
 
@@ -78,7 +78,7 @@ class ReviewController extends BaseController
     {
         $review = Review::findOrFail($id);
         $this->authorize('view', $review);
-        
+
         return $this->sendSuccess(
             new ReviewResource($review),
             'Review retrieved successfully'
@@ -89,7 +89,7 @@ class ReviewController extends BaseController
     {
         $review = Review::findOrFail($id);
         $this->authorize('update', $review);
-        
+
         $data = ReviewData::fromRequest($request);
         $updated = $this->reviewService->updateReview($review, $data, $request->user());
 
@@ -103,7 +103,7 @@ class ReviewController extends BaseController
     {
         $review = Review::findOrFail($id);
         $this->authorize('delete', $review);
-        
+
         $this->reviewService->deleteReview($review, $request->user());
 
         return $this->sendSuccess(

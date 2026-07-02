@@ -12,9 +12,9 @@ return [
     | Each gateway can be enabled/disabled and configured independently.
     |
     */
-    
+
     'default_gateway' => config('PAYMENT_DEFAULT_GATEWAY', 'stripe'),
-    
+
     'gateways' => [
         'stripe' => [
             'enabled' => config('STRIPE_ENABLED', true),
@@ -23,7 +23,7 @@ return [
             'webhook_secret' => config('STRIPE_WEBHOOK_SECRET'),
             'currencies' => ['usd', 'eur', 'gbp', 'aud', 'cad'],
         ],
-        
+
         'midtrans' => [
             'enabled' => config('MIDTRANS_ENABLED', false),
             'server_key' => config('MIDTRANS_SERVER_KEY'),
@@ -31,7 +31,7 @@ return [
             'is_production' => config('MIDTRANS_IS_PRODUCTION', false),
             'currencies' => ['idr'],
         ],
-        
+
         'xendit' => [
             'enabled' => config('XENDIT_ENABLED', false),
             'secret_key' => config('XENDIT_SECRET_KEY'),
@@ -39,7 +39,7 @@ return [
             'currencies' => ['idr', 'php', 'thb', 'vnd'],
         ],
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Payment Method Types
@@ -57,7 +57,7 @@ return [
         'direct_debit',
         'bank_transfer',
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Cache Configuration
@@ -71,7 +71,7 @@ return [
         'payment_methods_ttl' => 3600, // 1 hour
         'supported_methods_ttl' => 7200, // 2 hours
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Security Settings
@@ -87,7 +87,7 @@ return [
         'require_cvv_for_saved_cards' => config('PAYMENT_REQUIRE_CVV_FOR_SAVED_CARDS', true),
         'payment_timeout' => config('PAYMENT_TIMEOUT', 1800), // 30 minutes in seconds
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Webhook Settings
@@ -102,7 +102,7 @@ return [
         'max_retries' => config('PAYMENT_WEBHOOK_MAX_RETRIES', 3),
         'retry_delay' => config('PAYMENT_WEBHOOK_RETRY_DELAY', 60), // 1 minute
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Logging Settings

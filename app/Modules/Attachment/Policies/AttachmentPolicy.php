@@ -8,7 +8,7 @@ use App\Enums\Permission;
 use App\Models\Attachment;
 use App\Models\User;
 
-class AttachmentPolicy
+final class AttachmentPolicy
 {
     public function viewAny(User $user): bool
     {

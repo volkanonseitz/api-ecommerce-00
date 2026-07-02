@@ -6,33 +6,37 @@ namespace App\Modules\Payment\Factory;
 
 use App\Modules\Payment\Contracts\PaymentGatewayFactoryInterface;
 use App\Modules\Payment\Contracts\PaymentProviderInterface;
+use App\Modules\Payment\Providers\StripeProvider;
+use App\Services\Payment\Providers\MidtransProvider;
+use App\Services\Payment\Providers\XenditProvider;
 use Illuminate\Support\Facades\Cache;
 
 final class PaymentGatewayFactory implements PaymentGatewayFactoryInterface
 {
     private const CACHE_KEY = 'payment.gateways.available';
+
     private const CACHE_TTL = 86400; // 24 hours
 
     /**
      * @var array<string, class-string<PaymentProviderInterface>>
      */
     private array $gatewayMap = [
-        'stripe' => \App\Modules\Payment\Providers\StripeProvider::class,
-        'midtrans' => \App\Services\Payment\Providers\MidtransProvider::class,
-        'xendit' => \App\Services\Payment\Providers\XenditProvider::class,
+        'stripe' => StripeProvider::class,
+        'midtrans' => MidtransProvider::class,
+        'xendit' => XenditProvider::class,
     ];
 
     public function create(string $gateway): PaymentProviderInterface
     {
-        if (!$this->supports($gateway)) {
+        if (! $this->supports($gateway)) {
             throw new \InvalidArgumentException(
                 sprintf('Payment gateway "%s" is not supported.', $gateway)
             );
         }
 
         $providerClass = $this->gatewayMap[$gateway];
-        
-        if (!class_exists($providerClass)) {
+
+        if (! class_exists($providerClass)) {
             throw new \RuntimeException(
                 sprintf('Payment provider class "%s" does not exist.', $providerClass)
             );
@@ -45,13 +49,13 @@ final class PaymentGatewayFactory implements PaymentGatewayFactoryInterface
     {
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
             $available = [];
-            
+
             foreach ($this->gatewayMap as $gateway => $providerClass) {
                 if ($this->isGatewayEnabled($gateway)) {
                     $available[] = $gateway;
                 }
             }
-            
+
             return $available;
         });
     }

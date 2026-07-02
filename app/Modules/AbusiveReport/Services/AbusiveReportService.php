@@ -33,6 +33,7 @@ class AbusiveReportService
     public function getUserReports(int $userId, int $perPage = 15): LengthAwarePaginator
     {
         return AbusiveReport::query()
+            ->with('user')
             ->where('user_id', $userId)
             ->latest('id')
             ->paginate($perPage);

@@ -19,7 +19,7 @@ final class InitializePaymentMethodAction
     {
         try {
             $provider = $this->gatewayFactory->create($gateway);
-            
+
             $customerData = [
                 'user_id' => $user->id,
                 'email' => $user->email,

@@ -10,6 +10,7 @@ use App\Modules\Product\Http\Requests\ProductRentalRequest;
 use App\Modules\Product\Services\ProductRentalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProductRentalController extends BaseController
 {
@@ -20,7 +21,7 @@ class ProductRentalController extends BaseController
     public function calculateRentalPrice(ProductRentalRequest $request): JsonResponse
     {
         $this->authorize('manageRental', Product::class);
-        
+
         $product = Product::findOrFail($request->product_id);
         $this->authorize('manageRental', $product);
 
@@ -28,7 +29,7 @@ class ProductRentalController extends BaseController
             $pricing = $this->rentalService->calculateRentalPrice($request);
 
             return $this->sendSuccess($pricing, 'Rental price calculated successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->sendError(
                 'Validation failed',
                 422,
@@ -50,7 +51,7 @@ class ProductRentalController extends BaseController
         $to = $request->get('to');
 
         $unavailable = $this->rentalService->getUnavailableProductIds($from, $to);
-        $isAvailable = !in_array((int) $productId, $unavailable);
+        $isAvailable = ! in_array((int) $productId, $unavailable);
 
         return $this->sendSuccess([
             'is_available' => $isAvailable,

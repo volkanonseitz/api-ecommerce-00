@@ -21,7 +21,7 @@ class ProductQueryController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Product::class);
-        
+
         $perPage = (int) $request->get('limit', 15);
         $products = $this->cacheService->getCachedProducts($request, $perPage);
 
@@ -35,7 +35,7 @@ class ProductQueryController extends BaseController
     public function show(Request $request, string $identifier): JsonResponse
     {
         $product = $this->cacheService->getCachedProduct($identifier, $request);
-        
+
         $this->authorize('view', $product);
 
         return $this->sendSuccess(
@@ -47,7 +47,7 @@ class ProductQueryController extends BaseController
     public function showByShop(Request $request, int $shopId): JsonResponse
     {
         $this->authorize('viewAny', Product::class);
-        
+
         $products = $this->cacheService->getCachedShopProducts($shopId, $request);
 
         return $this->sendPaginated(
@@ -60,7 +60,7 @@ class ProductQueryController extends BaseController
     public function popular(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Product::class);
-        
+
         $products = $this->cacheService->getCachedPopularProducts($request);
 
         return $this->sendSuccess(
@@ -72,7 +72,7 @@ class ProductQueryController extends BaseController
     public function search(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Product::class);
-        
+
         $perPage = (int) $request->get('limit', 15);
         $products = $this->cacheService->getCachedProducts($request, $perPage);
 

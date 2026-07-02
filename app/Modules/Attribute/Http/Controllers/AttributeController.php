@@ -8,7 +8,8 @@ use App\Http\Controllers\BaseController;
 use App\Modules\Attribute\DTO\AttributeData;
 use App\Modules\Attribute\Http\Requests\AttributeRequest;
 use App\Modules\Attribute\Http\Resources\AttributeResource;
-use App\Modules\Attribute\Services\AttributeService;
+use App\Modules\Attribute\Services\AttributeQueryService;
+use App\Modules\Attribute\Services\AttributeWriteService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\Cache;
 class AttributeController extends BaseController
 {
     public function __construct(
-        private readonly AttributeService $attributeService
+        private readonly AttributeQueryService $attributeQueryService,
+        private readonly AttributeWriteService $attributeWriteService
     ) {}
 
     /**
@@ -27,7 +29,7 @@ class AttributeController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = "attributes_{$language}";
         $attributes = Cache::remember($cacheKey, 3600, function () use ($language) {
-            return $this->attributeService->getAttributesByLanguage($language);
+            return $this->attributeQueryService->getAttributesByLanguage($language);
         });
 
         return $this->sendSuccess(
@@ -43,12 +45,12 @@ class AttributeController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        if (! $this->attributeService->hasPermission($user, $shopId)) {
+        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $data = AttributeData::fromRequest($request->validated());
-        $attribute = $this->attributeService->createAttribute($data);
+        $attribute = $this->attributeWriteService->createAttribute($data);
         Cache::forget("attributes_{$data->language}");
 
         return $this->sendSuccess(
@@ -64,7 +66,7 @@ class AttributeController extends BaseController
     public function show(Request $request, string $identifier)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        $attribute = $this->attributeService->getAttributeByIdOrSlug($identifier, $language);
+        $attribute = $this->attributeQueryService->getAttributeByIdOrSlug($identifier, $language);
 
         return $this->sendSuccess(
             new AttributeResource($attribute),
@@ -79,13 +81,13 @@ class AttributeController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        if (! $this->attributeService->hasPermission($user, $shopId)) {
+        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
-        $attribute = $this->attributeService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
+        $attribute = $this->attributeQueryService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
         $data = AttributeData::fromRequest($request->validated());
-        $updated = $this->attributeService->updateAttribute($attribute, $data);
+        $updated = $this->attributeWriteService->updateAttribute($attribute, $data);
         Cache::forget("attributes_{$data->language}");
 
         return $this->sendSuccess(
@@ -99,15 +101,15 @@ class AttributeController extends BaseController
      */
     public function destroy(Request $request, int $id)
     {
-        $attribute = $this->attributeService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
+        $attribute = $this->attributeQueryService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
         $user = $request->user();
         $shopId = $attribute->shop_id;
-        if (! $this->attributeService->hasPermission($user, $shopId)) {
+        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
         $language = $attribute->language;
-        $this->attributeService->deleteAttribute($attribute);
+        $this->attributeWriteService->deleteAttribute($attribute);
         Cache::forget("attributes_{$language}");
 
         return $this->sendSuccess(null, 'Attribute deleted');
@@ -119,11 +121,11 @@ class AttributeController extends BaseController
     public function exportAttributes(Request $request, int $shopId)
     {
         $user = $request->user();
-        if (! $this->attributeService->hasPermission($user, $shopId)) {
+        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
-        $list = $this->attributeService->exportAttributes($shopId);
+        $list = $this->attributeQueryService->exportAttributes($shopId);
         $filename = 'attributes-for-shop-id-'.$shopId.'.csv';
         $headers = [
             'Content-Type' => 'text/csv',
@@ -151,7 +153,7 @@ class AttributeController extends BaseController
     {
         $user = $request->user();
         $shopId = $request->shop_id;
-        if (! $this->attributeService->hasPermission($user, $shopId)) {
+        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
             throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
         }
 
@@ -169,7 +171,7 @@ class AttributeController extends BaseController
         }
 
         try {
-            $this->attributeService->importAttributes($data, $shopId, $user);
+            $this->attributeWriteService->importAttributes($data, $shopId, $user);
             Cache::forget('attributes_'.config('shop.default_language', 'id'));
 
             return $this->sendSuccess(null, 'Import successful');

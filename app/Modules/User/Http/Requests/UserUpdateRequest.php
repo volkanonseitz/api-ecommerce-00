@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Http\Requests;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
+class UserUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {

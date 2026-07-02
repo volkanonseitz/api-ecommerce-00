@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Attribute\DTO;
+namespace App\Modules\AttributeValue\DTO;
 
 class AttributeValueData
 {

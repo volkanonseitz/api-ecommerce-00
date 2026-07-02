@@ -23,7 +23,7 @@ class ProductCrudController extends BaseController
     public function store(ProductCreateRequest $request): JsonResponse
     {
         $this->authorize('create', Product::class);
-        
+
         $data = ProductData::fromRequest($request);
         $product = $this->crudService->createProduct($data, $request->user());
 
@@ -38,7 +38,7 @@ class ProductCrudController extends BaseController
     {
         $product = Product::findOrFail($id);
         $this->authorize('update', $product);
-        
+
         $data = ProductData::fromRequest($request);
         $updatedProduct = $this->crudService->updateProduct($id, $data, $request->user());
 
@@ -52,7 +52,7 @@ class ProductCrudController extends BaseController
     {
         $product = Product::findOrFail($id);
         $this->authorize('delete', $product);
-        
+
         $this->crudService->deleteProduct($id, $request->user());
 
         return $this->sendSuccess(
@@ -69,7 +69,7 @@ class ProductCrudController extends BaseController
 
         $product = Product::findOrFail($id);
         $this->authorize('updateStock', $product);
-        
+
         $quantity = (int) $request->get('quantity');
         $updatedProduct = $this->crudService->updateProductStock($id, $quantity, $request->user());
 
@@ -87,7 +87,7 @@ class ProductCrudController extends BaseController
 
         $product = Product::findOrFail($id);
         $this->authorize('update', $product);
-        
+
         $status = $request->get('status');
         $product->status = $status;
         $product->save();

@@ -12,7 +12,7 @@ use App\Models\Refund;
 use App\Models\Shop;
 use App\Models\User;
 use App\Modules\Refund\DTO\RefundData;
-use App\Services\WalletService;
+use App\Modules\Wallet\Services\WalletService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +32,14 @@ class RefundService
             if ($request->has('shop_id')) {
                 return $query->where('shop_id', $request->get('shop_id'));
             }
+
             return $query; // All refunds
         }
 
         // Store Owner can see refunds for their shops
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             $shopIds = $user->shops()->pluck('id')->toArray();
+
             return $query->whereIn('shop_id', $shopIds);
         }
 
@@ -53,6 +55,7 @@ class RefundService
     public function storeRefund(RefundData $data, User $user): Refund
     {
         $data->customerId = $user->id; // Ensure customer_id is the logged-in user
+
         return Refund::create($data->toArray());
     }
 

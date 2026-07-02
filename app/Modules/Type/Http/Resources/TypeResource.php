@@ -1,29 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Modules\Type\Http\Resources;
 
+use App\Models\Type;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Type
+ */
 class TypeResource extends JsonResource
 {
-    public function toArray($request): array
+    public function toArray(Request $request): array
     {
         return [
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'slug' => $this->resource->slug,
-            'language' => $this->resource->language,
             'icon' => $this->resource->icon,
-            'description' => $this->resource->description,
+            'language' => $this->resource->language,
+            'translated_languages' => $this->resource->translated_languages,
+            'settings' => $this->resource->settings,
             'promotional_sliders' => $this->resource->promotional_sliders,
             'images' => $this->resource->images,
-            'settings' => $this->resource->settings,
-            'translated_languages' => $this->resource->translated_languages,
-            'banners' => $this->whenLoaded('banners'),
-            'created_at' => $this->resource->created_at?->toISOString(),
-            'updated_at' => $this->resource->updated_at?->toISOString(),
+            'banners' => $this->resource->whenLoaded('banners'),
         ];
     }
 }

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\User\Services;
 
 use App\Models\User;
+use App\Models\UserSession;
 use App\Modules\User\Actions\AttemptLoginAction;
 use App\Modules\User\Actions\RegisterUserAction;
 use App\Modules\User\DTO\RegisterUserData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * AuthService kini hanya orchestrator tipis (sebelumnya "Fat Service"
@@ -25,7 +27,7 @@ final class AuthService
     ) {}
 
     /**
-     * @return array{status:string, user?:User, locked_until?:\Illuminate\Support\Carbon}
+     * @return array{status:string, user?:User, locked_until?:Carbon}
      */
     public function attemptLogin(string $email, string $password, Request $request): array
     {
@@ -36,6 +38,7 @@ final class AuthService
     {
         $user = $this->registerUserAction->execute($data);
         $this->userSecurityService->recordPasswordChange($user, $data->password); // Record initial password
+
         return $user;
     }
 
@@ -51,9 +54,10 @@ final class AuthService
         if ($token) {
             $deleted = (bool) $token->delete();
             // Optional: Remove session tracking entry
-            \App\Models\UserSession::where('user_id', $user->id)
-                                    ->where('token_id', $token->id)
-                                    ->delete();
+            UserSession::where('user_id', $user->id)
+                ->where('token_id', $token->id)
+                ->delete();
+
             return $deleted;
         }
 
@@ -64,15 +68,15 @@ final class AuthService
     {
         $name = substr($deviceName ?: 'auth_token', 0, 255);
         $token = $user->createToken($name);
-        
-        \App\Models\UserSession::create([
+
+        UserSession::create([
             'user_id' => $user->id,
             'token_id' => (string) $token->accessToken->id,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'last_activity_at' => now(),
         ]);
-        
+
         return $token->plainTextToken;
     }
 }

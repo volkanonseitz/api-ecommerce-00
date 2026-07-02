@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Modules\Analytics\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Type;
+use App\Http\Controllers\BaseController;
+use App\Models\User;
 use App\Modules\Analytics\Http\Requests\AnalyticsRequest;
 use App\Modules\Analytics\Http\Resources\AnalyticsResource;
 use App\Modules\Analytics\Http\Resources\CategoryWiseResource;
 use App\Modules\Analytics\Http\Resources\LowStockProductResource;
 use App\Modules\Analytics\Http\Resources\TopRatedProductResource;
-use App\Modules\Analytics\Services\AnalyticsService;
+use App\Modules\Analytics\Services\AnalyticsQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class AnalyticsController extends Controller
+class AnalyticsController extends BaseController
 {
     public function __construct(
-        private readonly AnalyticsService $analyticsService,
+        private readonly AnalyticsQueryService $analyticsQueryService,
     ) {}
 
     /**
@@ -26,15 +26,12 @@ class AnalyticsController extends Controller
      */
     public function analytics(Request $request): JsonResponse
     {
-        $this->authorize('view-analytics');
+        $this->authorize('viewAny', User::class);
 
         $user = $request->user();
-        $data = $this->analyticsService->getAnalytics($user); // cache TTL default 300
+        $data = $this->analyticsQueryService->getAnalytics($user);
 
-        return response()->json([
-            'success' => true,
-            'data' => new AnalyticsResource($data),
-        ]);
+        return $this->sendSuccess(new AnalyticsResource($data));
     }
 
     /**
@@ -42,15 +39,15 @@ class AnalyticsController extends Controller
      */
     public function lowStockProducts(AnalyticsRequest $request): JsonResponse
     {
-        $this->authorize('view-analytics');
+        $this->authorize('viewAny', User::class);
 
         $user = $request->user();
         $language = $request->input('language', config('shop.default_language', 'id'));
-        $typeId = $this->resolveTypeId($request);
+        $typeId = $this->analyticsQueryService->resolveTypeId($request->input('type_id'), $request->input('type_slug'), $language);
         $shopId = $request->input('shop_id');
         $limit = (int) $request->input('limit', 10);
 
-        $products = $this->analyticsService->getLowStockProducts(
+        $products = $this->analyticsQueryService->getLowStockProducts(
             $user,
             $language,
             $typeId,
@@ -58,10 +55,7 @@ class AnalyticsController extends Controller
             $limit
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => LowStockProductResource::collection($products),
-        ]);
+        return $this->sendSuccess(LowStockProductResource::collection($products));
     }
 
     /**
@@ -69,18 +63,15 @@ class AnalyticsController extends Controller
      */
     public function categoryWiseProduct(AnalyticsRequest $request): JsonResponse
     {
-        $this->authorize('view-analytics');
+        $this->authorize('viewAny', User::class);
 
         $user = $request->user();
         $language = $request->input('language', config('shop.default_language', 'id'));
         $limit = (int) $request->input('limit', 15);
 
-        $data = $this->analyticsService->categoryWiseProductCount($user, $language, $limit);
+        $data = $this->analyticsQueryService->categoryWiseProductCount($user, $language, $limit);
 
-        return response()->json([
-            'success' => true,
-            'data' => CategoryWiseResource::collection($data),
-        ]);
+        return $this->sendSuccess(TopRatedProductResource::collection($data));
     }
 
     /**
@@ -88,18 +79,15 @@ class AnalyticsController extends Controller
      */
     public function categoryWiseProductSale(AnalyticsRequest $request): JsonResponse
     {
-        $this->authorize('view-analytics');
+        $this->authorize('viewAny', User::class);
 
         $user = $request->user();
         $language = $request->input('language', config('shop.default_language', 'id'));
         $limit = (int) $request->input('limit', 15);
 
-        $data = $this->analyticsService->categoryWiseProductSales($user, $language, $limit);
+        $data = $this->analyticsQueryService->categoryWiseProductSales($user, $language, $limit);
 
-        return response()->json([
-            'success' => true,
-            'data' => CategoryWiseResource::collection($data),
-        ]);
+        return $this->sendSuccess(CategoryWiseResource::collection($data));
     }
 
     /**
@@ -107,38 +95,14 @@ class AnalyticsController extends Controller
      */
     public function topRatedProducts(AnalyticsRequest $request): JsonResponse
     {
-        $this->authorize('view-analytics');
+        $this->authorize('viewAny', User::class);
 
         $user = $request->user();
         $language = $request->input('language', config('shop.default_language', 'id'));
         $limit = (int) $request->input('limit', 10);
 
-        $products = $this->analyticsService->topRatedProducts($user, $language, $limit);
+        $products = $this->analyticsQueryService->topRatedProducts($user, $language, $limit);
 
-        return response()->json([
-            'success' => true,
-            'data' => TopRatedProductResource::collection($products),
-        ]);
-    }
-
-    /**
-     * Helper untuk resolve type_id dari slug.
-     */
-    private function resolveTypeId(AnalyticsRequest $request): ?int
-    {
-        if ($request->has('type_id')) {
-            return (int) $request->input('type_id');
-        }
-
-        if ($request->has('type_slug')) {
-            $language = $request->input('language', config('shop.default_language', 'id'));
-            $type = Type::where('slug', $request->input('type_slug'))
-                ->where('language', $language)
-                ->first();
-
-            return $type?->id;
-        }
-
-        return null;
+        return $this->sendSuccess(CategoryWiseResource::collection($products));
     }
 }

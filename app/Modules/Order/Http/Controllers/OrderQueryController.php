@@ -20,7 +20,7 @@ class OrderQueryController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
-        
+
         $perPage = (int) $request->get('limit', 15);
         $orders = $this->cacheService->getCachedOrders($request, $request->user(), $perPage);
 
@@ -34,7 +34,7 @@ class OrderQueryController extends BaseController
     public function show(Request $request, string $identifier): JsonResponse
     {
         $order = $this->cacheService->getCachedOrder($identifier, $request, $request->user());
-        
+
         $this->authorize('view', $order);
 
         return $this->sendSuccess(
@@ -46,7 +46,7 @@ class OrderQueryController extends BaseController
     public function showByShop(Request $request, int $shopId): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
-        
+
         $perPage = (int) $request->get('limit', 15);
         $orders = $this->cacheService->getCachedOrders($request, $request->user(), $perPage);
 
@@ -60,7 +60,7 @@ class OrderQueryController extends BaseController
     public function stats(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
-        
+
         $shopId = $request->get('shop_id');
         $stats = $this->cacheService->getCachedOrderStats($request->user(), $shopId);
 
@@ -71,7 +71,7 @@ class OrderQueryController extends BaseController
     {
         $user = $request->user();
         $perPage = (int) $request->get('limit', 15);
-        
+
         $orders = $this->cacheService->getCachedOrders($request, $user, $perPage);
 
         return $this->sendPaginated(

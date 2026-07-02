@@ -1,88 +1,79 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Modules\Type\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Models\Type;
+use App\Modules\Type\Actions\CreateTypeAction;
+use App\Modules\Type\Actions\DeleteTypeAction;
+use App\Modules\Type\Actions\UpdateTypeAction;
 use App\Modules\Type\DTO\TypeData;
 use App\Modules\Type\Http\Requests\TypeRequest;
 use App\Modules\Type\Http\Resources\TypeResource;
-use App\Modules\Type\Services\TypeService;
-use Illuminate\Http\JsonResponse;
+use App\Modules\Type\Services\TypeQueryService;
 use Illuminate\Http\Request;
 
 class TypeController extends BaseController
 {
     public function __construct(
-        private TypeService $typeService
+        private readonly TypeQueryService $queryService,
+        private readonly CreateTypeAction $createAction,
+        private readonly UpdateTypeAction $updateAction,
+        private readonly DeleteTypeAction $deleteAction,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        $language = $request->get('language', config('shop.default_language', 'id'));
-        $perPage = (int) $request->get('limit', 15);
-        
-        $types = $this->typeService->getTypesWithCache($language, $perPage);
+        $this->authorize('viewAny', Type::class);
+
+        $language = $request->language ?? config('shop.default_language', 'id');
+        $limit = $request->limit ?? 15;
+        $types = $this->queryService->getTypesByLanguage($language, $limit);
 
         return $this->sendPaginated(
             $types,
             TypeResource::collection($types->getCollection()),
-            'Types retrieved successfully'
+            'Daftar type berhasil diambil.'
         );
     }
 
-    public function store(TypeRequest $request): JsonResponse
+    public function store(TypeRequest $request)
     {
-        $this->authorize('create', \App\Models\Type::class);
-        
-        $data = TypeData::fromRequest($request);
-        $type = $this->typeService->createType($data);
+        $this->authorize('create', Type::class);
 
-        return $this->sendSuccess(
-            new TypeResource($type->load('banners')),
-            'Type created successfully',
-            201
-        );
+        $data = TypeData::fromRequest($request->validated());
+        $type = $this->createAction->execute($data);
+
+        return $this->sendSuccess(new TypeResource($type->load('banners')), 'Type created', 201);
     }
 
-    public function show(Request $request, string $identifier): JsonResponse
+    public function show(Request $request, string $params)
     {
-        $language = $request->get('language', config('shop.default_language', 'id'));
-        $type = $this->typeService->getTypeByIdentifier($identifier, $language);
-        
+        $language = $request->language ?? config('shop.default_language', 'id');
+        $type = $this->queryService->getTypeByIdOrSlug($params, $language);
         $this->authorize('view', $type);
 
-        return $this->sendSuccess(
-            new TypeResource($type),
-            'Type retrieved successfully'
-        );
+        return $this->sendSuccess(new TypeResource($type), 'Type detail');
     }
 
-    public function update(TypeRequest $request, int $id): JsonResponse
+    public function update(TypeRequest $request, int $id)
     {
-        $type = $this->typeService->getTypeById($id);
+        $type = $this->queryService->findOrFail($id);
         $this->authorize('update', $type);
-        
-        $data = TypeData::fromRequest($request);
-        $updatedType = $this->typeService->updateType($type, $data);
 
-        return $this->sendSuccess(
-            new TypeResource($updatedType),
-            'Type updated successfully'
-        );
+        $data = TypeData::fromRequest($request->validated());
+        $updated = $this->updateAction->execute($type, $data);
+
+        return $this->sendSuccess(new TypeResource($updated), 'Type updated');
     }
 
-    public function destroy(Request $request, int $id): JsonResponse
+    public function destroy(Request $request, int $id)
     {
-        $type = $this->typeService->getTypeById($id);
+        $type = $this->queryService->findOrFail($id);
         $this->authorize('delete', $type);
-        
-        $this->typeService->deleteType($type);
 
-        return $this->sendSuccess(
-            null,
-            'Type deleted successfully'
-        );
+        $this->deleteAction->execute($type);
+
+        return $this->sendSuccess(null, 'Type deleted');
     }
 }

@@ -12,8 +12,8 @@ class PaymentMethodDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $method = $this->findPaymentMethod();
-        
-        if (!$method) {
+
+        if (! $method) {
             return false;
         }
 
@@ -28,8 +28,8 @@ class PaymentMethodDeleteRequest extends FormRequest
     private function findPaymentMethod(): ?PaymentMethod
     {
         $id = $this->route('id');
-        
-        if (!is_numeric($id)) {
+
+        if (! is_numeric($id)) {
             return null;
         }
 
@@ -44,8 +44,8 @@ class PaymentMethodDeleteRequest extends FormRequest
     public function getPaymentMethod(): PaymentMethod
     {
         $method = $this->findPaymentMethod();
-        
-        if (!$method) {
+
+        if (! $method) {
             abort(404, 'Payment method not found or you do not have permission to access it.');
         }
 

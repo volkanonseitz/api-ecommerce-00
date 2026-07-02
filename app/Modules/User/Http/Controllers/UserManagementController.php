@@ -12,7 +12,6 @@ use App\Modules\User\Http\Requests\AdminCreateUserRequest;
 use App\Modules\User\Http\Requests\AdminUpdateUserRequest;
 use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\User\Services\UserCommandService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

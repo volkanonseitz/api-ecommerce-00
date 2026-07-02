@@ -19,7 +19,7 @@ final class PaymentMethodQueryService
     public function getUserPaymentMethods(Authenticatable $user): Collection
     {
         $cacheKey = "payment_methods.user.{$user->id}";
-        
+
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($user) {
             return PaymentMethod::query()
                 ->whereHas('paymentGateway', function ($query) use ($user) {

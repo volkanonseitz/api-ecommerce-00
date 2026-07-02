@@ -21,7 +21,7 @@ final class FlashSaleRequestData
             title: $data['title'],
             note: $data['note'] ?? null,
             flash_sale_id: $data['flash_sale_id'],
-            language: $language ?? config('shop.default_language', 'id'),
+            language: $language ?? $data['language'] ?? config('shop.default_language', 'id'),
             requested_product_ids: $data['requested_product_ids'] ?? null,
             request_status: $data['request_status'] ?? false,
         );

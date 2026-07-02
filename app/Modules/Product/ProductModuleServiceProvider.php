@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Product;
 
+use App\Models\Product;
 use App\Modules\Product\Actions\CreateProductAction;
 use App\Modules\Product\Actions\DeleteProductAction;
 use App\Modules\Product\Actions\UpdateProductAction;
@@ -13,7 +14,6 @@ use App\Modules\Product\Services\ProductCrudService;
 use App\Modules\Product\Services\ProductMetricService;
 use App\Modules\Product\Services\ProductQueryService;
 use App\Modules\Product\Services\ProductRentalService;
-use App\Models\Product;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,7 +37,7 @@ class ProductModuleServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Load module routes
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         // Register Authorization Policy
         $this->registerPolicies();

@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Attribute\Http\Resources;
+namespace App\Modules\AttributeValue\Http\Resources;
 
+use App\Models\AttributeValue;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin AttributeValue
+ */
 class AttributeValueResource extends JsonResource
 {
     public function toArray($request)

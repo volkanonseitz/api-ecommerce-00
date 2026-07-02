@@ -1,25 +1,22 @@
 <?php
 
 use App\Enums\Permission;
-use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
-use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\RefundController;
-use App\Http\Controllers\RefundPolicyController;
-use App\Http\Controllers\RefundReasonController;
-use App\Http\Controllers\ResourceController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\ShippingController;
-use App\Modules\Shop\Http\Controllers\ShopController;
-use App\Http\Controllers\StoreNoticeController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\TaxController;
-use App\Http\Controllers\TermsAndConditionsController;
-use App\Http\Controllers\TypeController;
-use App\Modules\User\Http\Controllers\UserController;
+use App\Modules\Question\Http\Controllers\QuestionController;
+use App\Modules\Refund\Http\Controllers\RefundController;
+use App\Modules\Refund\Http\Controllers\RefundPolicyController;
+use App\Modules\RefundReason\Http\Controllers\RefundReasonController;
+use App\Modules\Resource\Http\Controllers\ResourceController;
+use App\Modules\Review\Http\Controllers\ReviewController;
+use App\Modules\Settings\Http\Controllers\SettingsController;
+use App\Modules\Shipping\Http\Controllers\ShippingController;
+use App\Modules\StoreNotice\Http\Controllers\StoreNoticeController;
+use App\Modules\Tag\Http\Controllers\TagController;
+use App\Modules\Tax\Http\Controllers\TaxController;
+use App\Modules\Terms\Http\Controllers\TermsAndConditionsController;
+use App\Modules\Type\Http\Controllers\TypeController;
 use App\Http\Controllers\WebHookController;
-use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\WithdrawController;
+use App\Modules\Wishlist\Http\Controllers\WishlistController;
+use App\Modules\Withdraw\Http\Controllers\WithdrawController;
 use App\Modules\AbusiveReport\Http\Controllers\AbusiveReportController;
 use App\Modules\Address\Http\Controllers\AddressController;
 use App\Modules\Analytics\Http\Controllers\AnalyticsController;
@@ -45,7 +42,10 @@ use App\Modules\NotifyLogs\Http\Controllers\NotifyLogsController;
 use App\Modules\Order\Http\Controllers\OrderController;
 use App\Modules\OwnershipTransfer\Http\Controllers\OwnershipTransferController;
 use App\Modules\PaymentIntent\Http\Controllers\PaymentIntentController;
+use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
 use App\Modules\Product\Http\Controllers\ProductController;
+use App\Modules\Shop\Http\Controllers\ShopController;
+use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
@@ -263,7 +263,7 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
 
     // PaymentMethodController
-        Route::get('/', [PaymentMethodController::class, 'index']);
+    Route::get('/', [PaymentMethodController::class, 'index']);
     Route::get('/gateways', [PaymentMethodController::class, 'gateways']);
     Route::post('/', [PaymentMethodController::class, 'store']);
     Route::delete('/{id}', [PaymentMethodController::class, 'destroy']);

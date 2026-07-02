@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Payment\Providers;
 
+use App\Models\PaymentMethod;
 use Midtrans\Config;
 use Midtrans\CoreApi;
 use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class MidtransProvider extends AbstractPaymentProvider
 {
@@ -23,7 +25,7 @@ class MidtransProvider extends AbstractPaymentProvider
     public function createPayment(array $data): array
     {
         $paymentMethodType = $data['payment_method_type'] ?? 'credit_card';
-        
+
         switch ($paymentMethodType) {
             case 'credit_card':
                 return $this->createCardPayment($data);
@@ -55,11 +57,11 @@ class MidtransProvider extends AbstractPaymentProvider
             ],
         ];
 
-        if (!empty($data['payment_method_id'])) {
+        if (! empty($data['payment_method_id'])) {
             $params['credit_card'] = ['token_id' => $data['payment_method_id']];
         }
 
-        if (!empty($data['payment_method_options'])) {
+        if (! empty($data['payment_method_options'])) {
             $params['credit_card'] = array_merge($params['credit_card'] ?? [], $data['payment_method_options']);
         }
 
@@ -78,7 +80,7 @@ class MidtransProvider extends AbstractPaymentProvider
     private function createBankTransferPayment(array $data): array
     {
         $bankCode = $data['payment_method_options']['bank_code'] ?? 'bca';
-        
+
         $params = [
             'payment_type' => 'bank_transfer',
             'transaction_details' => [
@@ -143,7 +145,7 @@ class MidtransProvider extends AbstractPaymentProvider
     private function createEWalletPayment(array $data): array
     {
         $ewalletType = $data['payment_method_options']['ewallet_type'] ?? 'gopay';
-        
+
         $params = [
             'payment_type' => $ewalletType,
             'transaction_details' => [
@@ -174,7 +176,7 @@ class MidtransProvider extends AbstractPaymentProvider
     {
         // Midtrans doesn't have customer creation API, we generate a reference
         return [
-            'customer_id' => 'customer_' . ($data['user_id'] ?? uniqid()),
+            'customer_id' => 'customer_'.($data['user_id'] ?? uniqid()),
             'email' => $data['email'] ?? null,
             'name' => $data['name'] ?? null,
         ];
@@ -199,10 +201,10 @@ class MidtransProvider extends AbstractPaymentProvider
     public function detachPaymentMethod(string $methodKey, ?string $type = null): void
     {
         // Midtrans does not support payment method detachment
-        \Log::info('Midtrans detach payment method not supported for key: ' . $methodKey . ' type: ' . $type);
+        \Log::info('Midtrans detach payment method not supported for key: '.$methodKey.' type: '.$type);
     }
 
-    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): \App\Models\PaymentMethod
+    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): PaymentMethod
     {
         throw new \BadMethodCallException('MidtransProvider::savePaymentMethod should be implemented by child classes');
     }
@@ -223,12 +225,14 @@ class MidtransProvider extends AbstractPaymentProvider
 
         try {
             $response = Snap::createTransaction($params);
+
             return [
                 'token' => $response->token,
                 'redirect_url' => $response->redirect_url,
             ];
         } catch (\Exception $e) {
-            \Log::error('Midtrans setup intent failed: ' . $e->getMessage());
+            \Log::error('Midtrans setup intent failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -248,8 +252,8 @@ class MidtransProvider extends AbstractPaymentProvider
     public function verifyPayment(string $transactionId): array
     {
         // Midtrans has transaction status API
-        $status = \Midtrans\Transaction::status($transactionId);
-        
+        $status = Transaction::status($transactionId);
+
         return [
             'id' => $status->transaction_id,
             'status' => $status->transaction_status,
@@ -267,7 +271,7 @@ class MidtransProvider extends AbstractPaymentProvider
         if ($statusCode === '200') {
             $this->handlePaymentSuccess($payload);
         } else {
-            \Log::info('Midtrans webhook received: ' . json_encode($payload));
+            \Log::info('Midtrans webhook received: '.json_encode($payload));
         }
     }
 
@@ -275,7 +279,7 @@ class MidtransProvider extends AbstractPaymentProvider
     {
         $orderId = $data['order_id'] ?? null;
         if ($orderId) {
-            \Log::info('Midtrans payment success for order: ' . $orderId);
+            \Log::info('Midtrans payment success for order: '.$orderId);
         }
     }
 }

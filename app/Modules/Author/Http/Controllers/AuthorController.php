@@ -9,13 +9,17 @@ use App\Models\Author;
 use App\Modules\Author\DTO\AuthorData;
 use App\Modules\Author\Http\Requests\AuthorRequest;
 use App\Modules\Author\Http\Resources\AuthorResource;
-use App\Modules\Author\Services\AuthorService;
+use App\Modules\Author\Services\AuthorQueryService;
+use App\Modules\Author\Services\AuthorWriteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class AuthorController extends BaseController
 {
-    public function __construct(private AuthorService $authorService) {}
+    public function __construct(
+        private readonly AuthorQueryService $authorQueryService,
+        private readonly AuthorWriteService $authorWriteService
+    ) {}
 
     public function index(Request $request)
     {
@@ -24,7 +28,7 @@ class AuthorController extends BaseController
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = "authors_{$language}_{$limit}";
         $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
-            return $this->authorService->getAuthorsByLanguage($language, $limit);
+            return $this->authorQueryService->getAuthorsByLanguage($language, $limit);
         });
 
         return $this->sendPaginated(
@@ -38,7 +42,7 @@ class AuthorController extends BaseController
     {
         $this->authorize('create', Author::class);
         $data = AuthorData::fromRequest($request->validated());
-        $author = $this->authorService->createAuthor($data);
+        $author = $this->authorWriteService->createAuthor($data);
         Cache::forget("authors_{$data->language}_*");
 
         return $this->sendSuccess(new AuthorResource($author), 'Author created', 201);
@@ -47,7 +51,7 @@ class AuthorController extends BaseController
     public function show(Request $request, string $slug)
     {
         $language = $request->language ?? config('shop.default_language', 'id');
-        $author = $this->authorService->getAuthorBySlug($slug, $language);
+        $author = $this->authorQueryService->getAuthorBySlug($slug, $language);
         $this->authorize('view', $author);
 
         return $this->sendSuccess(new AuthorResource($author), 'Author detail');
@@ -58,7 +62,7 @@ class AuthorController extends BaseController
         $author = Author::findOrFail($id);
         $this->authorize('update', $author);
         $data = AuthorData::fromRequest($request->validated());
-        $updated = $this->authorService->updateAuthor($author, $data);
+        $updated = $this->authorWriteService->updateAuthor($author, $data);
         Cache::forget("authors_{$data->language}_*");
 
         return $this->sendSuccess(new AuthorResource($updated), 'Author updated');
@@ -69,7 +73,7 @@ class AuthorController extends BaseController
         $author = Author::findOrFail($id);
         $this->authorize('delete', $author);
         $language = $author->language;
-        $this->authorService->deleteAuthor($author);
+        $this->authorWriteService->deleteAuthor($author);
         Cache::forget("authors_{$language}_*");
 
         return $this->sendSuccess(null, 'Author deleted');
@@ -81,7 +85,7 @@ class AuthorController extends BaseController
         $limit = $request->limit ?? 10;
         $cacheKey = "top_authors_{$language}_{$limit}";
         $authors = Cache::remember($cacheKey, 3600, function () use ($language, $limit) {
-            return $this->authorService->getTopAuthors($language, $limit);
+            return $this->authorQueryService->getTopAuthors($language, $limit);
         });
 
         return $this->sendSuccess(AuthorResource::collection($authors), 'Top authors');

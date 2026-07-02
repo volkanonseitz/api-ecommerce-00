@@ -17,11 +17,11 @@ class ReviewService
     public function getReviews(Request $request, ?User $user = null): Builder
     {
         $query = Review::query()->with(['user', 'product', 'order', 'shop']);
-        
+
         if ($request->has('product_id')) {
             $query->where('product_id', (int) $request->input('product_id'));
         }
-        
+
         if ($request->has('shop_id')) {
             $query->where('shop_id', (int) $request->input('shop_id'));
         }
@@ -65,6 +65,7 @@ class ReviewService
     public function updateReview(Review $review, ReviewData $data, User $user): Review
     {
         $review->update($data->toArray());
+
         return $review->fresh();
     }
 

@@ -54,6 +54,7 @@ class OrderQueryService
     public function getPaginatedOrders(Request $request, User $user, int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->buildQuery($request, $user);
+
         return $query->paginate($perPage);
     }
 
@@ -72,15 +73,15 @@ class OrderQueryService
     {
         $query = $this->buildQuery($request, $user);
         $query->where('shop_id', $shopId);
-        
+
         return $query->paginate($request->get('limit', 15));
     }
 
     public function getOrderStats(User $user, ?int $shopId = null): array
     {
         $query = Order::query();
-        
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
+
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             $this->applyAuthorizationFilter($query, $user);
         }
 
@@ -105,6 +106,7 @@ class OrderQueryService
         // Super admin can see all orders
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             $query->whereNull('parent_id'); // Only parent orders
+
             return;
         }
 
@@ -112,11 +114,13 @@ class OrderQueryService
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             $shopIds = $user->shops()->pluck('shops.id')->toArray();
             $query->whereIn('shop_id', $shopIds)->whereNotNull('parent_id');
+
             return;
         }
 
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             $query->where('shop_id', $user->shop_id)->whereNotNull('parent_id');
+
             return;
         }
 
@@ -126,10 +130,10 @@ class OrderQueryService
 
     private function applyEagerLoading(Builder $query, User $user): void
     {
-        $relations = $user->hasPermissionTo(Permission::SUPER_ADMIN->value) 
-            ? self::DEFAULT_RELATIONS 
+        $relations = $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            ? self::DEFAULT_RELATIONS
             : self::PUBLIC_RELATIONS;
-        
+
         $query->with($relations);
     }
 
@@ -184,8 +188,8 @@ class OrderQueryService
         $sortOrder = $request->get('sort_order', 'desc');
 
         $validSortColumns = [
-            'created_at', 'updated_at', 'total', 
-            'order_status', 'payment_status'
+            'created_at', 'updated_at', 'total',
+            'order_status', 'payment_status',
         ];
 
         if (in_array($sortBy, $validSortColumns, true)) {

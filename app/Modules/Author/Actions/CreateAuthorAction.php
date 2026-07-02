@@ -7,7 +7,7 @@ namespace App\Modules\Author\Actions;
 use App\Models\Author;
 use App\Modules\Author\DTO\AuthorData;
 
-class CreateAuthorAction
+final class CreateAuthorAction
 {
     public function execute(AuthorData $data): Author
     {

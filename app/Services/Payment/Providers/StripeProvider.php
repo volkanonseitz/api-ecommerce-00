@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment\Providers;
 
+use App\Models\PaymentMethod;
 use Stripe\Customer;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod as StripePaymentMethod;
@@ -26,25 +27,25 @@ class StripeProvider extends AbstractPaymentProvider
             'metadata' => ['order_tracking_number' => $data['order_tracking_number'] ?? null],
         ];
 
-        if (!empty($data['customer_id'])) {
+        if (! empty($data['customer_id'])) {
             $params['customer'] = $data['customer_id'];
         }
 
-        if (!empty($data['payment_method_id'])) {
+        if (! empty($data['payment_method_id'])) {
             $params['payment_method'] = $data['payment_method_id'];
         }
 
         // Handle payment method type specific options
-        if (!empty($data['payment_method_options'])) {
+        if (! empty($data['payment_method_options'])) {
             $params['payment_method_options'] = $data['payment_method_options'];
         }
 
         // Handle billing and shipping addresses
-        if (!empty($data['billing_address'])) {
+        if (! empty($data['billing_address'])) {
             $params['billing_details'] = $data['billing_address'];
         }
 
-        if (!empty($data['shipping_address'])) {
+        if (! empty($data['shipping_address'])) {
             $params['shipping'] = $data['shipping_address'];
         }
 
@@ -57,7 +58,7 @@ class StripeProvider extends AbstractPaymentProvider
         ];
 
         // For Stripe, payment method type is determined from payment method
-        if (!empty($data['payment_method_id'])) {
+        if (! empty($data['payment_method_id'])) {
             $paymentMethod = StripePaymentMethod::retrieve($data['payment_method_id']);
             $response['payment_method_type'] = $paymentMethod->type;
         }
@@ -72,7 +73,7 @@ class StripeProvider extends AbstractPaymentProvider
             'name' => $data['name'] ?? null,
             'description' => $data['description'] ?? null,
         ];
-        
+
         if (isset($data['user_id'])) {
             $customerData['metadata'] = ['user_id' => (string) $data['user_id']];
         }
@@ -98,7 +99,7 @@ class StripeProvider extends AbstractPaymentProvider
             'customer_id' => $customer->id,
             'email' => $customer->email,
             'name' => $customer->name,
-            'metadata' => $customer->metadata?->toArray() ?? []
+            'metadata' => $customer->metadata?->toArray() ?? [],
         ];
     }
 
@@ -118,7 +119,7 @@ class StripeProvider extends AbstractPaymentProvider
                 $this->handlePaymentCreated($payload['data']['object'] ?? []);
                 break;
             default:
-                \Log::info('Stripe webhook received: ' . $eventType);
+                \Log::info('Stripe webhook received: '.$eventType);
         }
     }
 
@@ -126,7 +127,7 @@ class StripeProvider extends AbstractPaymentProvider
     {
         $orderTrackingNumber = $data['metadata']['order_tracking_number'] ?? null;
         if ($orderTrackingNumber) {
-            \Log::info('Stripe payment success for order: ' . $orderTrackingNumber);
+            \Log::info('Stripe payment success for order: '.$orderTrackingNumber);
             // Update order status logic here
         }
     }
@@ -135,7 +136,7 @@ class StripeProvider extends AbstractPaymentProvider
     {
         $orderTrackingNumber = $data['metadata']['order_tracking_number'] ?? null;
         if ($orderTrackingNumber) {
-            \Log::warning('Stripe payment failed for order: ' . $orderTrackingNumber);
+            \Log::warning('Stripe payment failed for order: '.$orderTrackingNumber);
         }
     }
 
@@ -143,7 +144,7 @@ class StripeProvider extends AbstractPaymentProvider
     {
         $orderTrackingNumber = $data['metadata']['order_tracking_number'] ?? null;
         if ($orderTrackingNumber) {
-            \Log::info('Stripe payment created for order: ' . $orderTrackingNumber);
+            \Log::info('Stripe payment created for order: '.$orderTrackingNumber);
         }
     }
 
@@ -155,6 +156,7 @@ class StripeProvider extends AbstractPaymentProvider
     public function attachPaymentMethodToCustomer(string $methodKey, object $user, ?string $type = null): object
     {
         $paymentMethod = StripePaymentMethod::retrieve($methodKey);
+
         return $paymentMethod;
     }
 
@@ -164,7 +166,7 @@ class StripeProvider extends AbstractPaymentProvider
         $paymentMethod->detach();
     }
 
-    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): \App\Models\PaymentMethod
+    public function savePaymentMethod(object $paymentMethod, object $user, ?string $type = null): PaymentMethod
     {
         // Implementasi disimpan di PaymentMethodService
         throw new \BadMethodCallException('StripeProvider::savePaymentMethod should be implemented by child classes');
@@ -173,6 +175,7 @@ class StripeProvider extends AbstractPaymentProvider
     public function initializePaymentMethod(array $data): ?array
     {
         $intent = SetupIntent::create($data);
+
         return [
             'client_secret' => $intent->client_secret,
             'id' => $intent->id,
@@ -188,20 +191,20 @@ class StripeProvider extends AbstractPaymentProvider
             'sofort',
             'bancontact',
             'alipay',
-            'wechat_pay'
+            'wechat_pay',
         ];
     }
 
     public function verifyPayment(string $transactionId): array
     {
         $intent = PaymentIntent::retrieve($transactionId);
-        
+
         return [
             'id' => $intent->id,
             'status' => $intent->status,
             'amount' => $intent->amount / 100,
             'currency' => $intent->currency,
-            'payment_method_type' => $intent->payment_method_types[0] ?? null
+            'payment_method_type' => $intent->payment_method_types[0] ?? null,
         ];
     }
 }

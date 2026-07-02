@@ -9,6 +9,7 @@ use App\Enums\PaymentMethodType;
 class XenditProvider extends AbstractPaymentProvider
 {
     private $apiKey;
+
     private $apiBaseUrl = 'https://api.xendit.co';
 
     public function __construct()
@@ -20,7 +21,7 @@ class XenditProvider extends AbstractPaymentProvider
     public function createPayment(array $data): array
     {
         $paymentMethodType = $data['payment_method_type'] ?? 'card';
-        
+
         switch ($paymentMethodType) {
             case PaymentMethodType::CARD->value:
                 return $this->createCardPayment($data);
@@ -47,7 +48,7 @@ class XenditProvider extends AbstractPaymentProvider
             'card_cvn' => $data['payment_method_options']['cvv'] ?? null,
         ];
 
-        if (!empty($data['customer_id'])) {
+        if (! empty($data['customer_id'])) {
             $payload['customer_id'] = $data['customer_id'];
         }
 
@@ -73,7 +74,7 @@ class XenditProvider extends AbstractPaymentProvider
             'expiration_date' => date('c', strtotime('+24 hours')),
         ];
 
-        if (!empty($data['customer_id'])) {
+        if (! empty($data['customer_id'])) {
             $payload['customer_id'] = $data['customer_id'];
         }
 
@@ -95,7 +96,7 @@ class XenditProvider extends AbstractPaymentProvider
             'external_id' => $data['order_tracking_number'] ?? uniqid('qris_'),
             'amount' => $data['amount'],
             'type' => 'DYNAMIC',
-            'callback_url' => config('app.url') . '/webhook/xendit/qris',
+            'callback_url' => config('app.url').'/webhook/xendit/qris',
         ];
 
         $response = $this->makeRequest('/qr_codes', 'POST', $payload);
@@ -112,7 +113,7 @@ class XenditProvider extends AbstractPaymentProvider
     private function createEWalletPayment(array $data): array
     {
         $ewalletType = $data['payment_method_options']['ewallet_type'] ?? 'OVO';
-        
+
         $payload = [
             'reference_id' => $data['order_tracking_number'] ?? uniqid('ewallet_'),
             'currency' => 'IDR',
@@ -121,12 +122,12 @@ class XenditProvider extends AbstractPaymentProvider
             'channel_code' => $this->getEwalletChannelCode($ewalletType),
             'channel_properties' => [
                 'mobile_number' => $data['payment_method_options']['mobile_number'] ?? null,
-                'success_redirect_url' => config('app.url') . '/payment/success',
-                'failure_redirect_url' => config('app.url') . '/payment/failed',
+                'success_redirect_url' => config('app.url').'/payment/success',
+                'failure_redirect_url' => config('app.url').'/payment/failed',
             ],
         ];
 
-        if (!empty($data['customer_id'])) {
+        if (! empty($data['customer_id'])) {
             $payload['customer_id'] = $data['customer_id'];
         }
 
@@ -164,7 +165,7 @@ class XenditProvider extends AbstractPaymentProvider
     public function createCustomer(array $data): array
     {
         $payload = [
-            'reference_id' => $data['reference_id'] ?? 'cust_' . uniqid(),
+            'reference_id' => $data['reference_id'] ?? 'cust_'.uniqid(),
             'email' => $data['email'],
             'given_names' => $data['name'] ?? '',
             'mobile_number' => $data['mobile_number'] ?? null,
@@ -208,7 +209,7 @@ class XenditProvider extends AbstractPaymentProvider
                 $this->handlePaymentExpired($payload['data']);
                 break;
             default:
-                \Log::info('Xendit webhook received: ' . $eventType);
+                \Log::info('Xendit webhook received: '.$eventType);
         }
     }
 
@@ -216,7 +217,7 @@ class XenditProvider extends AbstractPaymentProvider
     {
         $externalId = $data['external_id'] ?? null;
         if ($externalId) {
-            \Log::info('Xendit payment success for: ' . $externalId);
+            \Log::info('Xendit payment success for: '.$externalId);
             // Update payment status logic here
         }
     }
@@ -225,7 +226,7 @@ class XenditProvider extends AbstractPaymentProvider
     {
         $externalId = $data['external_id'] ?? null;
         if ($externalId) {
-            \Log::warning('Xendit payment failed for: ' . $externalId);
+            \Log::warning('Xendit payment failed for: '.$externalId);
         }
     }
 
@@ -233,7 +234,7 @@ class XenditProvider extends AbstractPaymentProvider
     {
         $externalId = $data['external_id'] ?? null;
         if ($externalId) {
-            \Log::warning('Xendit payment expired for: ' . $externalId);
+            \Log::warning('Xendit payment expired for: '.$externalId);
         }
     }
 
@@ -257,24 +258,24 @@ class XenditProvider extends AbstractPaymentProvider
 
     private function makeRequest(string $endpoint, string $method, array $data = []): array
     {
-        $url = $this->apiBaseUrl . $endpoint;
-        
+        $url = $this->apiBaseUrl.$endpoint;
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        
+
         $headers = [
-            'Authorization: Basic ' . base64_encode($this->apiKey . ':'),
+            'Authorization: Basic '.base64_encode($this->apiKey.':'),
             'Content-Type: application/json',
         ];
-        
+
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        if (!empty($data)) {
+
+        if (! empty($data)) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         }
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -288,7 +289,7 @@ class XenditProvider extends AbstractPaymentProvider
 
     private function getEwalletChannelCode(string $ewalletType): string
     {
-        return match(strtoupper($ewalletType)) {
+        return match (strtoupper($ewalletType)) {
             'OVO' => 'ID_OVO',
             'DANA' => 'ID_DANA',
             'LINKAJA' => 'ID_LINKAJA',

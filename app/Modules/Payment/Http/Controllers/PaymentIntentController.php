@@ -20,15 +20,20 @@ final class PaymentIntentController extends BaseController
      *     path="/payment-intents",
      *     tags={"Payment Intents"},
      *     security={{"bearerAuth":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(ref="#/components/schemas/CreatePaymentIntentRequest")
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
      *         description="Payment intent created successfully",
+     *
      *         @OA\JsonContent(
      *             type="object",
+     *
      *             @OA\Property(property="id", type="string"),
      *             @OA\Property(property="client_secret", type="string"),
      *             @OA\Property(property="status", type="string"),
@@ -37,6 +42,7 @@ final class PaymentIntentController extends BaseController
      *             @OA\Property(property="payment_method_type", type="string", nullable=true)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=422,
      *         description="Validation error"

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\PaymentMethod\Http\Requests;
 
-use App\Services\Payment\Factory\PaymentProviderFactory;
+use App\Modules\Payment\Factory\PaymentProviderFactory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

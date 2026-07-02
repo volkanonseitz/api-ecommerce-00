@@ -10,13 +10,17 @@ use App\Modules\Category\DTO\CategoryData;
 use App\Modules\Category\Http\Requests\CategoryCreateRequest;
 use App\Modules\Category\Http\Requests\CategoryUpdateRequest;
 use App\Modules\Category\Http\Resources\CategoryResource;
-use App\Modules\Category\Services\CategoryService;
+use App\Modules\Category\Services\CategoryQueryService;
+use App\Modules\Category\Services\CategoryWriteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends BaseController
 {
-    public function __construct(private CategoryService $categoryService) {}
+    public function __construct(
+        private readonly CategoryQueryService $categoryQueryService,
+        private readonly CategoryWriteService $categoryWriteService
+    ) {}
 
     public function index(Request $request)
     {
@@ -29,7 +33,7 @@ class CategoryController extends BaseController
 
         $cacheKey = "categories_{$language}_{$parent}_{$selfId}_{$limit}";
         $categories = Cache::remember($cacheKey, 3600, function () use ($language, $parent, $selfId, $limit) {
-            return $this->categoryService->getCategories($language, $parent, $selfId, $limit);
+            return $this->categoryQueryService->getCategories($language, $parent, $selfId, $limit);
         });
 
         return $this->sendPaginated(
@@ -44,7 +48,7 @@ class CategoryController extends BaseController
         $this->authorize('create', Category::class);
 
         $data = CategoryData::fromRequest($request->validated());
-        $category = $this->categoryService->createCategory($data);
+        $category = $this->categoryWriteService->createCategory($data);
 
         $this->clearCategoryCache($data->language);
 
@@ -57,7 +61,7 @@ class CategoryController extends BaseController
 
         $cacheKey = "category_{$params}_{$language}";
         $category = Cache::remember($cacheKey, 3600, function () use ($params, $language) {
-            return $this->categoryService->getCategoryByIdOrSlug($params, $language);
+            return $this->categoryQueryService->getCategoryByIdOrSlug($params, $language);
         });
 
         $this->authorize('view', $category);
@@ -71,7 +75,7 @@ class CategoryController extends BaseController
         $this->authorize('update', $category);
 
         $data = CategoryData::fromRequest($request->validated());
-        $updated = $this->categoryService->updateCategory($category, $data);
+        $updated = $this->categoryWriteService->updateCategory($category, $data);
 
         $this->clearCategoryCache($data->language ?? $category->language);
 
@@ -84,7 +88,7 @@ class CategoryController extends BaseController
         $this->authorize('delete', $category);
 
         $language = $category->language;
-        $this->categoryService->deleteCategory($category);
+        $this->categoryWriteService->deleteCategory($category);
 
         $this->clearCategoryCache($language);
 
@@ -96,7 +100,7 @@ class CategoryController extends BaseController
         $perPage = (int) ($request->limit ?? 3);
         $cacheKey = "featured_categories_{$perPage}";
         $categories = Cache::remember($cacheKey, 3600, function () use ($perPage) {
-            return $this->categoryService->fetchFeaturedCategories($perPage);
+            return $this->categoryQueryService->fetchFeaturedCategories($perPage);
         });
 
         return $this->sendSuccess($categories, 'Featured categories');

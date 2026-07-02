@@ -29,7 +29,7 @@ class RefundPolicyPolicy
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $policy->shop_id === $user->shops()->first()?->id;
         }
-        
+
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $policy->shop_id === $user->shop_id;
         }

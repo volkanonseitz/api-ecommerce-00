@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User;
 
+use App\Models\User;
 use App\Modules\User\Actions\AttemptLoginAction;
 use App\Modules\User\Actions\RegisterUserAction;
 use App\Modules\User\Policies\UserPolicy;
@@ -11,7 +12,6 @@ use App\Modules\User\Services\AuthService;
 use App\Modules\User\Services\SocialLoginService;
 use App\Modules\User\Services\UserCommandService;
 use App\Modules\User\Services\UserSecurityService;
-use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,7 +22,7 @@ class UserModuleServiceProvider extends ServiceProvider
         // Actions
         $this->app->singleton(AttemptLoginAction::class);
         $this->app->singleton(RegisterUserAction::class);
-        
+
         // Services
         $this->app->singleton(SocialLoginService::class);
         $this->app->singleton(UserCommandService::class);
@@ -32,7 +32,7 @@ class UserModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
         $this->registerPolicies();
     }
 

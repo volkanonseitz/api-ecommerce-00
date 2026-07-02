@@ -11,6 +11,7 @@ use App\Models\Settings;
 use App\Models\User;
 use App\Modules\User\DTO\RegisterUserData;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -28,14 +29,14 @@ final class RegisterUserAction
             ]);
 
             if ($data->profile) {
-                $user->profile()->create(\Illuminate\Support\Arr::only(
+                $user->profile()->create(Arr::only(
                     $data->profile,
                     ['avatar', 'bio', 'socials']
                 ));
             }
 
             if ($data->address) {
-                $user->address()->create(\Illuminate\Support\Arr::only(
+                $user->address()->create(Arr::only(
                     $data->address,
                     ['street_address', 'city', 'state', 'zip', 'country']
                 ));

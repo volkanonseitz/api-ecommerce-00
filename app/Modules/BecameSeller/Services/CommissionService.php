@@ -2,8 +2,8 @@
 
 namespace App\Modules\BecameSeller\Services;
 
-use App\Modules\BecameSeller\DTO\CommissionData;
 use App\Models\Commission;
+use App\Modules\BecameSeller\DTO\CommissionData;
 
 class CommissionService
 {

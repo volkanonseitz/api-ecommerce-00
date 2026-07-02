@@ -31,6 +31,11 @@ class Question extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
+    }
+
     public function feedbacks()
     {
         return $this->morphMany(Feedback::class, 'model');

@@ -10,6 +10,7 @@ final class PaymentSuccess
     use Dispatchable, SerializesModels;
 
     public string $orderTrackingNumber;
+
     public array $paymentData;
 
     public function __construct(string $orderTrackingNumber, array $paymentData)

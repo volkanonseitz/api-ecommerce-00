@@ -47,7 +47,7 @@ class ProductQueryData
 
     public function hasFilters(): bool
     {
-        return !empty(array_filter([
+        return ! empty(array_filter([
             $this->search,
             $this->status,
             $this->categoryId,

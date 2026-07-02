@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\DTO\ShippingData;
 use App\Models\Shipping;
+use App\Modules\Shipping\DTO\ShippingData;
 
 class UpdateShippingAction
 {

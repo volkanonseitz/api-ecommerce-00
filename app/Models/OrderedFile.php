@@ -20,4 +20,9 @@ class OrderedFile extends Model
     {
         return $this->belongsTo(Order::class, 'tracking_number', 'tracking_number');
     }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
 }

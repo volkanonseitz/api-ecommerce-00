@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Events\OrderReceived;
+use App\Modules\Settings\Services\NotificationRecipientService;
 use App\Notifications\NewOrderReceived;
-use App\Services\NotificationRecipientService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendOrderReceivedNotification implements ShouldQueue

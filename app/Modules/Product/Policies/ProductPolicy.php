@@ -81,13 +81,13 @@ class ProductPolicy
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             return true;
         }
-        
+
         return $this->update($user, $product);
     }
 
     public function manageRental(User $user, Product $product): bool
     {
-        if (!$product->is_rental) {
+        if (! $product->is_rental) {
             return false;
         }
 
@@ -99,11 +99,11 @@ class ProductPolicy
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             return true;
         }
-        
+
         if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             return $product->shop && $product->shop->owner_id === $user->id;
         }
-        
+
         if ($user->hasPermissionTo(Permission::STAFF->value)) {
             return $product->shop && $product->shop->staffs->contains($user->id);
         }

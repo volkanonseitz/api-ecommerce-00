@@ -9,6 +9,7 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -65,7 +66,7 @@ final class UserQueryService
     /**
      * Eager loading wajib (profile, address) -> mencegah N+1 saat di-paginate + di-resource-kan.
      */
-    public function paginatedVendors(?int $shopId, ?int $exclude, bool $isActive, int $limit): \Illuminate\Pagination\LengthAwarePaginator
+    public function paginatedVendors(?int $shopId, ?int $exclude, bool $isActive, int $limit): LengthAwarePaginator
     {
         $adminIds = User::whereHas('permissions', fn ($q) => $q->where('name', Permission::SUPER_ADMIN->value))
             ->pluck('id');

@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\Log;
 class UserSecurityService
 {
     private const MAX_FAILED_ATTEMPTS = 5;
+
     private const LOCKOUT_DURATION = 15; // minutes
+
     private const SESSION_MAX_AGE = 30; // days
+
     private const PASSWORD_HISTORY_LIMIT = 5;
 
     public function enforceRateLimit(string $ip, string $identifier): bool
@@ -27,6 +30,7 @@ class UserSecurityService
         }
 
         Cache::put($cacheKey, $attempts + 1, 60); // 1 minute
+
         return true;
     }
 
@@ -38,19 +42,19 @@ class UserSecurityService
             $errors[] = 'Password minimal 12 karakter';
         }
 
-        if (!preg_match('/[A-Z]/', $password)) {
+        if (! preg_match('/[A-Z]/', $password)) {
             $errors[] = 'Password harus mengandung huruf kapital';
         }
 
-        if (!preg_match('/[a-z]/', $password)) {
+        if (! preg_match('/[a-z]/', $password)) {
             $errors[] = 'Password harus mengandung huruf kecil';
         }
 
-        if (!preg_match('/[0-9]/', $password)) {
+        if (! preg_match('/[0-9]/', $password)) {
             $errors[] = 'Password harus mengandung angka';
         }
 
-        if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+        if (! preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
             $errors[] = 'Password harus mengandung karakter spesial';
         }
 
@@ -110,7 +114,7 @@ class UserSecurityService
 
             if ($user->failed_login_attempts >= self::MAX_FAILED_ATTEMPTS) {
                 $user->update(['locked_until' => now()->addMinutes(self::LOCKOUT_DURATION)]);
-                
+
                 Log::warning('Account locked due to failed login attempts', [
                     'user_id' => $user->id,
                     'ip' => $request->ip(),

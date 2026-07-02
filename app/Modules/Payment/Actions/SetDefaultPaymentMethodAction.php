@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Payment\Actions;
 
 use App\Models\PaymentMethod;
+use App\Modules\PaymentMethod\Events\PaymentMethodUpdated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use App\Modules\PaymentMethod\Events\PaymentMethodUpdated;
 
 final class SetDefaultPaymentMethodAction
 {

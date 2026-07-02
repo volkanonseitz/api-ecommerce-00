@@ -6,8 +6,8 @@ namespace App\Modules\Payment\Actions;
 
 use App\Models\PaymentMethod;
 use App\Modules\Payment\Contracts\PaymentGatewayFactoryInterface;
-use App\Modules\PaymentMethod\DTO\PaymentMethodData;
 use App\Modules\Payment\Services\PaymentMethodPersistService;
+use App\Modules\PaymentMethod\DTO\PaymentMethodData;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +21,7 @@ final class StorePaymentMethodAction
     public function execute(array $data, Authenticatable $user): PaymentMethod
     {
         $paymentMethodData = PaymentMethodData::fromRequest($data);
-        
+
         $provider = $this->gatewayFactory->create($paymentMethodData->payment_gateway);
 
         return DB::transaction(function () use ($paymentMethodData, $user, $provider) {

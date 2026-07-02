@@ -61,20 +61,20 @@ return [
     // ],
 
     'stripe' => [
-    'key' => env('STRIPE_KEY'),
-    'secret' => env('STRIPE_SECRET'),
-],
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
 
-'midtrans' => [
-    'server_key' => env('MIDTRANS_SERVER_KEY'),
-    'client_key' => env('MIDTRANS_CLIENT_KEY'),
-    'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
-],
+    'midtrans' => [
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+    ],
 
-'xendit' => [
-    'secret_key' => env('XENDIT_SECRET_KEY'),
-    'public_key' => env('XENDIT_PUBLIC_KEY'),
-    'api_version' => env('XENDIT_API_VERSION', '2020-10-01'),
-],
+    'xendit' => [
+        'secret_key' => env('XENDIT_SECRET_KEY'),
+        'public_key' => env('XENDIT_PUBLIC_KEY'),
+        'api_version' => env('XENDIT_API_VERSION', '2020-10-01'),
+    ],
 
 ];

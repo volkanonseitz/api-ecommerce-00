@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Type\Actions;
 
 use App\Models\Type;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
-class DeleteTypeAction
+final class DeleteTypeAction
 {
+    private const CACHE_KEY_PREFIX = 'types_';
+
     public function execute(Type $type): void
     {
-        DB::transaction(function () use ($type) {
-            $type->banners()->delete();
-            $type->delete();
-        });
+        $language = $type->language;
+        $type->banners()->delete(); // Delete related banners
+        $type->delete();
+
+        Cache::forget(self::CACHE_KEY_PREFIX.$language.'_*'); // Invalidate cache
     }
 }

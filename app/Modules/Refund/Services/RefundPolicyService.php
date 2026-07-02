@@ -6,7 +6,6 @@ namespace App\Modules\Refund\Services;
 
 use App\Enums\Permission;
 use App\Models\RefundPolicy;
-use App\Models\Shop;
 use App\Models\User;
 use App\Modules\Refund\DTO\RefundPolicyData;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +19,7 @@ class RefundPolicyService
         $query = RefundPolicy::where('language', $language);
 
         // Filter by shop_id if not super_admin
-        if (!$user->hasPermissionTo('super_admin') && $request->has('shop_id')) {
+        if (! $user->hasPermissionTo('super_admin') && $request->has('shop_id')) {
             $query->where('shop_id', $request->get('shop_id'));
         }
 
@@ -39,22 +38,24 @@ class RefundPolicyService
     public function createPolicy(RefundPolicyData $data, User $user): RefundPolicy
     {
         $policyData = $data->toArray();
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             $policyData['shop_id'] = $user->shops()->first()?->id;
         }
 
         $policy = RefundPolicy::create($policyData);
+
         return $policy;
     }
 
     public function updatePolicy(RefundPolicy $policy, RefundPolicyData $data, User $user): RefundPolicy
     {
         $policyData = $data->toArray();
-        if (!$user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->hasPermissionTo(Permission::STORE_OWNER->value)) {
+        if (! $user->hasPermissionTo(Permission::SUPER_ADMIN->value) && $user->hasPermissionTo(Permission::STORE_OWNER->value)) {
             $policyData['shop_id'] = $user->shops()->first()?->id;
         }
-        
+
         $policy->update($policyData);
+
         return $policy->fresh();
     }
 

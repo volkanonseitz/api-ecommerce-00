@@ -7,9 +7,8 @@ namespace App\Modules\User\Actions;
 use App\Models\User;
 use App\Modules\User\Services\UserSecurityService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Dipisah dari AuthService (Fat Service) agar logika lockout/brute-force
@@ -22,7 +21,7 @@ final class AttemptLoginAction
     ) {}
 
     /**
-     * @return array{status: string, user?: User, locked_until?: \Illuminate\Support\Carbon}
+     * @return array{status: string, user?: User, locked_until?: Carbon}
      */
     public function execute(string $email, string $password, Request $request): array
     {

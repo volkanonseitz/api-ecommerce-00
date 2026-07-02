@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Shop\Http\Resources;
 
+use App\Models\Shop;
 use App\Modules\Category\Http\Resources\CategoryResource;
 use App\Modules\User\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Shop
+ * @mixin Shop
  */
 class ShopResource extends JsonResource
 {
