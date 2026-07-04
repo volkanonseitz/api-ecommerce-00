@@ -21,6 +21,7 @@
         "spatie/period": "^2.4"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.30",
         "fakerphp/faker": "^1.23",
         "laramint/laravel-brain": "^2.3",
         "larastan/larastan": "^3.10",

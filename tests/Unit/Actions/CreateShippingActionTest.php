@@ -34,7 +34,7 @@ class CreateShippingActionTest extends TestCase
             ->with($data->toArray())
             ->andReturn(new Shipping($data->toArray())); // Return a new Shipping instance
 
-        $action = new CreateShippingAction();
+        $action = new CreateShippingAction;
 
         // Act
         $shipping = $action->execute($data);

@@ -33,7 +33,7 @@ class CreateQuestionActionTest extends TestCase
             ->with($data->toArray())
             ->andReturn(new Question($data->toArray())); // Return a new Question instance
 
-        $action = new CreateQuestionAction();
+        $action = new CreateQuestionAction;
 
         // Act
         $question = $action->execute($data);
