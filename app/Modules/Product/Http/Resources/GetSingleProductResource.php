@@ -22,7 +22,7 @@ class GetSingleProductResource extends JsonResource
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'metas' => $this->resource->metas,
             'digital_file' => $this->resource->digital_file,
-            'variations' => $this->resource->whenLoaded('variations', function () {
+            'variations' => $this->whenLoaded('variations', function () {
                 return [
                     'id' => $this->resource->variations->id,
                     'slug' => $this->resource->variations->slug,

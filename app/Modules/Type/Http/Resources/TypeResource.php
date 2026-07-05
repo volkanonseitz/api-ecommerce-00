@@ -23,7 +23,7 @@ class TypeResource extends JsonResource
             'settings' => $this->resource->settings,
             'promotional_sliders' => $this->resource->promotional_sliders,
             'images' => $this->resource->images,
-            'banners' => $this->resource->whenLoaded('banners'),
+            'banners' => $this->whenLoaded('banners'),
         ];
     }
 }

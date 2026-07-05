@@ -25,7 +25,7 @@ class CategoryResource extends JsonResource
             'icon' => $this->resource->icon,
             'type_id' => $this->resource->type_id,
             'banner_image' => $this->resource->banner_image,
-            'type' => $this->resource->whenLoaded(
+            'type' => $this->whenLoaded(
                 'type',
                 fn () => [
                     'id' => $this->resource->type->id,

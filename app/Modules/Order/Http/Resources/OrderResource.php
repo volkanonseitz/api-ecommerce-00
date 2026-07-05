@@ -35,7 +35,7 @@ class OrderResource extends JsonResource
             'note' => $this->resource->note,
             'created_at' => $this->resource->created_at,
             'updated_at' => $this->resource->updated_at,
-            'products' => $this->resource->whenLoaded('products', function () {
+            'products' => $this->whenLoaded('products', function () {
                 return $this->resource->products->map(function ($product) {
                     return [
                         'id' => $product->id,
@@ -50,10 +50,10 @@ class OrderResource extends JsonResource
                 });
             }),
             'children' => OrderResource::collection($this->whenLoaded('children')),
-            'shop' => $this->resource->whenLoaded('shop', fn () => ['id' => $this->resource->shop->id, 'name' => $this->resource->shop->name]),
-            'customer' => $this->resource->whenLoaded('customer', fn () => ['id' => $this->resource->customer->id, 'name' => $this->resource->customer->name]),
-            'wallet_point' => $this->resource->whenLoaded('wallet_point'),
-            'payment_intent' => $this->resource->whenLoaded('payment_intent'),
+            'shop' => $this->whenLoaded('shop', fn () => ['id' => $this->resource->shop->id, 'name' => $this->resource->shop->name]),
+            'customer' => $this->whenLoaded('customer', fn () => ['id' => $this->resource->customer->id, 'name' => $this->resource->customer->name]),
+            'wallet_point' => $this->whenLoaded('wallet_point'),
+            'payment_intent' => $this->whenLoaded('payment_intent'),
         ];
     }
 }

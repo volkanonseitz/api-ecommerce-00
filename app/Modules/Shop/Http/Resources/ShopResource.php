@@ -47,12 +47,12 @@ class ShopResource extends JsonResource
                 fn () => $this->resource->balance,
             ),
 
-            'categories' => $this->resource->whenLoaded(
+            'categories' => $this->whenLoaded(
                 'categories',
                 fn () => CategoryResource::collection($this->resource->categories)
             ),
-            'orders_count' => $this->resource->whenCounted('orders'),
-            'products_count' => $this->resource->whenCounted('products'),
+            'orders_count' => $this->whenCounted('orders'),
+            'products_count' => $this->whenCounted('products'),
         ];
     }
 }

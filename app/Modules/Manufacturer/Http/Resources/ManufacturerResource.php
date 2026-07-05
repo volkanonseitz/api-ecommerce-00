@@ -33,7 +33,7 @@ class ManufacturerResource extends JsonResource
             'socials' => $this->resource->socials,
             'image' => $this->resource->image,
             'cover_image' => $this->resource->cover_image,
-            'type' => $this->resource->whenLoaded('type', function () {
+            'type' => $this->whenLoaded('type', function () {
                 return [
                     'id' => $this->resource->type->id,
                     'name' => $this->resource->type->name,
