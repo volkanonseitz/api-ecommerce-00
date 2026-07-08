@@ -23,11 +23,15 @@ use App\Modules\Language\Http\Controllers\LanguageController;
 use App\Modules\Manufacturer\Http\Controllers\ManufacturerController;
 use App\Modules\Message\Http\Controllers\MessageController;
 use App\Modules\NotifyLogs\Http\Controllers\NotifyLogsController;
-use App\Modules\Order\Http\Controllers\OrderController;
+use App\Modules\Order\Http\Controllers\OrderQueryController;
+use App\Modules\Order\Http\Controllers\OrderTransactionController;
 use App\Modules\OwnershipTransfer\Http\Controllers\OwnershipTransferController;
 use App\Modules\PaymentIntent\Http\Controllers\PaymentIntentController;
 use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
-use App\Modules\Product\Http\Controllers\ProductController;
+use App\Modules\Product\Http\Controllers\ProductCrudController;
+use App\Modules\Product\Http\Controllers\ProductMetricController;
+use App\Modules\Product\Http\Controllers\ProductQueryController;
+use App\Modules\Product\Http\Controllers\ProductRentalController;
 use App\Modules\Question\Http\Controllers\QuestionController;
 use App\Modules\Refund\Http\Controllers\RefundController;
 use App\Modules\Refund\Http\Controllers\RefundPolicyController;
@@ -43,7 +47,9 @@ use App\Modules\Tax\Http\Controllers\TaxController;
 use App\Modules\Terms\Http\Controllers\TermsAndConditionsController;
 use App\Modules\Type\Http\Controllers\TypeController;
 use App\Modules\User\Http\Controllers\AuthController;
+use App\Modules\User\Http\Controllers\ProfileController;
 use App\Modules\User\Http\Controllers\UserManagementController;
+use App\Modules\User\Http\Controllers\UserSecurityController;
 use App\Modules\Wishlist\Http\Controllers\WishlistController;
 use App\Modules\Withdraw\Http\Controllers\WithdrawController;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -66,33 +72,18 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // ========================
 
 // AuthController (public)
-// Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify'); // Method not implemented
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/token', [AuthController::class, 'token'])->middleware('throttle:login');
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-// Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->middleware('throttle:password-reset'); // Method not implemented
-// Route::post('/verify-forget-password-token', [AuthController::class, 'verifyForgetPasswordToken']); // Method not implemented
-// Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset'); // Method not implemented
-// Route::post('/contact-us', [AuthController::class, 'contactAdmin']); // Method not implemented
-Route::post('/social-login-token', [AuthController::class, 'socialLogin']);
-// Route::post('/send-otp-code', [AuthController::class, 'sendOtpCode'])->middleware('throttle:otp'); // Method not implemented
-// Route::post('/verify-otp-code', [AuthController::class, 'verifyOtpCode']); // Method not implemented
-// Route::post('/otp-login', [AuthController::class, 'otpLogin'])->middleware('throttle:otp'); // Method not implemented
-// Route::post('/subscribe-to-newsletter', [AuthController::class, 'subscribeToNewsletter'])->name('subscribeToNewsletter'); // Method not implemented
-// Route::post('/license-key/verify', [AuthController::class, 'verifyLicenseKey']); // Method not implemented
-// Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send'); // Method not implemented
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/social-login', [AuthController::class, 'socialLogin']);
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
+Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
 // ProductController (public)
-Route::get('/popular-products', [ProductController::class, 'popularProducts']);
-Route::get('/best-selling-products', [ProductController::class, 'bestSellingProducts']);
-Route::get('/check-availability', [ProductController::class, 'checkAvailability']);
-Route::get('/products/calculate-rental-price', [ProductController::class, 'calculateRentalPrice']);
-Route::post('/import-products', [ProductController::class, 'importProducts']);
-Route::post('/import-variation-options', [ProductController::class, 'importVariationOptions']);
-Route::get('/export-products/{shop_id}', [ProductController::class, 'exportProducts']);
-Route::get('/export-variation-options/{shop_id}', [ProductController::class, 'exportVariableOptions']);
-Route::post('/generate-description', [ProductController::class, 'generateDescription']);
-Route::apiResource('/products', ProductController::class)->only(['index', 'show']);
+Route::get('/popular-products', [ProductMetricController::class, 'popular']);
+Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
+Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
+Route::get('/products/calculate-rental-price', [ProductRentalController::class, 'calculateRentalPrice']);
+Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
 
 // AuthorController (public)
 Route::get('/top-authors', [AuthorController::class, 'topAuthor']);
@@ -157,10 +148,7 @@ Route::apiResource('/feedbacks', FeedbackController::class)->only(['index', 'sho
 Route::post('/orders/checkout/verify', [CheckoutController::class, 'verify']);
 
 // OrderController (public)
-Route::apiResource('/orders', OrderController::class)->only(['show', 'store']);
-// Route::post('/orders/payment', [OrderController::class, 'submitPayment']); // Method not implemented
-Route::get('/export-order/token/{token}', [OrderController::class, 'exportOrder'])->name('export_order.token');
-Route::get('/download-invoice/token/{token}', [OrderController::class, 'downloadInvoice'])->name('download_invoice.token');
+Route::get('/orders/track/{identifier}', [OrderQueryController::class, 'show']);
 
 // PaymentIntentController (public)
 Route::get('/payment-intent', [PaymentIntentController::class, 'getPaymentIntent']);
@@ -190,16 +178,33 @@ Route::apiResource('/became-seller', BecameSellerController::class);
 // CUSTOMER (auth:sanctum, email.verified, permission:CUSTOMER)
 // ========================
 Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::CUSTOMER->value]], function () {
-    // AuthController
-    Route::post('/update-email', [AuthController::class, 'updateUserEmail']);
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::put('/users/{id}', [AuthController::class, 'update']);
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    // User Module Authenticated Routes
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [ProfileController::class, 'me']);
+    Route::put('/me', [ProfileController::class, 'updateProfile']);
+    Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/me/avatar', [ProfileController::class, 'deleteAvatar']);
+
+    // Security routes
+    Route::post('/me/change-password', [UserSecurityController::class, 'changePassword']);
+    Route::post('/me/logout-all', [UserSecurityController::class, 'logoutFromAllDevices']);
+    Route::get('/me/sessions', [UserSecurityController::class, 'viewActiveSessions']);
+    Route::delete('/me/sessions/{sessionId}', [UserSecurityController::class, 'revokeSession']);
+
+    // Admin/Super Admin User Management
+    Route::middleware(['permission:super_admin'])->group(function () {
+        Route::apiResource('/users', UserManagementController::class);
+        Route::patch('/users/{id}/toggle-active', [UserManagementController::class, 'toggleActive']);
+        Route::patch('/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
+        Route::patch('/users/{id}/assign-shop', [UserManagementController::class, 'assignShop']);
+    });
     // Route::post('/update-contact', [AuthController::class, 'updateContact']); // Method not implemented
 
     // OrderController
-    Route::apiResource('/orders', OrderController::class)->only(['index']);
-    // Route::get('/orders/tracking-number/{tracking_number}', [OrderController::class, 'findByTrackingNumber']); // Method not implemented
+    Route::get('/my-orders', [OrderQueryController::class, 'myOrders']);
+    Route::post('/orders', [OrderTransactionController::class, 'store']);
+    Route::get('/orders/{identifier}', [OrderQueryController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderTransactionController::class, 'cancel']);
 
     // ReviewController
     Route::apiResource('/reviews', ReviewController::class)->only(['store', 'update']);
@@ -280,9 +285,15 @@ Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permis
     Route::apiResource('/attribute-values', AttributeValueController::class)->only(['store', 'update', 'destroy']);
 
     // OrderController
-    Route::apiResource('/orders', OrderController::class)->only(['update', 'destroy']);
-    Route::get('/export-order-url/{shop_id?}', [OrderController::class, 'exportOrderUrl']);
-    Route::post('/download-invoice-url', [OrderController::class, 'downloadInvoiceUrl']);
+    Route::get('/orders', [OrderQueryController::class, 'index']);
+    Route::patch('/orders/{id}/status', [OrderTransactionController::class, 'updateStatus']);
+    Route::patch('/orders/{id}/payment-status', [OrderTransactionController::class, 'updatePaymentStatus']);
+
+    // Shop-specific orders
+    Route::get('/shops/{shopId}/orders', [OrderQueryController::class, 'showByShop']);
+
+    // Order statistics
+    Route::get('/orders/stats', [OrderQueryController::class, 'stats']);
 
     // QuestionController
     Route::apiResource('/questions', QuestionController::class)->only(['update']);
@@ -400,13 +411,13 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
 
     // AuthController
     Route::apiResource('/users', AuthController::class);
-    // Route::post('/users/block-user', [AuthController::class, 'banUser']); // Method not implemented - use UserManagementController
-    // Route::post('/users/unblock-user', [AuthController::class, 'activeUser']); // Method not implemented - use UserManagementController
+    // Route::post('/users/block-user', [\App\Modules\User\Http\Controllers\AuthController::class, 'banUser']); // Method not implemented - use UserManagementController
+    // Route::post('/users/unblock-user', [\App\Modules\User\Http\Controllers\AuthController::class, 'activeUser']); // Method not implemented - use UserManagementController
     // Route::post('/add-points', [AuthController::class, 'addPoints']); // Method not implemented
-    // Route::post('/users/make-admin', [AuthController::class, 'makeOrRevokeAdmin']); // Method not implemented - use UserManagementController
-    // Route::get('/admin/list', [AuthController::class, 'admins']); // Method not implemented
-    // Route::get('/customers/list', [AuthController::class, 'customers']); // Method not implemented
-    // Route::get('/my-staffs', [AuthController::class, 'myStaffs']); // Method not implemented
+    // Route::post('/users/make-admin', [\App\Modules\User\Http\Controllers\AuthController::class, 'makeOrRevokeAdmin']); // Method not implemented - use UserManagementController
+    // Route::get('/admin/list', [\App\Modules\User\Http\Controllers\AuthController::class, 'admins']); // Method not implemented
+    // Route::get('/customers/list', [\App\Modules\User\Http\Controllers\AuthController::class, 'customers']); // Method not implemented
+    // Route::get('/my-staffs', [\App\Modules\User\Http\Controllers\AuthController::class, 'myStaffs']); // Method not implemented
     // Route::get('/all-staffs', [AuthController::class, 'allStaffs']); // Method not implemented
     // Route::get('/vendors/list', [AuthController::class, 'vendors']); // Method not implemented
 
@@ -452,3 +463,172 @@ Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'au
     // OwnershipTransferController
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['update', 'destroy']);
 });
+
+// ========================
+// Module Routes
+// ========================
+
+// User Module Routes
+// Public Auth Routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/social-login', [AuthController::class, 'socialLogin']);
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
+Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+
+// Authenticated User Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [ProfileController::class, 'me']);
+    Route::put('/me', [ProfileController::class, 'updateProfile']);
+    Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/me/avatar', [ProfileController::class, 'deleteAvatar']);
+
+    // Security routes
+    Route::post('/me/change-password', [UserSecurityController::class, 'changePassword']);
+    Route::post('/me/logout-all', [UserSecurityController::class, 'logoutFromAllDevices']);
+    Route::get('/me/sessions', [UserSecurityController::class, 'viewActiveSessions']);
+    Route::delete('/me/sessions/{sessionId}', [UserSecurityController::class, 'revokeSession']);
+
+    // Admin/Super Admin User Management
+    Route::middleware(['permission:super_admin'])->group(function () {
+        Route::apiResource('/users', UserManagementController::class);
+        Route::patch('/users/{id}/toggle-active', [UserManagementController::class, 'toggleActive']);
+        Route::patch('/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
+        Route::patch('/users/{id}/assign-shop', [UserManagementController::class, 'assignShop']);
+    });
+});
+
+// Product Module Routes
+// Public Routes (tanpa authentication)
+// Public product queries
+Route::get('/popular-products', [ProductMetricController::class, 'popular']);
+Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
+Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
+Route::get('/products/calculate-rental-price', [ProductRentalController::class, 'calculateRentalPrice']);
+
+// Public product queries
+Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
+
+// Authenticated Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Wishlist
+    Route::get('/my-wishlists', [ProductQueryController::class, 'myWishlists']);
+
+    // Shop-specific products
+    Route::get('/followed-shops-popular-products', [ProductQueryController::class, 'followedShopsPopularProducts']);
+
+    // Admin/Staff Product Management
+    Route::middleware(['permission:super_admin|store_owner|staff'])->group(function () {
+        Route::apiResource('/products', ProductCrudController::class)->only(['store', 'update', 'destroy']);
+        Route::patch('/products/{id}/stock', [ProductCrudController::class, 'updateStock']);
+        Route::patch('/products/{id}/status', [ProductCrudController::class, 'changeStatus']);
+
+        Route::get('/draft-products', [ProductQueryController::class, 'draftedProducts']);
+        Route::get('/products-stock', [ProductQueryController::class, 'productStock']);
+        Route::get('/products-by-flash-sale', [ProductQueryController::class, 'getProductsByFlashSale']);
+
+        // Rental Management
+        Route::post('/rental/availability', [ProductRentalController::class, 'checkAvailability']);
+        Route::get('/rental/blocked-dates/{productId}', [ProductRentalController::class, 'getBlockedDates']);
+    });
+
+    // Import/Export
+    Route::middleware(['permission:super_admin|store_owner'])->group(function () {
+        Route::post('/import-products', [ProductCrudController::class, 'importProducts']);
+        Route::post('/import-variation-options', [ProductCrudController::class, 'importVariationOptions']);
+        Route::get('/export-products/{shop_id}', [ProductCrudController::class, 'exportProducts']);
+        Route::get('/export-variation-options/{shop_id}', [ProductCrudController::class, 'exportVariableOptions']);
+        Route::post('/generate-description', [ProductCrudController::class, 'generateDescription']);
+    });
+
+    // Analytics Routes (Admin only)
+    Route::middleware(['permission:super_admin'])->prefix('admin')->group(function () {
+        Route::get('/low-stock-products', [ProductMetricController::class, 'lowStock']);
+        Route::get('/category-wise-product', [ProductMetricController::class, 'categoryWiseProduct']);
+        Route::get('/category-wise-product-sale', [ProductMetricController::class, 'categoryWiseProductSale']);
+        Route::get('/top-rate-product', [ProductMetricController::class, 'topRatedProducts']);
+
+        // Flash Sale Products
+        Route::get('/requested-products-for-flash-sale', [ProductMetricController::class, 'getRequestedProductsForFlashSale']);
+        Route::post('/approve-flash-sale-requested-products', [ProductMetricController::class, 'approveFlashSaleProductsRequest']);
+        Route::post('/disapprove-flash-sale-requested-products', [ProductMetricController::class, 'disapproveFlashSaleProductsRequest']);
+        Route::get('/product-flash-sale-info', [ProductMetricController::class, 'getFlashSaleInfoByProductID']);
+    });
+});
+
+// Order Module Routes
+// Public Routes (tanpa authentication)
+// Track order (guest access)
+Route::get('/orders/track/{identifier}', [OrderQueryController::class, 'show']);
+
+// Authenticated Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Customer orders
+    Route::get('/my-orders', [OrderQueryController::class, 'myOrders']);
+    Route::post('/orders', [OrderTransactionController::class, 'store']);
+    Route::get('/orders/{identifier}', [OrderQueryController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderTransactionController::class, 'cancel']);
+
+    // Admin/Staff Order Management
+    Route::middleware(['permission:super_admin|store_owner|staff'])->group(function () {
+        Route::get('/orders', [OrderQueryController::class, 'index']);
+        Route::patch('/orders/{id}/status', [OrderTransactionController::class, 'updateStatus']);
+        Route::patch('/orders/{id}/payment-status', [OrderTransactionController::class, 'updatePaymentStatus']);
+
+        // Shop-specific orders
+        Route::get('/shops/{shopId}/orders', [OrderQueryController::class, 'showByShop']);
+
+        // Order statistics
+        Route::get('/orders/stats', [OrderQueryController::class, 'stats']);
+    });
+});
+
+// Refund Module Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Refund Policies (Admin/Owner only)
+    Route::apiResource('refund-policies', RefundPolicyController::class);
+
+    // Refunds (Admin/Owner/Customer)
+    Route::apiResource('refunds', RefundController::class);
+});
+
+// Tag Module Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Tags
+    Route::apiResource('tags', TagController::class);
+});
+
+// Public tags (read-only)
+Route::get('/public-tags', [TagController::class, 'index']); // Public view
+Route::get('/public-tags/{param}', [TagController::class, 'show']); // Public view
+
+// Review Module Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Reviews
+    Route::apiResource('reviews', ReviewController::class);
+});
+
+// Public reviews (read-only)
+Route::get('/products/{productId}/reviews', [ReviewController::class, 'index']); // Get reviews for a product
+
+// Type Module Routes
+Route::prefix('types')->group(function () {
+    Route::get('/', [TypeController::class, 'index']);
+    Route::post('/', [TypeController::class, 'store']);
+    Route::get('/{identifier}', [TypeController::class, 'show']);
+    Route::put('/{id}', [TypeController::class, 'update']);
+    Route::delete('/{id}', [TypeController::class, 'destroy']);
+});
+
+// Settings Module Routes
+Route::middleware(['auth:sanctum', 'permission:super_admin'])->group(function () {
+    // Settings (Super Admin only)
+    Route::get('/settings', [SettingsController::class, 'index']);
+    Route::post('/settings', [SettingsController::class, 'store']); // Use store to create/update
+    Route::put('/settings/{id}', [SettingsController::class, 'update']);
+    Route::get('/settings/{id}', [SettingsController::class, 'show']);
+});
+
+// Publicly accessible settings (read-only for general info)
+Route::get('/public-settings', [SettingsController::class, 'index']); // Public view, maybe filtered

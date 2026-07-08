@@ -20,8 +20,5 @@ class TypeModuleServiceProvider extends ServiceProvider
         $this->app->singleton(TypeService::class);
     }
 
-    public function boot(): void
-    {
-        $this->loadRoutesFrom(__DIR__.'/routes.php');
-    }
+    public function boot(): void {}
 }

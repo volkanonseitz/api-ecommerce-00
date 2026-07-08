@@ -1,0 +1,1626 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums from Laravel migrations
+enum OrderStatus {
+  pending
+  processing
+  completed
+  cancelled
+  failed
+  refunded
+}
+
+enum PaymentStatus {
+  pending
+  due
+  partial_due
+  paid
+  refunded
+  cashed_out
+}
+
+enum CouponType {
+  fixed_coupon
+  percent_coupon
+}
+
+enum RefundStatus {
+  pending
+  approved
+  rejected
+}
+
+enum RefundPolicyTarget {
+  vendor
+}
+
+enum ProductStatus {
+  draft
+  publish
+}
+
+enum ProductVisibility {
+  public
+  password
+}
+
+enum ProductType {
+  simple
+  variable
+}
+
+enum NoticePriority {
+  low
+  medium
+  high
+}
+
+enum NoticeType {
+  info
+  warning
+  danger
+}
+
+enum ResourceType {
+  dropoff
+  pickup
+  feature
+  deposit
+  person
+}
+
+enum OwnershipTransferStatus {
+  pending
+  approved
+  rejected
+}
+
+enum WithdrawStatus {
+  pending
+  approved
+  rejected
+}
+
+// Models
+model User {
+  id                      String    @id @default(uuid())
+  name                    String
+  email                   String    @unique
+  emailVerifiedAt         DateTime? @map("email_verified_at")
+  password                String
+  rememberToken           String?   @map("remember_token")
+  isActive                Boolean   @default(true) @map("is_active")
+  shopId                  String?   @map("shop_id") // Foreign Key to Shop
+  failedLoginAttempts     Int       @default(0) @map("failed_login_attempts")
+  lockedUntil             DateTime? @map("locked_until")
+  lastLoginAt             DateTime? @map("last_login_at")
+  lastLoginIp             String?   @map("last_login_ip") @db.VarChar(45)
+  lastLoginUserAgent      String?   @map("last_login_user_agent") @db.VarChar(1000)
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  profile                 UserProfile?
+  shopsOwned              Shop[]    @relation("ShopOwner")
+  orders                  Order[]   @relation("CustomerOrders")
+  addresses               Address[]
+  reviews                 Review[]
+  questions               Question[]
+  wishlists               Wishlist[]
+  messages                Message[]
+  conversations           Conversation[]
+  paymentGateways         PaymentGateway[]
+  wallets                 Wallet[]
+  feedbacks               Feedback[]
+  abusiveReports          AbusiveReport[]
+  providers               Provider[]
+  userSessions            UserSession[]
+  passwordHistory         PasswordHistory[]
+  notifyLogsReceiver      NotifyLog[] @relation("NotifyLogReceiver")
+  notifyLogsSender        NotifyLog[] @relation("NotifyLogSender")
+  storeNoticesCreated     StoreNotice[] @relation("StoreNoticeCreatedBy")
+  storeNoticesUpdated     StoreNotice[] @relation("StoreNoticeUpdatedBy")
+  ownershipTransfersFrom  OwnershipTransfer[] @relation("OwnershipTransferFromUser")
+  ownershipTransfersTo    OwnershipTransfer[] @relation("OwnershipTransferToUser")
+  ownershipTransfersBy    OwnershipTransfer[] @relation("OwnershipTransferCreatedBy")
+  coupons                 Coupon[]
+  storeNoticeReads        StoreNoticeRead[]
+  orderWalletPoints       OrderWalletPoint[]
+  // User has many relationships through pivot tables (e.g., user_shop)
+  userShops               UserShop[]
+}
+
+model UserProfile {
+  id        String    @id @default(uuid())
+  avatar    Json?
+  bio       String?
+  socials   Json?
+  contact   String?
+  notifications Json?
+  customerId String    @unique @map("customer_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [customerId], references: [id])
+  @@map("user_profiles")
+}
+
+model Shop {
+  id              String    @id @default(uuid())
+  ownerId         String    @map("owner_id")
+  name            String?
+  slug            String?   @unique
+  description     String?
+  coverImage      Json?     @map("cover_image")
+  logo            Json?
+  isActive        Boolean   @default(false) @map("is_active")
+  address         Json?
+  settings        Json?
+  notifications   Json?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  owner           User      @relation("ShopOwner", fields: [ownerId], references: [id])
+  products        Product[]
+  orders          Order[]
+  attributes      Attribute[]
+  balance         Balance?
+  conversations   Conversation[]
+  coupons         Coupon[]
+  flashSales      FlashSale[]
+  refunds         Refund[]
+  withdraws       Withdraw[]
+  faqs            Faq[]
+  termsAndConditions TermAndCondition[]
+  storeNotices    StoreNotice[]
+  categoryShops   CategoryShop[]
+  userShops       UserShop[]
+  storeNoticeShops StoreNoticeShop[]
+  refundPolicies  RefundPolicy[]
+  @@map("shops")
+}
+
+model Product {
+  id                        String    @id @default(uuid())
+  name                      String
+  slug                      String    @unique
+  description               String?
+  typeId                    String    @map("type_id") // FK to Type
+  price                     Float?
+  shopId                    String?   @map("shop_id") // FK to Shop
+  authorId                  String?   @map("author_id") // FK to Author
+  manufacturerId            String?   @map("manufacturer_id") // FK to Manufacturer
+  isDigital                 Boolean   @default(false) @map("is_digital")
+  isExternal                Boolean   @default(false) @map("is_external")
+  externalProductUrl        String?   @map("external_product_url")
+  externalProductButtonText String?   @map("external_product_button_text")
+  blockedDates              String?   @map("blocked_dates") // Assuming JSON string
+  salePrice                 Float?    @map("sale_price")
+  language                  String
+  minPrice                  Float?    @map("min_price")
+  maxPrice                  Float?    @map("max_price")
+  sku                       String?
+  quantity                  Int       @default(0)
+  soldQuantity              Int       @default(0) @map("sold_quantity")
+  inStock                   Boolean   @default(true) @map("in_stock")
+  isTaxable                 Boolean   @default(false) @map("is_taxable")
+  inFlashSale               Int       @default(0) @map("in_flash_sale") // Laravel uses int for boolean here
+  shippingClassId           String?   @map("shipping_class_id") // FK to ShippingClass
+  status                    ProductStatus
+  visibility                ProductVisibility
+  productType               ProductType @map("product_type")
+  unit                      String
+  height                    String?
+  width                     String?
+  length                    String?
+  image                     Json?
+  video                     Json?
+  gallery                   Json?
+  deletedAt                 DateTime? @map("deleted_at")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  type                      Type      @relation(fields: [typeId], references: [id])
+  shop                      Shop?     @relation(fields: [shopId], references: [id])
+  author                    Author?   @relation(fields: [authorId], references: [id])
+  manufacturer              Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  shippingClass             ShippingClass? @relation(fields: [shippingClassId], references: [id])
+  variationOptions          VariationOption[]
+  reviews                   Review[]
+  questions                 Question[]
+  wishlists                 Wishlist[]
+  digitalFiles              DigitalFile[] @relation("DigitalFileProduct")
+  // Polymorphic relations: resources (multiple pivots), products_meta
+  // Pivots: category_product, product_tag, attribute_product, flash_sale_products, flash_sale_requests_products
+  categoryProducts          CategoryProduct[]
+  productTags               ProductTag[]
+  attributeProducts         AttributeProduct[]
+  flashSaleProducts         FlashSaleProduct[]
+  flashSaleRequestsProducts FlashSaleRequestsProduct[]
+  productsMeta              ProductMeta[]
+  orderProducts             OrderProduct[]
+  availabilities            Availability[]
+  dropoffLocationProducts   DropoffLocationProduct[]
+  pickupLocationProducts    PickupLocationProduct[]
+  featureProducts           FeatureProduct[]
+  depositProducts           DepositProduct[]
+  personProducts            PersonProduct[]
+
+  @@map("products")
+}
+
+model VariationOption {
+  id        String    @id @default(uuid())
+  title     String
+  image     Json?
+  isDigital Boolean   @default(false) @map("is_digital")
+  price     String // Assuming string due to Laravel float/double inconsistencies, can be Float
+  salePrice String?   @map("sale_price") // Assuming string, can be Float
+  language  String
+  quantity  BigInt
+  soldQuantity Int    @default(0) @map("sold_quantity")
+  isDisable Boolean   @default(false) @map("is_disable")
+  sku       String?
+  options   Json // JSON type for variations options
+  productId String?   @map("product_id") // FK to Product
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  product   Product?  @relation(fields: [productId], references: [id])
+  reviews   Review[]
+  wishlists Wishlist[]
+  orderProducts OrderProduct[]
+
+  @@map("variation_options")
+}
+
+model ProductMeta {
+  id        Int      @id @default(autoincrement())
+  productId String   @map("product_id")
+  type      String   @default("null")
+  key       String
+  value     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([key])
+  @@map("products_meta")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  language    String
+  icon        String?
+  image       Json?
+  bannerImage Json?     @map("banner_image")
+  details     String?   @db.Text
+  parentId    String?   @map("parent_id") // Self-referencing FK
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  parent      Category? @relation("SubCategories", fields: [parentId], references: [id])
+  subCategories Category[] @relation("SubCategories")
+  categoryProducts CategoryProduct[]
+  categoryShops CategoryShop[]
+
+  @@map("categories")
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  trackingNumber   String      @unique @map("tracking_number")
+  customerId       String?     @map("customer_id") // FK to User
+  customerContact  String      @map("customer_contact")
+  customerName     String?     @map("customer_name")
+  amount           Float
+  salesTax         Float?      @map("sales_tax")
+  paidTotal        Float?      @map("paid_total")
+  total            Float?
+  note             String?     @db.LongText
+  language         String
+  cancelledAmount  Decimal     @default(0) @map("cancelled_amount") @db.Decimal(65, 30) // Assuming Decimal(8,2) from Laravel
+  cancelledTax     Decimal     @default(0) @map("cancelled_tax") @db.Decimal(65, 30)
+  cancelledDeliveryFee Decimal   @default(0) @map("cancelled_delivery_fee") @db.Decimal(65, 30)
+  couponId         String?     @map("coupon_id") // FK to Coupon (Laravel migration says bigint, no FK constraint)
+  parentId         String?     @map("parent_id") // Self-referencing FK
+  shopId           String?     @map("shop_id") // FK to Shop
+  discount         Float?
+  paymentGateway   String?     @map("payment_gateway")
+  alteredPaymentGateway String? @map("altered_payment_gateway")
+  shippingAddress  Json?       @map("shipping_address")
+  billingAddress   Json?       @map("billing_address")
+  logisticsProvider BigInt?     @map("logistics_provider") // Assuming bigint here for external ID
+  deliveryFee      Float?      @map("delivery_fee")
+  deliveryTime     String?     @map("delivery_time")
+  orderStatus      OrderStatus @map("order_status")
+  paymentStatus    PaymentStatus @map("payment_status")
+  deletedAt        DateTime?   @map("deleted_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  customer         User?       @relation("CustomerOrders", fields: [customerId], references: [id])
+  shop             Shop?       @relation(fields: [shopId], references: [id])
+  coupon           Coupon?     @relation(fields: [couponId], references: [id])
+  parent           Order?      @relation("SubOrders", fields: [parentId], references: [id])
+  subOrders        Order[]     @relation("SubOrders")
+  orderProducts    OrderProduct[]
+  refunds          Refund[]
+  paymentIntents   PaymentIntent[]
+  orderedFiles     OrderedFile[]
+  availabilities   Availability[]
+  orderWalletPoints OrderWalletPoint[]
+
+  @@map("orders")
+}
+
+model Coupon {
+  id                  String      @id @default(uuid())
+  code                String
+  language            String
+  description         String?     @db.Text
+  image               Json?
+  type                CouponType
+  amount              Float       @default(0)
+  minimumCartAmount   Float       @default(0) @map("minimum_cart_amount")
+  activeFrom          String      @map("active_from") // Assuming string for date, can be DateTime
+  expireAt            String      @map("expire_at") // Assuming string for date, can be DateTime
+  target              Boolean     @default(false)
+  isApprove           Boolean     @default(false) @map("is_approve")
+  shopId              String?     @map("shop_id") // FK to Shop
+  userId              String?     @map("user_id") // FK to User
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  deletedAt           DateTime?   @map("deleted_at")
+
+  shop                Shop?       @relation(fields: [shopId], references: [id])
+  user                User?       @relation(fields: [userId], references: [id])
+  orders              Order[]
+
+  @@map("coupons")
+}
+
+model Refund {
+  id             String      @id @default(uuid())
+  amount         Float       @default(0)
+  status         RefundStatus
+  title          String?
+  description    String?     @db.Text
+  images         Json?
+  orderId        String?     @map("order_id") // FK to Order
+  customerId     String?     @map("customer_id") // FK to User
+  refundPolicyId String?     @map("refund_policy_id") // FK to RefundPolicy
+  shopId         String?     @map("shop_id") // FK to Shop
+  refundReasonId String?     @map("refund_reason_id") // FK to RefundReason
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  order          Order?      @relation(fields: [orderId], references: [id])
+  customer       User?       @relation(fields: [customerId], references: [id])
+  refundPolicy   RefundPolicy? @relation(fields: [refundPolicyId], references: [id])
+  shop           Shop?       @relation(fields: [shopId], references: [id])
+  refundReason   RefundReason? @relation(fields: [refundReasonId], references: [id])
+
+  @@map("refunds")
+}
+
+model RefundReason {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  language  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  refunds   Refund[]
+
+  @@map("refund_reasons")
+}
+
+model RefundPolicy {
+  id          String              @id @default(uuid())
+  title       String
+  slug        String              @unique
+  description String?             @db.Text
+  target      RefundPolicyTarget
+  language    String
+  status      RefundStatus
+  shopId      String?             @map("shop_id") // FK to Shop
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  deletedAt   DateTime?           @map("deleted_at")
+
+  shop        Shop?               @relation(fields: [shopId], references: [id])
+  refunds     Refund[]
+
+  @@map("refund_policies")
+}
+
+model Review {
+  id                 String        @id @default(uuid())
+  orderId            String?       @map("order_id") // FK to Order
+  userId             String        @map("user_id") // FK to User
+  shopId             String        @map("shop_id") // FK to Shop
+  productId          String        @map("product_id") // FK to Product
+  variationOptionId  String?       @map("variation_option_id") // FK to VariationOption
+  comment            String        @db.LongText
+  rating             Float?
+  photos             Json?
+  deletedAt          DateTime?     @map("deleted_at")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  order              Order?        @relation(fields: [orderId], references: [id])
+  user               User          @relation(fields: [userId], references: [id])
+  shop               Shop          @relation(fields: [shopId], references: [id])
+  product            Product       @relation(fields: [productId], references: [id])
+  variationOption    VariationOption? @relation(fields: [variationOptionId], references: [id])
+
+  @@map("reviews")
+}
+
+model Question {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id") // FK to User
+  shopId    String    @map("shop_id") // FK to Shop
+  productId String    @map("product_id") // FK to Product
+  question  String    @db.Text
+  answer    String?   @db.Text
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  shop      Shop      @relation(fields: [shopId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("questions")
+}
+
+model Feedback {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id") // FK to User
+  modelType   String    @map("model_type") // Polymorphic
+  modelId     String    @map("model_id") // Polymorphic
+  positive    Boolean?
+  negative    Boolean?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("feedbacks")
+}
+
+model AbusiveReport {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id") // FK to User
+  modelType   String    @map("model_type") // Polymorphic
+  modelId     String    @map("model_id") // Polymorphic
+  message     String    @db.VarChar(1000)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, modelType, modelId])
+  @@map("abusive_reports")
+}
+
+model Wishlist {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id") // FK to User
+  productId         String    @map("product_id") // FK to Product
+  variationOptionId String?   @map("variation_option_id") // FK to VariationOption
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user              User      @relation(fields: [userId], references: [id])
+  product           Product   @relation(fields: [productId], references: [id])
+  variationOption   VariationOption? @relation(fields: [variationOptionId], references: [id])
+
+  @@map("wishlists")
+}
+
+model Address {
+  id          String    @id @default(uuid())
+  title       String
+  type        String
+  default     Boolean   @default(false)
+  address     Json
+  location    Json?
+  customerId  String    @map("customer_id") // FK to User
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  customer    User      @relation(fields: [customerId], references: [id])
+
+  @@map("address")
+}
+
+model PaymentGateway {
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id") // FK to User
+  customerId String    @map("customer_id") // External customer ID, e.g., Stripe customer ID
+  gatewayName String?   @map("gateway_name")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user       User      @relation(fields: [userId], references: [id])
+  paymentMethods PaymentMethod[]
+
+  @@map("payment_gateways")
+}
+
+model PaymentMethod {
+  id              String    @id @default(uuid())
+  methodKey       String    @unique @map("method_key")
+  methodType      String?   @map("method_type")
+  brand           String?
+  paymentGatewayId String?   @map("payment_gateway_id") // FK to PaymentGateway
+  defaultPayment  Boolean?  @default(false) @map("default_payment")
+  fingerprint     String    @unique
+  ownerName       String?   @map("owner_name")
+  network         String?
+  type            String?
+  last4           String?
+  expMonth        String?   @map("exp_month")
+  expYear         String?   @map("exp_year")
+  expires         String? // Original 'expires' column
+  origin          String?
+  verificationCheck String? @map("verification_check")
+  providerData    Json?     @map("provider_data")
+  metadata        Json?
+  qrisUrl         String?   @map("qris_url")
+  vaNumber        String?   @map("va_number")
+  bankCode        String?   @map("bank_code")
+  ewalletType     String?   @map("ewallet_type")
+  directDebitType String?   @map("direct_debit_type")
+  accountName     String?   @map("account_name")
+  accountNumber   String?   @map("account_number")
+  accountLast4    String?   @map("account_last4")
+  expiryDate      DateTime? @map("expiry_date")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  paymentGateway  PaymentGateway? @relation(fields: [paymentGatewayId], references: [id])
+
+  @@map("payment_methods")
+}
+
+model PaymentIntent {
+  id               String    @id @default(uuid())
+  orderId          String?   @map("order_id") // FK to Order
+  trackingNumber   String?   @map("tracking_number") // Not FK in Laravel, but related to Order
+  paymentGateway   String?   @map("payment_gateway")
+  paymentIntentInfo Json?     @map("payment_intent_info")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  order            Order?    @relation(fields: [orderId], references: [id])
+
+  @@map("payment_intents")
+}
+
+model Balance {
+  id                   String    @id @default(uuid())
+  shopId               String    @unique @map("shop_id") // FK to Shop (one-to-one or one-to-many depending on use)
+  adminCommissionRate  Float?    @map("admin_commission_rate")
+  totalEarnings        Float     @default(0) @map("total_earnings")
+  withdrawnAmount      Float     @default(0) @map("withdrawn_amount")
+  currentBalance       Float     @default(0) @map("current_balance")
+  isCustomCommission   Boolean   @default(false) @map("is_custom_commission")
+  paymentInfo          Json?     @map("payment_info")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  shop                 Shop      @relation(fields: [shopId], references: [id])
+
+  @@map("balances")
+}
+
+model Wallet {
+  id             String    @id @default(uuid())
+  totalPoints    Float     @default(0) @map("total_points")
+  pointsUsed     Float     @default(0) @map("points_used")
+  availablePoints Float     @default(0) @map("available_points")
+  customerId     String?   @map("customer_id") // FK to User
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  customer       User?     @relation(fields: [customerId], references: [id])
+
+  @@map("wallets")
+}
+
+model OrderWalletPoint {
+  id        String    @id @default(uuid())
+  amount    Float?
+  orderId   String?   @map("order_id") // FK to Order
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  order     Order?    @relation(fields: [orderId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  userId    String // FK to User
+  @@map("order_wallet_points")
+}
+
+model Withdraw {
+  id            String      @id @default(uuid())
+  shopId        String      @map("shop_id") // FK to Shop
+  amount        Float
+  paymentMethod String?     @map("payment_method")
+  status        WithdrawStatus
+  details       String?     @db.Text
+  note          String?     @db.Text
+  deletedAt     DateTime?   @map("deleted_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  shop          Shop        @relation(fields: [shopId], references: [id])
+
+  @@map("withdraws")
+}
+
+model Commission {
+  id          String    @id @default(uuid())
+  level       String
+  subLevel    String    @map("sub_level")
+  description String    @db.Text
+  minBalance  Int       @map("min_balance")
+  maxBalance  String    @map("max_balance") // Assuming string from Laravel for flexible range
+  commission  Float
+  image       Json?
+  language    String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("commissions")
+}
+
+model TaxClass {
+  id          String    @id @default(uuid())
+  country     String?
+  state       String?
+  zip         String?
+  city        String?
+  rate        Float
+  name        String?
+  isGlobal    Int?      @map("is_global") // Laravel uses int for boolean
+  priority    Int?
+  onShipping  Boolean   @default(true) @map("on_shipping")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("tax_classes")
+}
+
+model ShippingClass {
+  id          String    @id @default(uuid())
+  name        String
+  amount      Float
+  isGlobal    String    @default("true") @map("is_global") // Laravel uses string for boolean, assuming 'true'/'false'
+  type        String // Enum (fixed/etc.) - define if specific values are known
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  products    Product[]
+
+  @@map("shipping_classes")
+}
+
+// Spatie Permissions (simplified mapping)
+model Permission {
+  id         String    @id @default(uuid())
+  name       String
+  guardName  String    @map("guard_name")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  modelHasPermissions ModelHasPermission[]
+  roleHasPermissions  RoleHasPermission[]
+
+  @@unique([name, guardName])
+  @@map("permissions")
+}
+
+model Role {
+  id         String    @id @default(uuid())
+  name       String
+  guardName  String    @map("guard_name")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  modelHasRoles       ModelHasRole[]
+  roleHasPermissions  RoleHasPermission[]
+
+  @@map("roles")
+}
+
+model ModelHasPermission {
+  permissionId String @map("permission_id")
+  modelType    String @map("model_type")
+  modelId      String @map("model_id") // Assuming String for BigInt
+  
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([permissionId, modelId, modelType]) // Composite Primary Key
+  @@map("model_has_permissions")
+}
+
+model ModelHasRole {
+  roleId    String @map("role_id")
+  modelType String @map("model_type")
+  modelId   String @map("model_id") // Assuming String for BigInt
+
+  role      Role   @relation(fields: [roleId], references: [id])
+
+  @@id([roleId, modelId, modelType]) // Composite Primary Key
+  @@map("model_has_roles")
+}
+
+model RoleHasPermission {
+  permissionId String @map("permission_id")
+  roleId       String @map("role_id")
+
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  role         Role       @relation(fields: [roleId], references: [id])
+
+  @@id([permissionId, roleId]) // Composite Primary Key
+  @@map("role_has_permissions")
+}
+
+model PersonalAccessToken {
+  id           String    @id @default(uuid()) // Laravel has bigint, using String for consistency with other IDs
+  tokenableType String    @map("tokenable_type")
+  tokenableId  String    @map("tokenable_id") // Assuming String for BigInt
+  name         String
+  token        String    @unique @db.VarChar(64)
+  abilities    String?   @db.Text
+  lastUsedAt   DateTime? @map("last_used_at")
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([expiresAt])
+  @@map("personal_access_tokens")
+}
+
+model Provider {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id") // FK to User
+  providerUserId   String    @map("provider_user_id")
+  provider         String
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@map("providers")
+}
+
+model PasswordHistory {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id") // FK to User
+  passwordHash  String    @map("password_hash")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@map("password_history")
+}
+
+model UserSession {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id") // FK to User
+  tokenId          String?   @map("token_id") // Related to PersonalAccessToken, but not FK in Laravel
+  ipAddress        String?   @map("ip_address") @db.VarChar(45)
+  userAgent        String?   @map("user_agent") @db.Text
+  lastActivityAt   DateTime? @map("last_activity_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@map("user_sessions")
+}
+
+// Laravel framework table, not usually migrated directly to Prisma models, for reference
+// model Session {
+//   id          String    @id
+//   userId      String?   @map("user_id")
+//   ipAddress   String?   @map("ip_address") @db.VarChar(45)
+//   userAgent   String?   @map("user_agent") @db.Text
+//   payload     String    @db.LongText
+//   lastActivity Int       @map("last_activity")
+
+//   @@index([userId])
+//   @@index([lastActivity])
+//   @@map("sessions")
+// }
+
+// PasswordResetToken is a framework table, typically not a model in Prisma
+// model PasswordResetToken {
+//   email       String    @id
+//   token       String
+//   createdAt   DateTime? @map("created_at")
+
+//   @@map("password_reset_tokens")
+// }
+
+model Attribute {
+  id           String    @id @default(uuid())
+  slug         String    @unique
+  language     String
+  name         String
+  shopId       String?   @map("shop_id") // FK to Shop
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  shop         Shop?     @relation(fields: [shopId], references: [id])
+  attributeValues AttributeValue[]
+
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id           String    @id @default(uuid())
+  slug         String    @unique
+  attributeId  String    @map("attribute_id") // FK to Attribute
+  value        String
+  language     String
+  meta         String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  attribute    Attribute @relation(fields: [attributeId], references: [id])
+  attributeProducts AttributeProduct[]
+
+  @@map("attribute_values")
+}
+
+model AttributeProduct {
+  attributeValueId String @map("attribute_value_id")
+  productId        String @map("product_id")
+
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
+  product          Product        @relation(fields: [productId], references: [id])
+
+  @@id([attributeValueId, productId]) // Composite Primary Key
+  @@map("attribute_product")
+}
+
+model Type {
+  id                 String    @id @default(uuid())
+  name               String
+  settings           Json?
+  slug               String    @unique
+  language           String
+  icon               String?
+  promotionalSliders Json?     @map("promotional_sliders")
+  images             Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  products           Product[]
+  manufacturers      Manufacturer[]
+  banners            Banner[]
+
+  @@map("types")
+}
+
+model Author {
+  id         String    @id @default(uuid())
+  name       String
+  isApproved Boolean   @default(false) @map("is_approved")
+  image      Json?
+  coverImage Json?     @map("cover_image")
+  slug       String    @unique
+  language   String
+  bio        String?   @db.Text
+  quote      String?   @db.Text
+  born       String? // Assuming string for date, can be DateTime
+  death      String? // Assuming string for date, can be DateTime
+  languages  String? // Assuming string for list of languages, e.g., JSON string or CSV
+  socials    Json?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  products   Product[]
+
+  @@map("authors")
+}
+
+model Manufacturer {
+  id          String    @id @default(uuid())
+  name        String
+  isApproved  Boolean   @default(false) @map("is_approved")
+  image       Json?
+  coverImage  Json?     @map("cover_image")
+  slug        String    @unique
+  language    String
+  typeId      String    @map("type_id") // FK to Type
+  description String?   @db.Text
+  website     String?
+  socials     Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  type        Type      @relation(fields: [typeId], references: [id])
+  products    Product[]
+
+  @@map("manufacturers")
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  language  String
+  icon      String?
+  image     Json?
+  details   String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  productTags ProductTag[]
+
+  @@map("tags")
+}
+
+model Language {
+  id          String    @id @default(uuid()) // Laravel uses int for ID, but keeping String for consistency
+  flag        Json
+  languageCode String   @map("language_code")
+  languageName String   @map("language_name")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Potentially translations relation, but will be handled in translations model
+  @@map("languages")
+}
+
+model Translation {
+  id                String    @id @default(uuid())
+  itemType          String    @map("item_type")
+  itemId            String    @map("item_id") // Assuming String for BigInt
+  translationItemId String?   @map("translation_item_id") // Self-referencing or other translation model
+  languageCode      String    @map("language_code")
+  sourceLanguageCode String   @map("source_language_code")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("translations")
+}
+
+model Banner {
+  id          String    @id @default(uuid())
+  typeId      String    @map("type_id") // FK to Type
+  title       String    @db.Text
+  description String?   @db.Text
+  image       Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  type        Type      @relation(fields: [typeId], references: [id])
+
+  @@map("banners")
+}
+
+model DeliveryTime {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  icon        String
+  description String?   @db.Text
+  language    String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("delivery_times")
+}
+
+model Resource {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  language    String
+  icon        String?
+  details     String?   @db.Text
+  image       Json?
+  isApproved  Boolean   @default(false) @map("is_approved")
+  price       Float?
+  type        ResourceType // Enum (dropoff/pickup/feature/deposit/person)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  dropoffLocationProducts DropoffLocationProduct[]
+  pickupLocationProducts  PickupLocationProduct[]
+  featureProducts         FeatureProduct[]
+  depositProducts         DepositProduct[]
+  personProducts          PersonProduct[]
+
+  @@map("resources")
+}
+
+model Faq {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id") // FK to User
+  shopId        String?   @map("shop_id") // FK to Shop
+  faqTitle      String    @db.Text @map("faq_title")
+  slug          String    @unique
+  faqDescription String   @db.Text @map("faq_description")
+  faqType       String?   @map("faq_type")
+  issuedBy      String?   @map("issued_by")
+  language      String?
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user          User      @relation(fields: [userId], references: [id])
+  shop          Shop?     @relation(fields: [shopId], references: [id])
+
+  @@map("faqs")
+}
+
+model TermAndCondition {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id") // FK to User
+  shopId      String?   @map("shop_id") // FK to Shop
+  title       String    @db.Text
+  slug        String    @unique
+  description String    @db.Text
+  type        String?
+  issuedBy    String?   @map("issued_by")
+  isApproved  Boolean   @default(false) @map("is_approved")
+  language    String?
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User      @relation(fields: [userId], references: [id])
+  shop        Shop?     @relation(fields: [shopId], references: [id])
+
+  @@map("terms_and_conditions")
+}
+
+model BecameSeller {
+  id         String    @id @default(uuid())
+  pageOptions Json    @map("page_options")
+  language   String    @unique
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@map("became_sellers")
+}
+
+model Attachment {
+  id        String    @id @default(uuid())
+  url       String    @default("")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  digitalFiles DigitalFile[] @relation("DigitalFileAttachment")
+
+  @@map("attachments")
+}
+
+model Media {
+  id                  String    @id @default(uuid()) // Laravel has bigint, using String for consistency
+  modelType           String    @map("model_type") // Polymorphic
+  modelId             String    @map("model_id") // Polymorphic
+  uuid                String?   @db.Uuid
+  collectionName      String    @map("collection_name")
+  name                String
+  fileName            String    @map("file_name")
+  mimeType            String?   @map("mime_type")
+  disk                String
+  conversionsDisk     String?   @map("conversions_disk")
+  size                BigInt
+  manipulations       Json
+  generatedConversions Json      @map("generated_conversions")
+  customProperties    Json      @map("custom_properties")
+  responsiveImages    Json      @map("responsive_images")
+  orderColumn         Int?      @map("order_column")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("media")
+}
+
+model Setting {
+  id        String    @id @default(uuid())
+  options   Json
+  language  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model DigitalFile {
+  id          String    @id @default(uuid())
+  attachmentId String    @map("attachment_id") // FK to Attachment
+  url         String
+  fileName    String    @map("file_name")
+  fileableType String   @map("fileable_type") // Polymorphic
+  fileableId  String    @map("fileable_id") // Polymorphic
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  attachment  Attachment @relation("DigitalFileAttachment", fields: [attachmentId], references: [id])
+  product     Product   @relation("DigitalFileProduct", fields: [fileableId], references: [id]) // Assuming fileable is Product, adjust if other models are fileable
+  orderedFiles OrderedFile[]
+  downloadTokens DownloadToken[]
+
+  @@map("digital_files")
+}
+
+model OrderedFile {
+  id            String    @id @default(uuid())
+  purchaseKey   String    @map("purchase_key")
+  digitalFileId String    @map("digital_file_id") // FK to DigitalFile
+  trackingNumber String?   @map("tracking_number") // FK to Order tracking_number, but not directly in Prisma
+  customerId    String    @map("customer_id") // FK to User
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  digitalFile   DigitalFile @relation(fields: [digitalFileId], references: [id])
+  customer      User        @relation(fields: [customerId], references: [id])
+  // Prisma does not support direct FK to non-PK column (tracking_number), will need to handle relation in application logic.
+
+  @@map("ordered_files")
+}
+
+model DownloadToken {
+  id            String    @id @default(uuid())
+  token         String    @unique
+  digitalFileId String?   @map("digital_file_id") // FK to DigitalFile
+  payload       String?   @db.Text
+  userId        String    @map("user_id") // FK to User
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  digitalFile   DigitalFile? @relation(fields: [digitalFileId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@map("download_tokens")
+}
+
+model FlashSale {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  description String?   @db.Text
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime  @map("end_date")
+  saleStatus  Boolean   @default(false) @map("sale_status")
+  type        String // Enum (percentage/fixed) - define if specific values are known
+  rate        Int?
+  saleBuilder Json?     @map("sale_builder")
+  image       Json?
+  coverImage  Json?     @map("cover_image")
+  language    String?
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  shopId      String    @map("shop_id") // FK to Shop
+  shop        Shop      @relation(fields: [shopId], references: [id])
+
+  flashSaleProducts FlashSaleProduct[]
+  flashSaleRequests FlashSaleRequest[]
+
+  @@map("flash_sales")
+}
+
+model FlashSaleRequest {
+  id                  String    @id @default(uuid())
+  title               String
+  flashSaleId         String    @map("flash_sale_id") // FK to FlashSale
+  requestedProductIds Json?     @map("requested_product_ids") // Assuming JSON array of product IDs
+  requestStatus       Boolean   @default(false) @map("request_status")
+  note                String?
+  language            String
+  deletedAt           DateTime? @map("deleted_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  flashSale           FlashSale @relation(fields: [flashSaleId], references: [id])
+  flashSaleRequestsProducts FlashSaleRequestsProduct[]
+
+  @@map("flash_sale_requests")
+}
+
+model FlashSaleProduct {
+  flashSaleId String @map("flash_sale_id")
+  productId   String @map("product_id")
+
+  flashSale   FlashSale @relation(fields: [flashSaleId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+
+  @@id([flashSaleId, productId]) // Composite Primary Key
+  @@map("flash_sale_products")
+}
+
+model FlashSaleRequestsProduct {
+  flashSaleRequestId String? @map("flash_sale_requests_id")
+  productId          String? @map("product_id")
+
+  flashSaleRequest   FlashSaleRequest? @relation(fields: [flashSaleRequestId], references: [id])
+  product            Product?          @relation(fields: [productId], references: [id])
+
+  // Composite Primary Key if both are required, otherwise can be just unique combination
+  @@id([flashSaleRequestId, productId]) // Assuming both are part of the composite key
+  @@map("flash_sale_requests_products")
+}
+
+model Availability {
+  id             String    @id @default(uuid())
+  from           String // Assuming string for time/date, can be DateTime
+  to             String // Assuming string for time/date, can be DateTime
+  language       String
+  bookingDuration String   @map("booking_duration")
+  orderQuantity  Int       @map("order_quantity")
+  bookableType   String    @map("bookable_type") // Polymorphic
+  bookableId     String    @map("bookable_id") // Polymorphic
+  orderId        String?   @map("order_id") // FK to Order
+  productId      String?   @map("product_id") // FK to Product
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  order          Order?    @relation(fields: [orderId], references: [id])
+  product        Product?  @relation(fields: [productId], references: [id]) // Assuming bookable is Product or similar
+
+  @@map("availabilities")
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id") // FK to User
+  shopId    String    @map("shop_id") // FK to Shop
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  shop      Shop      @relation(fields: [shopId], references: [id])
+  messages  Message[]
+  participants Participant[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id") // FK to Conversation
+  userId         String    @map("user_id") // FK to User
+  body           String    @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  participants   Participant[]
+
+  @@map("messages")
+}
+
+model Participant {
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id") // FK to Conversation
+  type           String // Enum (shop/user) - define if specific values are known
+  userId         String    @map("user_id") // FK to User
+  shopId         String    @map("shop_id") // FK to Shop
+  messageId      String    @map("message_id") // FK to Message
+  notify         Boolean   @default(false)
+  lastRead       DateTime? @map("last_read")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  shop           Shop         @relation(fields: [shopId], references: [id])
+  message        Message      @relation(fields: [messageId], references: [id])
+
+  @@map("participants")
+}
+
+model StoreNotice {
+  id           String       @id @default(uuid())
+  priority     NoticePriority
+  notice       String       @db.Text
+  description  String?      @db.Text
+  effectiveFrom DateTime   @default(now()) @map("effective_from")
+  expiredAt    DateTime     @map("expired_at")
+  type         NoticeType
+  createdBy    String?      @map("created_by") // FK to User
+  updatedBy    String?      @map("updated_by") // FK to User
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  deletedAt    DateTime?    @map("deleted_at")
+
+  creator      User?        @relation("StoreNoticeCreatedBy", fields: [createdBy], references: [id])
+  updater      User?        @relation("StoreNoticeUpdatedBy", fields: [updatedBy], references: [id])
+  storeNoticeUsers StoreNoticeUser[]
+  storeNoticeShops StoreNoticeShop[]
+  storeNoticeReads StoreNoticeRead[]
+
+  @@map("store_notices")
+}
+
+model StoreNoticeUser {
+  storeNoticeId String? @map("store_notice_id")
+  userId        String? @map("user_id")
+
+  storeNotice   StoreNotice? @relation(fields: [storeNoticeId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@id([storeNoticeId, userId]) // Composite Primary Key
+  @@map("store_notice_user")
+}
+
+model StoreNoticeShop {
+  storeNoticeId String? @map("store_notice_id")
+  shopId        String? @map("shop_id")
+
+  storeNotice   StoreNotice? @relation(fields: [storeNoticeId], references: [id])
+  shop          Shop?        @relation(fields: [shopId], references: [id])
+
+  @@id([storeNoticeId, shopId]) // Composite Primary Key
+  @@map("store_notice_shop")
+}
+
+model StoreNoticeRead {
+  storeNoticeId String? @map("store_notice_id")
+  userId        String? @map("user_id")
+  isRead        Boolean @default(false) @map("is_read")
+
+  storeNotice   StoreNotice? @relation(fields: [storeNoticeId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@id([storeNoticeId, userId]) // Composite Primary Key
+  @@map("store_notice_read")
+}
+
+model NotifyLog {
+  id                   String    @id @default(uuid())
+  receiverId           String    @map("receiver") // FK to User
+  senderId             String?   @map("sender") // FK to User
+  notifyType           String?   @map("notify_type") @db.Text
+  notifyReceiverType   String?   @map("notify_receiver_type") @db.Text
+  isRead               Boolean   @default(false) @map("is_read")
+  notifyTracker        String?   @map("notify_tracker") @db.Text
+  notifyText           String?   @map("notify_text") @db.Text
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  receiver             User      @relation("NotifyLogReceiver", fields: [receiverId], references: [id])
+  sender               User?     @relation("NotifyLogSender", fields: [senderId], references: [id])
+
+  @@map("notify_logs")
+}
+
+model OwnershipTransfer {
+  id                    String    @id @default(uuid())
+  transactionIdentifier String    @map("transaction_identifier") @db.VarChar(50)
+  fromId                String    @map("from") // FK to User
+  shopId                String    @map("shop_id") // FK to Shop
+  toId                  String    @map("to") // FK to User
+  message               String?   @db.Text
+  createdById           String    @map("created_by") // FK to User
+  status                OwnershipTransferStatus
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at")
+
+  from                  User      @relation("OwnershipTransferFromUser", fields: [fromId], references: [id])
+  shop                  Shop      @relation(fields: [shopId], references: [id])
+  to                    User      @relation("OwnershipTransferToUser", fields: [toId], references: [id])
+  createdBy             User      @relation("OwnershipTransferCreatedBy", fields: [createdById], references: [id])
+
+  @@map("ownership_transfers")
+}
+
+// Pivot / Junction Tables
+
+model OrderProduct {
+  id                String    @id @default(uuid())
+  orderId           String    @map("order_id")
+  productId         String    @map("product_id")
+  variationOptionId String?   @map("variation_option_id")
+  orderQuantity     String    @map("order_quantity") // Assuming string from Laravel for flexible quantity types
+  unitPrice         Float     @map("unit_price")
+  subtotal          Float
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  order             Order     @relation(fields: [orderId], references: [id])
+  product           Product   @relation(fields: [productId], references: [id])
+  variationOption   VariationOption? @relation(fields: [variationOptionId], references: [id])
+
+  @@map("order_product")
+}
+
+model CategoryProduct {
+  id         String    @id @default(uuid()) // Laravel has bigint, using String for consistency
+  productId  String    @map("product_id")
+  categoryId String    @map("category_id")
+
+  product    Product   @relation(fields: [productId], references: [id])
+  category   Category  @relation(fields: [categoryId], references: [id])
+
+  @@map("category_product")
+}
+
+model ProductTag {
+  id        String    @id @default(uuid()) // Laravel has bigint, using String for consistency
+  productId String    @map("product_id")
+  tagId     String    @map("tag_id")
+
+  product   Product   @relation(fields: [productId], references: [id])
+  tag       Tag       @relation(fields: [tagId], references: [id])
+
+  @@map("product_tag")
+}
+
+model UserShop {
+  id        String    @id @default(uuid()) // Laravel has bigint, using String for consistency
+  userId    String    @map("user_id")
+  shopId    String    @map("shop_id")
+  createdAt DateTime  @default(now()) @map("created_at") // Added for consistency, if not in migration
+  updatedAt DateTime  @updatedAt @map("updated_at") // Added for consistency, if not in migration
+
+  user      User      @relation(fields: [userId], references: [id])
+  shop      Shop      @relation(fields: [shopId], references: [id])
+
+  @@unique([userId, shopId]) // Assuming unique combination
+  @@map("user_shop")
+}
+
+model CategoryShop {
+  id         String    @id @default(uuid()) // Laravel has bigint, using String for consistency
+  shopId     String    @map("shop_id")
+  categoryId String    @map("category_id")
+  createdAt DateTime  @default(now()) @map("created_at") // Added for consistency, if not in migration
+  updatedAt DateTime  @updatedAt @map("updated_at") // Added for consistency, if not in migration
+
+  shop       Shop      @relation(fields: [shopId], references: [id])
+  category   Category  @relation(fields: [categoryId], references: [id])
+
+  @@unique([shopId, categoryId]) // Assuming unique combination
+  @@map("category_shop")
+}
+
+// Resource-Product pivots
+model DropoffLocationProduct {
+  resourceId String? @map("resource_id")
+  productId  String? @map("product_id")
+
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id])
+
+  @@id([resourceId, productId]) // Assuming composite PK
+  @@map("dropoff_location_product")
+}
+
+model PickupLocationProduct {
+  resourceId String? @map("resource_id")
+  productId  String? @map("product_id")
+
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id])
+
+  @@id([resourceId, productId]) // Assuming composite PK
+  @@map("pickup_location_product")
+}
+
+model FeatureProduct {
+  resourceId String? @map("resource_id")
+  productId  String? @map("product_id")
+
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id])
+
+  @@id([resourceId, productId]) // Assuming composite PK
+  @@map("feature_product")
+}
+
+model DepositProduct {
+  resourceId String? @map("resource_id")
+  productId  String? @map("product_id")
+
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id])
+
+  @@id([resourceId, productId]) // Assuming composite PK
+  @@map("deposit_product")
+}
+
+model PersonProduct {
+  resourceId String? @map("resource_id")
+  productId  String? @map("product_id")
+
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id])
+
+  @@id([resourceId, productId]) // Assuming composite PK
+  @@map("person_product")
+}
+
+// Laravel framework tables (commented out as they are usually not directly migrated to Prisma models)
+// model Cache {
+//   key       String    @id
+//   value     String
+//   expiration Int
+//   @@map("cache")
+// }
+
+// model CacheLock {
+//   key       String    @id
+//   owner     String?
+//   expiration Int
+//   @@map("cache_locks")
+// }
+
+// model Job {
+//   id        BigInt    @id @default(autoincrement())
+//   queue     String
+//   payload   String    @db.LongText
+//   attempts  Int
+//   reservedAt Int?      @map("reserved_at")
+//   availableAt Int       @map("available_at")
+//   createdAt BigInt    @map("created_at") // Using BigInt for timestamp
+//   @@map("jobs")
+// }
+
+// model JobBatch {
+//   id            String    @id
+//   name          String
+//   totalJobs     Int       @map("total_jobs")
+//   pendingJobs   Int       @map("pending_jobs")
+//   failedJobs    Int       @map("failed_jobs")
+//   failedJobIds  String    @db.LongText @map("failed_job_ids")
+//   options       String?   @db.LongText
+//   cancelledAt   Int?      @map("cancelled_at")
+//   createdAt     Int       @map("created_at")
+//   finishedAt    Int?      @map("finished_at")
+//   @@map("job_batches")
+// }
+
+// model FailedJob {
+//   id          BigInt    @id @default(autoincrement())
+//   uuid        String    @unique
+//   connection  String    @db.Text
+//   queue       String    @db.Text
+//   payload     String    @db.LongText
+//   exception   String    @db.LongText
+//   failedAt    DateTime  @default(now()) @map("failed_at")
+//   @@map("failed_jobs")
+// }

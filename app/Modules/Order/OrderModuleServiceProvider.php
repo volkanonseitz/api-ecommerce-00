@@ -32,10 +32,6 @@ class OrderModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Load module routes
-        $this->loadRoutesFrom(__DIR__.'/routes.php');
-
-        // Register Authorization Policy
         $this->registerPolicies();
     }
 
