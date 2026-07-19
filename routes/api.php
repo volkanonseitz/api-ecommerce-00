@@ -84,6 +84,7 @@ Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelli
 Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
 Route::get('/products/calculate-rental-price', [ProductRentalController::class, 'calculateRentalPrice']);
 Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
+Route::get('/products/search', [ProductQueryController::class, 'search']);
 
 // AuthorController (public)
 Route::get('/top-authors', [AuthorController::class, 'topAuthor']);

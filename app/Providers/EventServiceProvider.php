@@ -10,12 +10,14 @@ use App\Events\OwnershipTransferStatusControl;
 use App\Events\PaymentMethods;
 use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
+use App\Events\ShopMaintenance;
 use App\Listeners\DigitalProductNotifyLogsListener;
 use App\Listeners\ProductInventoryDecrement;
 use App\Listeners\ProductReviewApprovedListener;
 use App\Listeners\ProductReviewRejectedListener;
 use App\Listeners\SendOrderCreationNotification;
 use App\Listeners\SendOrderReceivedNotification;
+use App\Listeners\ShopMaintenanceListener;
 use App\Listeners\StoredOrderNotifyLogsListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -53,6 +55,9 @@ class EventServiceProvider extends ServiceProvider
         OwnershipTransferStatusControl::class => [
         ],
         PaymentMethods::class => [
+        ],
+        ShopMaintenance::class => [
+            ShopMaintenanceListener::class,
         ],
     ];
 
