@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('is_global')->default(true);
             $table->enum('type', ShippingType::getValues())->default(ShippingType::FIXED);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

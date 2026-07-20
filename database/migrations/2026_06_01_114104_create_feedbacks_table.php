@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('positive')->nullable();
             $table->boolean('negative')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

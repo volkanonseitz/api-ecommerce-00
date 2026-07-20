@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('fileable_type');
             $table->unsignedBigInteger('fileable_id');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

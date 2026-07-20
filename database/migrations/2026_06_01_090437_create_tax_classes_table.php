@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('priority')->nullable();
             $table->boolean('on_shipping')->default(1);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

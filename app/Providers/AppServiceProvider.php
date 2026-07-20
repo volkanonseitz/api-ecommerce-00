@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Models\AbusiveReport;
 use App\Models\Address;
-use App\Models\Attachment;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
 use App\Models\Author;
@@ -22,7 +21,6 @@ use App\Models\Message;
 use App\Models\NotifyLogs;
 use App\Models\Order;
 use App\Models\OrderedFile;
-use App\Models\PaymentIntent;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Question;
@@ -30,19 +28,15 @@ use App\Models\RefundReason;
 use App\Models\Resource;
 use App\Models\Shipping;
 use App\Models\Tax;
-use App\Models\User;
 use App\Models\Wishlist;
 use App\Modules\AbusiveReport\Policies\AbusiveReportPolicy;
 use App\Modules\Address\Policies\AddressPolicy;
 use App\Modules\Address\Services\AddressFormatterService;
-use App\Modules\Analytics\Policies\AnalyticsPolicy;
-use App\Modules\Attachment\Policies\AttachmentPolicy;
 use App\Modules\Attribute\Policies\AttributePolicy;
 use App\Modules\AttributeValue\Policies\AttributeValuePolicy;
 use App\Modules\Author\Policies\AuthorPolicy;
 use App\Modules\BecameSeller\Policies\BecameSellerPolicy;
 use App\Modules\Category\Policies\CategoryPolicy;
-use App\Modules\Checkout\Policies\CheckoutPolicy;
 use App\Modules\Conversation\Policies\ConversationPolicy;
 use App\Modules\Coupon\Policies\CouponPolicy;
 use App\Modules\Download\Policies\DownloadPolicy;
@@ -56,7 +50,6 @@ use App\Modules\Message\Policies\MessagePolicy;
 use App\Modules\NotifyLogs\Policies\NotifyLogsPolicy;
 use App\Modules\Order\Policies\OrderPolicy;
 use App\Modules\Otp\Services\OtpService;
-use App\Modules\PaymentIntent\Policies\PaymentIntentPolicy;
 use App\Modules\PaymentMethod\Policies\PaymentMethodPolicy;
 use App\Modules\Product\Policies\ProductPolicy;
 use App\Modules\Question\Policies\QuestionPolicy;
@@ -119,14 +112,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AbusiveReport::class, AbusiveReportPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
-        Gate::policy(Attachment::class, AttachmentPolicy::class);
-        Gate::policy(Attachment::class, AttachmentPolicy::class);
+
         Gate::policy(Attribute::class, AttributePolicy::class);
         Gate::policy(AttributeValue::class, AttributeValuePolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(BecameSeller::class, BecameSellerPolicy::class);
         Gate::policy(Author::class, AuthorPolicy::class);
-        Gate::policy(User::class, CheckoutPolicy::class);
+
         Gate::policy(Conversation::class, ConversationPolicy::class);
         Gate::policy(Coupon::class, CouponPolicy::class);
         Gate::policy(OrderedFile::class, DownloadPolicy::class);
@@ -138,7 +130,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Manufacturer::class, ManufacturerPolicy::class);
         Gate::policy(Message::class, MessagePolicy::class);
         Gate::policy(NotifyLogs::class, NotifyLogsPolicy::class);
-        Gate::policy(PaymentIntent::class, PaymentIntentPolicy::class); // sedang tidak digunakan
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
         Gate::policy(Question::class, QuestionPolicy::class);
         Gate::policy(RefundReason::class, RefundReasonPolicy::class);
@@ -146,7 +137,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Shipping::class, ShippingPolicy::class);
         Gate::policy(Tax::class, TaxPolicy::class);
         Gate::policy(Wishlist::class, WishlistPolicy::class);
-        Gate::policy(User::class, AnalyticsPolicy::class); // Analytics policies are often tied to the User model as the subject of the action
 
     }
 }

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->json('image')->nullable();
             $table->timestamps();
+            $table->softDeletes();
             $table->foreign('type_id')->references('id')->on('types')->onDelete('cascade');
         });
     }

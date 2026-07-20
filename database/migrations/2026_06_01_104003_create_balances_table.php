@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_custom_commission')->default(false);
             $table->json('payment_info')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

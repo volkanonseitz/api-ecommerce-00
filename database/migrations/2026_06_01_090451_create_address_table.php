@@ -19,8 +19,9 @@ return new class extends Migration
             $table->json('address');
             $table->json('location')->nullable();
             $table->unsignedBigInteger('customer_id');
-            $table->foreign('customer_id')->references('id')->on('users');
+            $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
             $table->index(['customer_id', 'default']);
             $table->index('type');
         });

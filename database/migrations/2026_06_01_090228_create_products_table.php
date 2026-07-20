@@ -48,7 +48,7 @@ return new class extends Migration
             $table->foreign('shipping_class_id')->references('id')->on('shipping_classes');
             $table->enum('status', ProductStatus::getValues())->default(ProductStatus::DRAFT);
             $table->enum('visibility', ProductVisibilityStatus::getValues())->default(ProductVisibilityStatus::VISIBILITY_PUBLIC);
-            $table->enum('product_type', ProductType::getValues())->default(ProductType::SIMPLE);
+            $table->boolean('is_rental')->default(0)->after('product_type');
             $table->string('unit');
             $table->string('height')->nullable();
             $table->string('width')->nullable();

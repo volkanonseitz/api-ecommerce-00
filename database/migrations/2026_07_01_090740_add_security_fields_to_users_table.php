@@ -12,11 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('locked_until')->nullable()->after('remember_token');
-            $table->unsignedSmallInteger('failed_login_attempts')->default(0)->after('locked_until');
-            $table->timestamp('last_login_at')->nullable()->after('failed_login_attempts');
-            $table->ipAddress('last_login_ip')->nullable()->after('last_login_at');
-            $table->string('last_login_user_agent', 1000)->nullable()->after('last_login_ip');
+            if (Schema::hasColumn('users', 'failed_login_attempts')) {
+                $table->unsignedSmallInteger('failed_login_attempts')->default(0)->change();
+            } else {
+                $table->unsignedSmallInteger('failed_login_attempts')->default(0)->after('locked_until');
+            }
+            if (Schema::hasColumn('users', 'last_login_user_agent')) {
+                $table->string('last_login_user_agent', 1000)->nullable()->change();
+            } else {
+                $table->string('last_login_user_agent', 1000)->nullable()->after('last_login_ip');
+            }
         });
 
         Schema::create('password_history', function (Blueprint $table) {

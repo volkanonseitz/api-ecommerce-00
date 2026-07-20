@@ -8,10 +8,12 @@ use App\Events\OrderProcessed;
 use App\Events\OrderReceived;
 use App\Events\OwnershipTransferStatusControl;
 use App\Events\PaymentMethods;
+use App\Events\ProcessOwnershipTransition;
 use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
 use App\Events\ShopMaintenance;
 use App\Listeners\DigitalProductNotifyLogsListener;
+use App\Listeners\OwnershipTransferStatusControlListener;
 use App\Listeners\ProductInventoryDecrement;
 use App\Listeners\ProductReviewApprovedListener;
 use App\Listeners\ProductReviewRejectedListener;
@@ -58,6 +60,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         ShopMaintenance::class => [
             ShopMaintenanceListener::class,
+        ],
+        OwnershipTransferStatusControl::class => [
+            OwnershipTransferStatusControlListener::class,
+        ],
+        ProcessOwnershipTransition::class => [
+            TransferredShopOwnershipNotification::class,
         ],
     ];
 

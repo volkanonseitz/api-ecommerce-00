@@ -25,6 +25,7 @@ return new class extends Migration
             $table->double('price')->nullable();
             $table->enum('type', ResourceType::getValues());
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

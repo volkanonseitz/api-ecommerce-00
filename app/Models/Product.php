@@ -23,7 +23,7 @@ class Product extends Model
         'description', 'sku', 'quantity', 'unit', 'language',
         'image', 'gallery', 'video', 'status', 'product_type',
         'is_rental', 'is_digital', 'is_external', 'in_stock', 'is_taxable',
-        'shop_id', 'type_id', 'author_id', 'manufacturer_id', 'shipping_id',
+        'shop_id', 'type_id', 'author_id', 'manufacturer_id', 'shipping_class_id',
         'sold_quantity', 'visibility',
     ];
 
@@ -133,7 +133,7 @@ class Product extends Model
 
     public function shipping(): BelongsTo
     {
-        return $this->belongsTo(Shipping::class);
+        return $this->belongsTo(Shipping::class, 'shipping_class_id');
     }
 
     public function flashSales(): BelongsToMany

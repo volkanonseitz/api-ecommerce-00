@@ -24,7 +24,8 @@ return new class extends Migration
             $table->timestamp('locked_until')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->string('last_login_ip', 45)->nullable();
-            $table->text('last_login_user_agent')->nullable();
+            $table->string('last_login_user_agent', 1000)->nullable();
+
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

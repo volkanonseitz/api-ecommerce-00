@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('language')->default(Config::get('app.locale'));
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

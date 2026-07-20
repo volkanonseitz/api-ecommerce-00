@@ -19,8 +19,9 @@ return new class extends Migration
             $table->string('contact')->nullable();
             $table->json('notifications')->nullable();
             $table->unsignedBigInteger('customer_id');
-            $table->foreign('customer_id')->references('id')->on('users');
+            $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
