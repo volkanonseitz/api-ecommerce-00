@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Attachment\Http\Requests;
 
+use App\Modules\Attachment\DTO\AttachmentData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttachmentRequest extends FormRequest
@@ -17,7 +18,7 @@ class AttachmentRequest extends FormRequest
     {
         return [
             'attachment' => ['required', 'array'],
-            'attachment.*' => ['file', 'max:20480'], // max 20MB per file, opsional
+            'attachment.*' => ['file', 'mimes:jpeg,png,jpg,gif,svg,webp,pdf,doc,docx,xls,xlsx,csv,txt,zip', 'max:20480'],
         ];
     }
 
@@ -28,5 +29,10 @@ class AttachmentRequest extends FormRequest
             'attachment.*.file' => 'Each attachment must be a valid file.',
             'attachment.*.max' => 'Each attachment must not exceed 20MB.',
         ];
+    }
+
+    public function getAttachmentData(): AttachmentData
+    {
+        return AttachmentData::fromValidated($this->validated());
     }
 }

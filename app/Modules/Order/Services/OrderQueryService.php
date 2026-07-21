@@ -89,16 +89,26 @@ class OrderQueryService
             $query->where('shop_id', $shopId);
         }
 
-        $stats = [
-            'total' => (clone $query)->count(),
-            'pending' => (clone $query)->where('order_status', 'order-pending')->count(),
-            'processing' => (clone $query)->where('order_status', 'order-processing')->count(),
-            'completed' => (clone $query)->where('order_status', 'order-completed')->count(),
-            'cancelled' => (clone $query)->where('order_status', 'order-cancelled')->count(),
-            'refunded' => (clone $query)->where('payment_status', 'refunded')->count(),
-        ];
+        // Satu aggregate query untuk semua statistik
+        $stats = (clone $query)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN order_status = 'order-pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN order_status = 'order-processing' THEN 1 ELSE 0 END) as processing,
+                SUM(CASE WHEN order_status = 'order-completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN order_status = 'order-cancelled' THEN 1 ELSE 0 END) as cancelled,
+                SUM(CASE WHEN payment_status = 'refunded' THEN 1 ELSE 0 END) as refunded
+            ")
+            ->first();
 
-        return $stats;
+        return [
+            'total' => (int) ($stats->total ?? 0),
+            'pending' => (int) ($stats->pending ?? 0),
+            'processing' => (int) ($stats->processing ?? 0),
+            'completed' => (int) ($stats->completed ?? 0),
+            'cancelled' => (int) ($stats->cancelled ?? 0),
+            'refunded' => (int) ($stats->refunded ?? 0),
+        ];
     }
 
     private function applyAuthorizationFilter(Builder $query, User $user): void
@@ -137,17 +147,43 @@ class OrderQueryService
         $query->with($relations);
     }
 
+    use Illuminate\Support\Facades\DB;
+
+    // ...
+
     private function applyFilters(Builder $query, Request $request): void
     {
         // Search filter
         if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('tracking_number', 'like', "%{$search}%")
-                    ->orWhereHas('customer', function ($customerQuery) use ($search) {
-                        $customerQuery->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
+            $search = trim($search);
+            if (empty($search)) {
+                return; // Jangan lakukan pencarian jika string kosong
+            }
+
+            // ponytail: FULLTEXT index hanya didukung oleh MySQL/MariaDB.
+            // Untuk SQLite, ini akan fallback ke LIKE, yang performanya tidak optimal.
+            if (DB::getDriverName() == 'mysql') {
+                $searchQuery = "+{$search}*"; // Match kata yang diawali dengan $search
+
+                $query->where(function ($q) use ($searchQuery) {
+                    // Pencarian di kolom tracking_number
+                    $q->whereRaw('MATCH(tracking_number) AGAINST(? IN BOOLEAN MODE)', [$searchQuery]);
+
+                    // Pencarian di kolom name dan email customer
+                    $q->orWhereHas('customer', function ($customerQuery) use ($searchQuery) {
+                        $customerQuery->whereRaw('MATCH(name, email) AGAINST(? IN BOOLEAN MODE)', [$searchQuery]);
                     });
-            });
+                });
+            } else {
+                // Fallback untuk driver database lain (misal SQLite)
+                $query->where(function ($q) use ($search) {
+                    $q->where('tracking_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            }
         }
 
         // Order status filter

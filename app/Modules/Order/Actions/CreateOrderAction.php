@@ -26,6 +26,7 @@ use App\Modules\Wallet\Services\WalletService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class CreateOrderAction
 {
@@ -46,37 +47,39 @@ class CreateOrderAction
             $data->order_status = $this->determineInitialOrderStatus($data->payment_gateway);
             $data->payment_status = $this->determineInitialPaymentStatus($data->payment_gateway);
 
-            // 2. Kalkulasi Nilai Subtotal Produk
-            if (! $data->amount && $data->products) {
-                $data->amount = array_sum(array_column($data->products, 'subtotal'));
-            }
-
-            // 3. Evaluasi Kupon Potongan Harga
-            if ($data->coupon_id) {
-                $coupon = Coupon::find($data->coupon_id);
-                if ($coupon && $coupon->type === CouponType::FREE_SHIPPING_COUPON->value) {
-                    $data->delivery_fee = 0.0;
-                }
-                $data->discount = $this->calculateDiscount($coupon, (float) $data->amount);
-            }
-
-            // 4. Kalkulasi Total Tagihan Akhir
-            if (! $data->paid_total) {
-                $data->paid_total = ($data->amount ?? 0.0) + ($data->sales_tax ?? 0.0) + ($data->delivery_fee ?? 0.0) - ($data->discount ?? 0.0);
-                $data->total = $data->paid_total;
-            }
+            // 2. Hitung ulang semua nilai finansial dari database
+            $calculated = $this->recalculateOrderAmounts($data);
+            $data->amount = $calculated['amount'];
+            $data->discount = $calculated['discount'];
+            $data->sales_tax = $calculated['sales_tax'];
+            $data->delivery_fee = $calculated['delivery_fee'];
+            $data->paid_total = $calculated['paid_total'];
+            $data->total = $calculated['total'];
+            // $data->products sudah diupdate oleh recalculateOrderAmounts dengan harga dari DB
 
             // 5. Interaksi Sistem Wallet Poin
             if ($data->use_wallet_points && $user && $user->wallet) {
                 $wallet = $user->wallet;
-                $amountDue = $data->paid_total - $this->walletService->walletPointsToCurrency($wallet->available_points);
-                if ($amountDue <= 0) {
+                $walletCurrency = $this->walletService->walletPointsToCurrency($wallet->available_points);
+                $remainingTotal = $data->paid_total;
+                $pointsToDeduct = 0;
+
+                if ($walletCurrency >= $remainingTotal) {
+                    // Wallet cukup untuk bayar semua
+                    $pointsToDeduct = $this->walletService->currencyToWalletPoints($remainingTotal);
                     $data->payment_gateway = PaymentGatewayType::FULL_WALLET_PAYMENT->value;
                     $data->order_status = OrderStatus::COMPLETED->value;
                     $data->payment_status = PaymentStatus::SUCCESS->value;
-                    $data->paid_total = $data->total;
+                    $data->paid_total = $data->total; // total tetap utuh, payment status jadi success
                 } else {
-                    $data->paid_total = $amountDue;
+                    // Wallet hanya sebagian
+                    $pointsToDeduct = $wallet->available_points;
+                    $data->paid_total = $remainingTotal - $walletCurrency;
+                }
+
+                if ($pointsToDeduct > 0) {
+                    $this->walletService->deductPoints($user->id, $pointsToDeduct);
+                    OrderWalletPoint::create(['amount' => $pointsToDeduct, 'order_id' => $order->id]);
                 }
             }
 
@@ -88,16 +91,7 @@ class CreateOrderAction
                 $this->createChildOrders($order, $data);
             }
 
-            // 7. Pengurangan Poin Wallet Jika Berlaku
-            if ($data->use_wallet_points && $user && $user->wallet) {
-                $pointsUsed = $this->walletService->currencyToWalletPoints($data->paid_total);
-                if ($pointsUsed > 0) {
-                    $this->walletService->deductPoints($user->id, $pointsUsed);
-                    OrderWalletPoint::create(['amount' => $pointsUsed, 'order_id' => $order->id]);
-                }
-            }
-
-            // 8. Inisiasi Payment Gateway Intent Eksternal
+            // 7. Inisiasi Payment Gateway Intent Eksternal
             if (! in_array($order->payment_gateway, [
                 PaymentGatewayType::CASH->value,
                 PaymentGatewayType::CASH_ON_DELIVERY->value,
@@ -149,28 +143,104 @@ class CreateOrderAction
         return min((float) $coupon->amount, $amount);
     }
 
+    private function recalculateOrderAmounts(OrderData $data): array
+    {
+        $products = $data->products;
+        if (empty($products)) {
+            throw new BadRequestHttpException('Products required for order calculation.');
+        }
+
+        $amount = 0.0;
+        $calculatedProducts = [];
+        $productIds = array_column($products, 'product_id');
+        $variationIds = array_filter(array_column($products, 'variation_option_id'));
+
+        $productModels = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $variationModels = ! empty($variationIds)
+            ? Variation::whereIn('id', $variationIds)->get()->keyBy('id')
+            : collect();
+
+        foreach ($products as $item) {
+            $productId = $item['product_id'];
+            $variationId = $item['variation_option_id'] ?? null;
+            $quantity = $item['order_quantity'] ?? 0;
+
+            if ($quantity <= 0) {
+                throw new BadRequestHttpException('Invalid order quantity for product: '.$productId);
+            }
+
+            $product = $productModels->get($productId);
+            if (! $product) {
+                throw new BadRequestHttpException('Product not found: '.$productId);
+            }
+
+            // Hitung unit_price dari database
+            $unitPrice = (float) ($product->sale_price ?? $product->price);
+
+            if ($variationId) {
+                $variation = $variationModels->get($variationId);
+                if (! $variation || $variation->product_id !== $productId) {
+                    throw new BadRequestHttpException('Variation not found for product: '.$productId);
+                }
+                $unitPrice = (float) ($variation->sale_price ?? $variation->price);
+            }
+
+            $subtotal = $unitPrice * $quantity;
+            $amount += $subtotal;
+
+            $calculatedProducts[] = [
+                'product_id' => $productId,
+                'variation_option_id' => $variationId,
+                'order_quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+            ];
+        }
+
+        // Update $data->products dengan harga dari server
+        $data->products = $calculatedProducts;
+
+        // Hitung diskon
+        $discount = 0.0;
+        if ($data->coupon_id) {
+            $coupon = Coupon::find($data->coupon_id);
+            if ($coupon && $coupon->type === CouponType::FREE_SHIPPING_COUPON->value) {
+                $data->delivery_fee = 0.0;
+            }
+            $discount = $this->calculateDiscount($coupon, $amount);
+        }
+
+        // Hitung ongkir (sederhana — bisa diganti dengan logic dari VerifyCheckoutAction)
+        $deliveryFee = (float) ($data->delivery_fee ?? 0.0);
+
+        // Hitung pajak (sederhana — bisa diganti dengan logic dari VerifyCheckoutAction)
+        $salesTax = (float) ($data->sales_tax ?? 0.0);
+
+        $paidTotal = $amount + $salesTax + $deliveryFee - $discount;
+        if ($paidTotal < 0) {
+            $paidTotal = 0.0;
+        }
+
+        return [
+            'amount' => $amount,
+            'discount' => $discount,
+            'sales_tax' => $salesTax,
+            'delivery_fee' => $deliveryFee,
+            'paid_total' => $paidTotal,
+            'total' => $paidTotal,
+        ];
+    }
+
     private function attachProducts(Order $order, array $products): void
     {
-        $attachments = [];
-        $productIds = array_column($products, 'product_id');
-        $productModels = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
+        $order->products()->attach($products); // $products sekarang sudah dihitung ulang server
         foreach ($products as $cartProduct) {
-            $pId = $cartProduct['product_id'];
-            $attachments[$pId] = [
-                'order_quantity' => $cartProduct['order_quantity'],
-                'unit_price' => $cartProduct['unit_price'],
-                'subtotal' => $cartProduct['subtotal'],
-                'variation_option_id' => $cartProduct['variation_option_id'] ?? null,
-            ];
-
-            $productModel = $productModels->get($pId);
+            $productModel = Product::find($cartProduct['product_id']);
             if ($productModel) {
                 $this->handleDigitalFiles($cartProduct, $order, $productModel);
                 $this->handleRentalProduct($cartProduct, $order, $productModel);
             }
         }
-        $order->products()->attach($attachments);
     }
 
     private function handleDigitalFiles(array $product, Order $order, Product $productModel): void

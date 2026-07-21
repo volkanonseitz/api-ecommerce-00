@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\User\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Modules\Attachment\Http\Requests\AttachmentRequest;
+use App\Modules\Attachment\Services\AttachmentWriteService;
 use App\Modules\User\Actions\ChangePasswordAction;
 use App\Modules\User\DTO\UpdateUserData;
 use App\Modules\User\Http\Requests\ChangePasswordRequest;
@@ -15,10 +17,14 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class ProfileController extends BaseController
 {
-    public function __construct(private readonly UserCommandService $userCommandService) {}
+    public function __construct(
+        private readonly UserCommandService $userCommandService,
+        private readonly AttachmentWriteService $attachmentWriteService
+    ) {}
 
     public function me(Request $request): JsonResponse
     {
@@ -70,5 +76,41 @@ final class ProfileController extends BaseController
         $this->userCommandService->updateEmail($request->user(), $validator->validated()['email']);
 
         return $this->sendSuccess(null, 'Email updated, please verify your new email');
+    }
+
+    public function updateAvatar(AttachmentRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $this->authorize('updateAvatar', $user);
+
+        $uploaded = $this->attachmentWriteService->upload($request->getAttachmentData());
+        if (empty($uploaded)) {
+            throw new HttpException(400, 'Failed to upload avatar.');
+        }
+
+        $avatarData = $uploaded[0]; // Ambil avatar pertama dari hasil upload
+        $updatedUser = $this->userCommandService->updateAvatar($user, $avatarData['url']);
+
+        return $this->sendSuccess(new UserResource($updatedUser), 'Avatar updated successfully.');
+    }
+
+    public function deleteAvatar(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $this->authorize('deleteAvatar', $user);
+
+        // Pastikan ada avatar sebelum dihapus
+        if (! $user->profile || ! $user->profile->avatar) {
+            throw new HttpException(404, 'No avatar to delete.');
+        }
+
+        // Asumsi avatar disimpan sebagai array JSON di user_profiles.avatar, dan mengandung 'path'
+        $avatarPath = $user->profile->avatar['path'] ?? null;
+        if ($avatarPath) {
+            $this->attachmentWriteService->deleteByPath($avatarPath); // Asumsi ada method deleteByPath di AttachmentWriteService
+        }
+        $updatedUser = $this->userCommandService->deleteAvatar($user);
+
+        return $this->sendSuccess(new UserResource($updatedUser), 'Avatar deleted successfully.');
     }
 }

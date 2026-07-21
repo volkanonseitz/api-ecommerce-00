@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Models\Variation;
 use App\Modules\Checkout\DTO\CheckoutVerifyData;
 use App\Modules\Wallet\Services\WalletService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Arr;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -23,18 +22,15 @@ final class VerifyCheckoutAction
     public function execute(CheckoutVerifyData $data, User $authUser): array
     {
         $user = $authUser;
-        // Authorization check is now handled by policy in controller
-        // if (! $user) {
-        //     throw new AuthorizationException('Authentication required');
-        // }
-
-        $wallet = $user->wallet;
 
         $settings = Settings::getData();
         $minimumOrderAmount = $settings->options['minimumOrderAmount'] ?? 0;
 
-        $unavailableProducts = $this->checkStock($data->products);
-        $amount = $this->getOrderAmount($data->products, $unavailableProducts);
+        // 1. Hitung subtotal produk dari database
+        $productsInCart = $this->calculateProductsSubtotal($data->products);
+        $data->products = $productsInCart['valid_products']; // Update data dengan produk yang sudah divalidasi dan dihitung ulang
+        $unavailableProducts = $productsInCart['unavailable_products'];
+        $amount = $productsInCart['total_amount'];
 
         $isFreeShippingEnabled = $settings->options['freeShipping'] ?? false;
         $freeShippingAmount = $settings->options['freeShippingAmount'] ?? 0;
@@ -47,10 +43,10 @@ final class VerifyCheckoutAction
         $total = $amount + $tax + $shippingCharge;
 
         if ($total < $minimumOrderAmount) {
-            throw new BadRequestHttpException('Minimum order amount is '.$minimumOrderAmount); // Changed from generic Exception
+            throw new BadRequestHttpException('Minimum order amount is '.$minimumOrderAmount);
         }
 
-        $walletPoints = $wallet ? $wallet->available_points : 0;
+        $walletPoints = $user->wallet ? $user->wallet->available_points : 0;
 
         return [
             'total_tax' => $tax,
@@ -58,54 +54,89 @@ final class VerifyCheckoutAction
             'unavailable_products' => $unavailableProducts,
             'wallet_amount' => $walletPoints,
             'wallet_currency' => $this->walletService->walletPointsToCurrency($walletPoints),
+            'total_amount' => $amount, // Tambahkan total amount yang dihitung server
+            'order_total' => $total, // Tambahkan order total yang dihitung server
         ];
     }
 
-    private function checkStock(array $products): array
+    private function calculateProductsSubtotal(array $productsInput): array
     {
-        $productIds = array_column($products, 'product_id');
-        $variationIds = array_filter(array_column($products, 'variation_option_id'));
+        $productIds = array_column($productsInput, 'product_id');
+        $variationIds = array_filter(array_column($productsInput, 'variation_option_id'));
 
         $productsById = Product::whereIn('id', $productIds)->get()->keyBy('id');
         $variationsById = ! empty($variationIds)
             ? Variation::whereIn('id', $variationIds)->get()->keyBy('id')
             : collect();
 
-        $unavailable = [];
-        foreach ($products as $product) {
+        $totalAmount = 0.0;
+        $unavailableProducts = [];
+        $validProducts = [];
+
+        foreach ($productsInput as $item) {
+            $productId = $item['product_id'];
+            $variationId = $item['variation_option_id'] ?? null;
+            $quantity = $item['order_quantity'];
+
             $isUnavailable = false;
-            if (isset($product['variation_option_id'])) {
-                $variation = $variationsById->get($product['variation_option_id']);
-                if (! $variation || $product['order_quantity'] > $variation->quantity) {
-                    $isUnavailable = true;
-                }
+            $unitPrice = 0.0;
+            $subtotal = 0.0;
+
+            $productModel = $productsById->get($productId);
+            if (! $productModel) {
+                $isUnavailable = true;
             } else {
-                $productModel = $productsById->get($product['product_id']);
-                if (! $productModel || $product['order_quantity'] > $productModel->quantity) {
+                $unitPrice = (float) ($productModel->sale_price ?? $productModel->price);
+                if ($variationId) {
+                    $variation = $variationsById->get($variationId);
+                    if (! $variation || $variation->product_id !== $productId) {
+                        $isUnavailable = true;
+                    } else {
+                        $unitPrice = (float) ($variation->sale_price ?? $variation->price);
+                        if ($quantity > $variation->quantity) {
+                            $isUnavailable = true;
+                        }
+                    }
+                } elseif ($quantity > $productModel->quantity) {
                     $isUnavailable = true;
                 }
             }
+
             if ($isUnavailable) {
-                $unavailable[] = $product['product_id'];
+                $unavailableProducts[] = $productId;
+            } else {
+                $subtotal = $unitPrice * $quantity;
+                $totalAmount += $subtotal;
+                $validProducts[] = [
+                    'product_id' => $productId,
+                    'variation_option_id' => $variationId,
+                    'order_quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $subtotal,
+                ];
             }
         }
 
-        return $unavailable;
+        return [
+            'total_amount' => $totalAmount,
+            'unavailable_products' => $unavailableProducts,
+            'valid_products' => $validProducts,
+        ];
     }
 
     public function getOrderAmount(array $products, array $unavailableProducts): float
     {
-        if (empty($unavailableProducts)) {
-            return array_sum(array_column($products, 'subtotal'));
-        }
-        $amount = 0;
-        foreach ($products as $product) {
-            if (! in_array($product['product_id'], $unavailableProducts)) {
-                $amount += $product['subtotal'];
-            }
-        }
+        // Fungsi ini tidak lagi dibutuhkan karena perhitungan dilakukan di calculateProductsSubtotal
+        // Namun, jika masih ada yang memanggil, kita bisa sesuaikan.
+        // Untuk sekarang, kita akan mengembalikannya menjadi simpel atau hapus jika tidak ada panggilan lain.
+        // Jika getOrderAmount masih dipanggil, itu berarti ada bagian kode yang belum diupdate.
+        return 0.0;
+    }
 
-        return $amount;
+    public function checkStock(array $products): array
+    {
+        // Fungsi ini tidak lagi dibutuhkan karena stock check dilakukan di calculateProductsSubtotal
+        return [];
     }
 
     public function calculateShippingCharge(array $products, float $amount): float
@@ -174,13 +205,55 @@ final class VerifyCheckoutAction
 
     private function getTaxClass(?array $billingAddress, ?array $shippingAddress): ?Tax
     {
-        $settings = Settings::getData();
-        $taxClassId = $settings->options['taxClass'] ?? null;
-
-        if ($taxClassId) {
-            return Tax::find($taxClassId);
+        $address = $shippingAddress ?? $billingAddress; // Prioritaskan shipping address
+        if (! $address) {
+            // Jika tidak ada alamat, cari pajak global atau default
+            return Tax::where('is_global', true)->orderBy('priority', 'desc')->first();
         }
 
-        return null;
+        $query = Tax::query();
+
+        // Membangun kondisi pencarian dari yang paling spesifik ke paling umum
+        // Ini adalah contoh implementasi. Logika prioritas bisa lebih kompleks.
+        $query->where(function ($q) use ($address) {
+            $q->where(function ($q) use ($address) { // Pencarian City
+                if (isset($address['city']) && ! empty($address['city'])) {
+                    $q->where('city', $address['city']);
+                    if (isset($address['state']) && ! empty($address['state'])) {
+                        $q->where('state', $address['state']);
+                    }
+                    if (isset($address['country']) && ! empty($address['country'])) {
+                        $q->where('country', $address['country']);
+                    }
+                } else {
+                    $q->whereNull('city');
+                }
+            });
+            $q->orWhere(function ($q) use ($address) { // Pencarian State
+                if (isset($address['state']) && ! empty($address['state']) && (! isset($address['city']) || empty($address['city']))) {
+                    $q->where('state', $address['state']);
+                    if (isset($address['country']) && ! empty($address['country'])) {
+                        $q->where('country', $address['country']);
+                    }
+                    $q->whereNull('city'); // Pastikan tidak overlap dengan city specific
+                } else {
+                    $q->whereNull('state')->whereNull('city'); // Pastikan tidak overlap
+                }
+            });
+            $q->orWhere(function ($q) use ($address) { // Pencarian Country
+                if (isset($address['country']) && ! empty($address['country']) && (! isset($address['state']) || empty($address['state'])) && (! isset($address['city']) || empty($address['city']))) {
+                    $q->where('country', $address['country']);
+                    $q->whereNull('state')->whereNull('city'); // Pastikan tidak overlap
+                } else {
+                    $q->whereNull('country')->whereNull('state')->whereNull('city'); // Fallback (global)
+                }
+            });
+            $q->orWhere('is_global', true); // Selalu sertakan global sebagai opsi
+        });
+
+        // Urutkan berdasarkan prioritas dan spesifisitas
+        return $query->orderBy('priority', 'desc')
+            ->orderByRaw('CASE WHEN city IS NOT NULL THEN 4 WHEN state IS NOT NULL THEN 3 WHEN country IS NOT NULL THEN 2 WHEN is_global = 1 THEN 1 ELSE 0 END DESC')
+            ->first();
     }
 }

@@ -22,6 +22,8 @@ final class UserCommandService
         private readonly CreateUserAction $createUserAction,
         private readonly UpdateUserAction $updateUserAction,
         private readonly AdminUpdateUserAction $adminUpdateUserAction,
+        private readonly UpdateUserAvatarAction $updateUserAvatarAction,
+        private readonly DeleteUserAvatarAction $deleteUserAvatarAction,
     ) {}
 
     /**
@@ -61,5 +63,15 @@ final class UserCommandService
     public function sendResetPasswordEmail(string $email, string $token): void
     {
         SendForgetPasswordEmailJob::dispatch($email, $token);
+    }
+
+    public function updateAvatar(User $user, string $avatarUrl): User
+    {
+        return $this->updateUserAvatarAction->execute($user, $avatarUrl);
+    }
+
+    public function deleteAvatar(User $user): User
+    {
+        return $this->deleteUserAvatarAction->execute($user);
     }
 }

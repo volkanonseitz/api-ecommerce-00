@@ -80,15 +80,17 @@ class OrderTransactionController extends BaseController
             'payment_note' => 'nullable|string|max:500',
         ]);
 
-        $order = Order::findOrFail($id);
-        $this->authorize('update', $order);
+        $this->authorize('update', Order::class);
 
-        $order->payment_status = $request->get('payment_status');
-        $order->payment_note = $request->get('payment_note');
-        $order->save();
+        $updatedOrder = $this->transactionService->updatePaymentStatus(
+            $id,
+            $request->get('payment_status'),
+            $request->get('payment_note'),
+            $request->user()
+        );
 
         return $this->sendSuccess(
-            new OrderResource($order->fresh()),
+            new OrderResource($updatedOrder),
             'Payment status updated successfully'
         );
     }

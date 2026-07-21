@@ -30,7 +30,6 @@ return new class extends Migration
             $table->decimal('cancelled_tax')->default(0);
             $table->decimal('cancelled_delivery_fee')->default(0);
             $table->unsignedBigInteger('coupon_id')->nullable();
-            $table->foreign('coupon_id')->references('id')->on('coupons')->onDelete('set null');
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->unsignedBigInteger('shop_id')->nullable();
             $table->double('discount')->nullable();
@@ -38,15 +37,14 @@ return new class extends Migration
             $table->string('altered_payment_gateway')->nullable();
             $table->json('shipping_address')->nullable();
             $table->json('billing_address')->nullable();
-            $table->unsignedBigInteger('logistics_provider_id')->nullable(); // Renamed from logistics_provider
-            $table->foreign('logistics_provider_id')->references('id')->on('logistics')->onDelete('set null'); // Assuming a 'logistics' table
+            $table->unsignedBigInteger('logistics_provider')->nullable();
             $table->double('delivery_fee')->nullable();
             $table->string('delivery_time')->nullable();
             $table->enum('order_status', OrderStatus::getValues())->default(OrderStatus::PENDING);
             $table->enum('payment_status', PaymentStatus::getValues())->default(PaymentStatus::PENDING);
             $table->softDeletes();
             $table->timestamps();
-            $table->foreign('customer_id')->references('id')->on('users')->onDelete('restrict');
+            $table->foreign('customer_id')->references('id')->on('users');
             $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');
             $table->foreign('parent_id')->references('id')->on('orders')->onDelete('cascade');
         });

@@ -139,6 +139,28 @@ class OrderTransactionService
         });
     }
 
+    public function updatePaymentStatus(int $orderId, string $paymentStatus, ?string $paymentNote = null, ?User $user = null): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        return DB::transaction(function () use ($order, $paymentStatus, $paymentNote, $user) {
+            $order->payment_status = $paymentStatus;
+            $order->payment_note = $paymentNote;
+            $order->save();
+
+            $this->cacheService->invalidateOrderCache($order->id, $user?->id);
+
+            Log::info('Payment status updated', [
+                'order_id' => $order->id,
+                'payment_status' => $paymentStatus,
+                'user_id' => $user?->id,
+                'action' => 'update_payment_status',
+            ]);
+
+            return $order->fresh();
+        });
+    }
+
     private function handleStatusChange(Order $order, string $status, User $user): void
     {
         switch ($status) {
@@ -146,7 +168,9 @@ class OrderTransactionService
                 $this->handleOrderCompleted($order, $user);
                 break;
             case 'order-cancelled':
-                $this->cancelOrder($order->id, $user);
+                // Tidak perlu memanggil $this->cancelOrder di sini.
+                // updateOrderStatus sudah dipanggil dengan status 'order-cancelled'.
+                // Handle side effect yang unik jika diperlukan, selain dari yang sudah di handle oleh cancelOrder
                 break;
             case 'order-refunded':
                 $this->handleRefund($order, $user);
