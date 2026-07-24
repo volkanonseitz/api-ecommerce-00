@@ -16,7 +16,9 @@ class UserPolicy
 {
     public function viewAny(User $actor): bool
     {
-        return $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+        return $actor->hasPermissionTo(Permission::SUPER_ADMIN->value) ||
+               $actor->hasPermissionTo(Permission::STORE_OWNER->value) ||
+               $actor->hasPermissionTo(Permission::STAFF->value);
     }
 
     public function view(User $actor, User $target): bool
@@ -97,5 +99,10 @@ class UserPolicy
         // Super admins can update any user's security settings
         return $actor->id === $target->id
             || $actor->hasPermissionTo(Permission::SUPER_ADMIN->value);
+    }
+
+    public function verify(User $actor): bool
+    {
+        return $actor !== null;
     }
 }

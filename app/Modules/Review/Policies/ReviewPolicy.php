@@ -13,12 +13,12 @@ class ReviewPolicy
 {
     use HandlesAuthorization;
 
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // All users can view reviews (publicly)
     }
 
-    public function view(User $user, Review $review): bool
+    public function view(?User $user, Review $review): bool
     {
         return true; // All users can view a specific review
     }

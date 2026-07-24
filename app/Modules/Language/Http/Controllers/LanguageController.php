@@ -19,7 +19,6 @@ class LanguageController extends BaseController
 
     public function index()
     {
-        $this->authorize('viewAny', Language::class);
         $languages = Cache::rememberForever('languages_all', function () {
             return $this->languageService->getAll();
         });
@@ -40,7 +39,6 @@ class LanguageController extends BaseController
     public function show(int $id)
     {
         $language = $this->languageService->find($id);
-        $this->authorize('view', $language);
 
         return $this->sendSuccess(new LanguageResource($language), 'Language detail');
     }

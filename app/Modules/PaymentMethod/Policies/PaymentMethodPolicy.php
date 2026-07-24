@@ -9,28 +9,67 @@ use App\Models\User;
 
 class PaymentMethodPolicy
 {
-    public function viewAny(User $user): bool
+    public function before(?User $user, string $ability): ?bool
     {
-        return $user !== null;
+        if ($user && $user->hasRole('super_admin')) {
+            return true;
+        }
+
+        return null;
     }
 
-    public function view(User $user, PaymentMethod $method): bool
+    public function viewAny(?User $user): bool
     {
-        return $method->paymentGateway && $method->paymentGateway->user_id === $user->id;
+        return true;
+    }
+
+    public function view(?User $user, PaymentMethod $method): bool
+    {
+        return true;
     }
 
     public function create(User $user): bool
     {
-        return $user !== null;
+        return $user->hasPermissionTo('payment_method.create');
+    }
+
+    public function update(User $user, PaymentMethod $method): bool
+    {
+        if (! $method->paymentGateway) {
+            return false;
+        }
+
+        return $method->paymentGateway->user_id === $user->id
+            && $user->hasPermissionTo('payment_method.update');
     }
 
     public function delete(User $user, PaymentMethod $method): bool
     {
-        return $this->view($user, $method);
+        if (! $method->paymentGateway) {
+            return false;
+        }
+
+        return $method->paymentGateway->user_id === $user->id
+            && $user->hasPermissionTo('payment_method.delete');
     }
 
     public function setDefault(User $user, PaymentMethod $method): bool
     {
-        return $this->view($user, $method);
+        if (! $method->paymentGateway) {
+            return false;
+        }
+
+        return $method->paymentGateway->user_id === $user->id
+            && $user->hasPermissionTo('payment_method.set_default');
+    }
+
+    public function restore(User $user, PaymentMethod $method): bool
+    {
+        return $user->hasPermissionTo('payment_method.restore');
+    }
+
+    public function forceDelete(User $user, PaymentMethod $method): bool
+    {
+        return $user->hasPermissionTo('payment_method.force_delete');
     }
 }

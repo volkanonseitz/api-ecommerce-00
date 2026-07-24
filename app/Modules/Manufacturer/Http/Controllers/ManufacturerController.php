@@ -20,7 +20,6 @@ class ManufacturerController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Manufacturer::class);
         $limit = (int) ($request->limit ?? 15);
         $language = $request->language ?? config('shop.default_language', 'id');
 
@@ -63,7 +62,6 @@ class ManufacturerController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $manufacturer = $this->manufacturerService->getManufacturerByIdOrSlug($slug, $language);
-        $this->authorize('view', $manufacturer);
 
         return $this->sendSuccess(
             new ManufacturerResource($manufacturer),

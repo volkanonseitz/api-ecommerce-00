@@ -165,8 +165,7 @@ class ShopController extends BaseController
 
     public function newOrInActiveShops(Request $request): AnonymousResourceCollection
     {
-        $this->authorize('viewAny', Shop::class);
-
+        $this->authorize('viewAdminShops', Shop::class);
         $limit = (int) ($request->integer('limit') ?: 15);
         $isActive = $request->boolean('is_active');
         $shops = $this->shops->findNewOrInactive($isActive, $limit);

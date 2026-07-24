@@ -19,7 +19,7 @@ use App\Modules\Product\Http\Resources\ProductResource;
 use App\Modules\Product\Services\ProductMetricService;
 use App\Modules\Product\Services\ProductRentalService;
 use App\Modules\Product\Services\ProductService;
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -38,7 +38,6 @@ class ProductController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Product::class);
         $limit = (int) ($request->limit ?? 15);
         $cacheKey = 'products_'.md5($request->fullUrl());
         $products = Cache::remember($cacheKey, 300, function () use ($request, $limit) {
@@ -74,7 +73,6 @@ class ProductController extends BaseController
             $product = Cache::remember($cacheKey, 600, function () use ($request, $slug) {
                 return $this->productService->getProductDetail($request, $slug);
             });
-            $this->authorize('view', $product);
 
             return $this->sendSuccess(
                 new GetSingleProductResource($product),
@@ -159,7 +157,7 @@ class ProductController extends BaseController
 
     public function draftedProducts(Request $request)
     {
-        $this->authorize('viewAny', Product::class);
+        $this->authorize('viewDrafted', Product::class);
         $products = $this->productService->getDraftedProducts($request);
 
         return $this->sendSuccess(
@@ -170,7 +168,7 @@ class ProductController extends BaseController
 
     public function productStock(Request $request)
     {
-        $this->authorize('viewAny', Product::class);
+        $this->authorize('viewStock', Product::class);
         $products = $this->productService->getLowStockProducts($request);
 
         return $this->sendSuccess(
@@ -181,6 +179,10 @@ class ProductController extends BaseController
 
     public function myWishlists(Request $request)
     {
+        $user = $request->user();
+        if (! $user) {
+            throw new AuthenticationException('Unauthenticated.');
+        }
         $products = $this->productService->getMyWishlists($request);
 
         return $this->sendSuccess(
@@ -197,13 +199,6 @@ class ProductController extends BaseController
             'to' => 'required|date|after:from',
             'variation_id' => 'nullable|exists:variation_options,id',
             'quantity' => 'nullable|integer|min:1',
-            'persons' => 'nullable|array',
-            'persons.*' => 'exists:resources,id',
-            'features' => 'nullable|array',
-            'features.*' => 'exists:resources,id',
-            'deposits' => 'nullable|array',
-            'deposits.*' => 'exists:resources,id',
-            'dropoff_location_id' => 'nullable|exists:resources,id',
             'pickup_location_id' => 'nullable|exists:resources,id',
         ]);
         $price = $this->productRentalService->calculateRentalPrice($request);
@@ -214,10 +209,6 @@ class ProductController extends BaseController
     public function exportProducts(Request $request, int $shopId)
     {
         $this->authorize('export', [Product::class, $shopId]);
-        $user = $request->user();
-        if (! $this->productService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
 
         $filename = 'products-for-shop-id-'.$shopId.'.csv';
         $headers = [
@@ -227,7 +218,6 @@ class ProductController extends BaseController
 
         $callback = function () use ($shopId) {
             $handle = fopen('php://output', 'w');
-            // Header CSV
             $headers = [
                 'name', 'slug', 'price', 'sale_price', 'type_id', 'shop_id',
                 'author_id', 'manufacturer_id', 'language', 'product_type',
@@ -237,7 +227,6 @@ class ProductController extends BaseController
             ];
             fputcsv($handle, $headers);
 
-            // Gunakan chunk untuk menghindari memory overload
             Product::where('shop_id', $shopId)->chunk(100, function ($products) use ($handle) {
                 foreach ($products as $product) {
                     $row = [
@@ -281,10 +270,6 @@ class ProductController extends BaseController
     public function exportVariableOptions(Request $request, int $shopId)
     {
         $this->authorize('export', [Product::class, $shopId]);
-        $user = $request->user();
-        if (! $this->productService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
 
         $filename = 'variable-options-'.Str::random(5).'.csv';
         $headers = [
@@ -297,7 +282,6 @@ class ProductController extends BaseController
             $headers = ['product_id', 'sku', 'title', 'price', 'sale_price', 'quantity', 'options', 'image'];
             fputcsv($handle, $headers);
 
-            // Ambil product_ids dari shop, lalu variation dengan chunk
             $productIds = Product::where('shop_id', $shopId)->pluck('id');
             Variation::whereIn('product_id', $productIds)->chunk(100, function ($variations) use ($handle) {
                 foreach ($variations as $variation) {
@@ -323,12 +307,7 @@ class ProductController extends BaseController
     public function importProducts(Request $request)
     {
         $this->authorize('import', [Product::class, $request->shop_id]);
-        $user = $request->user();
         $shopId = $request->shop_id;
-
-        if (! $this->productService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
 
         if (! $request->hasFile('csv')) {
             return $this->sendError('CSV file is required', 422);
@@ -347,47 +326,45 @@ class ProductController extends BaseController
         $success = 0;
         $errors = [];
 
-        // Proses per baris, tangkap error
         foreach ($csvData as $index => $row) {
             try {
                 if (empty($row['type_id'])) {
                     throw new \Exception('type_id is required at row '.($index + 1));
                 }
 
-                $data = ProductData::fromRequest($row);
-                // Override shop_id
+                // Build ProductData from array
                 $data = new ProductData(
-                    name: $data->name,
-                    slug: $data->slug,
-                    price: $data->price,
-                    sale_price: $data->sale_price,
-                    max_price: $data->max_price,
-                    min_price: $data->min_price,
-                    type_id: $data->type_id,
+                    name: $row['name'] ?? '',
+                    slug: $row['slug'] ?? Str::slug($row['name'] ?? 'product-'.uniqid()),
+                    price: (float) ($row['price'] ?? 0),
+                    sale_price: isset($row['sale_price']) ? (float) $row['sale_price'] : null,
+                    max_price: isset($row['max_price']) ? (float) $row['max_price'] : null,
+                    min_price: isset($row['min_price']) ? (float) $row['min_price'] : null,
+                    type_id: (int) $row['type_id'],
                     shop_id: $shopId,
-                    author_id: $data->author_id,
-                    manufacturer_id: $data->manufacturer_id,
-                    language: $data->language,
-                    product_type: $data->product_type,
-                    quantity: $data->quantity,
-                    unit: $data->unit,
-                    is_digital: $data->is_digital,
-                    is_external: $data->is_external,
-                    external_product_url: $data->external_product_url,
-                    external_product_button_text: $data->external_product_button_text,
-                    description: $data->description,
-                    sku: $data->sku,
-                    image: is_string($data->image) ? json_decode($data->image, true) : $data->image,
-                    gallery: is_string($data->gallery) ? json_decode($data->gallery, true) : $data->gallery,
-                    video: is_string($data->video) ? json_decode($data->video, true) : $data->video,
-                    status: $data->status,
-                    height: $data->height,
-                    length: $data->length,
-                    width: $data->width,
-                    in_stock: $data->in_stock,
-                    is_taxable: $data->is_taxable,
-                    sold_quantity: $data->sold_quantity,
-                    visibility: $data->visibility,
+                    author_id: isset($row['author_id']) ? (int) $row['author_id'] : null,
+                    manufacturer_id: isset($row['manufacturer_id']) ? (int) $row['manufacturer_id'] : null,
+                    language: $row['language'] ?? config('shop.default_language', 'id'),
+                    product_type: $row['product_type'] ?? 'simple',
+                    quantity: isset($row['quantity']) ? (int) $row['quantity'] : null,
+                    unit: $row['unit'] ?? null,
+                    is_digital: isset($row['is_digital']) ? (bool) $row['is_digital'] : false,
+                    is_external: isset($row['is_external']) ? (bool) $row['is_external'] : false,
+                    external_product_url: $row['external_product_url'] ?? null,
+                    external_product_button_text: $row['external_product_button_text'] ?? null,
+                    description: $row['description'] ?? null,
+                    sku: $row['sku'] ?? null,
+                    image: isset($row['image']) ? json_decode($row['image'], true) : null,
+                    gallery: isset($row['gallery']) ? json_decode($row['gallery'], true) : null,
+                    video: isset($row['video']) ? json_decode($row['video'], true) : null,
+                    status: $row['status'] ?? 'draft',
+                    height: isset($row['height']) ? (float) $row['height'] : null,
+                    length: isset($row['length']) ? (float) $row['length'] : null,
+                    width: isset($row['width']) ? (float) $row['width'] : null,
+                    in_stock: isset($row['in_stock']) ? (bool) $row['in_stock'] : true,
+                    is_taxable: isset($row['is_taxable']) ? (bool) $row['is_taxable'] : true,
+                    sold_quantity: isset($row['sold_quantity']) ? (int) $row['sold_quantity'] : 0,
+                    visibility: $row['visibility'] ?? 'public',
                     categories: isset($row['categories']) ? json_decode($row['categories'], true) : null,
                     tags: isset($row['tags']) ? json_decode($row['tags'], true) : null,
                     dropoff_locations: null,
@@ -401,17 +378,16 @@ class ProductController extends BaseController
                     digital_file: null,
                     inform_purchased_customer: false,
                     product_update_message: null,
-                    is_rental: $row['is_rental'] ?? false,
+                    is_rental: isset($row['is_rental']) ? (bool) $row['is_rental'] : false,
                 );
 
-                $this->productService->createProduct($data, $settings);
+                $this->createProductAction->execute($data, $settings);
                 $success++;
             } catch (\Exception $e) {
                 $errors[] = 'Row '.($index + 1).': '.$e->getMessage();
             }
         }
 
-        // Hapus cache
         Cache::forget('products_*');
 
         return $this->sendSuccess([

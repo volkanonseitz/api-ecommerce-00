@@ -106,7 +106,8 @@ class WishlistController extends BaseController
         if (! $user) {
             return response()->json(false);
         }
-        $this->authorize('checkStatus', Product::class); // Authorize that a user can check wishlist status
+        $product = Product::findOrFail($product_id); // Parameter $product_id is product_id
+        $this->authorize('checkStatus', $product);
 
         $result = $this->queryService->isInWishlist($user, $product_id);
 

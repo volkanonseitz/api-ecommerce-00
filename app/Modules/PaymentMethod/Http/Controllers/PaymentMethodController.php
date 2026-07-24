@@ -23,8 +23,6 @@ class PaymentMethodController extends BaseController
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', PaymentMethod::class);
-
         $gateway = $request->query('gateway');
         if ($gateway) {
             $methods = $this->pmService->getUserPaymentMethodsByGateway($request->user(), $gateway);
@@ -33,6 +31,14 @@ class PaymentMethodController extends BaseController
         }
 
         return PaymentMethodResource::collection($methods);
+    }
+
+    public function show(int $id)
+    {
+        $method = PaymentMethod::findOrFail($id); // Assuming ID is unique for settings
+        $this->authorize('view', $method);
+
+        return new PaymentMethodResource($method);
     }
 
     /**

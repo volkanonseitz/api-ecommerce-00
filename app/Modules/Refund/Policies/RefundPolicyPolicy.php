@@ -13,28 +13,14 @@ class RefundPolicyPolicy
 {
     use HandlesAuthorization;
 
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
-            || $user->hasPermissionTo(Permission::STORE_OWNER->value)
-            || $user->hasPermissionTo(Permission::STAFF->value);
+        return true;
     }
 
-    public function view(User $user, RefundPolicy $policy): bool
+    public function view(?User $user, RefundPolicy $policy): bool
     {
-        if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
-            return true;
-        }
-
-        if ($user->hasPermissionTo(Permission::STORE_OWNER->value)) {
-            return $policy->shop_id === $user->shops()->first()?->id;
-        }
-
-        if ($user->hasPermissionTo(Permission::STAFF->value)) {
-            return $policy->shop_id === $user->shop_id;
-        }
-
-        return false;
+        return true;
     }
 
     public function create(User $user): bool

@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Modules\Attachment\Actions\CreateAttachmentAction;
 use App\Modules\Attachment\DTO\AttachmentData;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str; // Tambahkan ini
 
 final class AttachmentWriteService
 {

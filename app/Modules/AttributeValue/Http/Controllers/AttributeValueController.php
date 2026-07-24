@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\AttributeValue\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Models\AttributeValue;
 use App\Modules\AttributeValue\DTO\AttributeValueData;
 use App\Modules\AttributeValue\Http\Requests\AttributeValueRequest;
 use App\Modules\AttributeValue\Http\Resources\AttributeValueResource;
 use App\Modules\AttributeValue\Services\AttributeValueQueryService;
 use App\Modules\AttributeValue\Services\AttributeValueWriteService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
 class AttributeValueController extends BaseController
@@ -32,11 +32,7 @@ class AttributeValueController extends BaseController
 
     public function store(AttributeValueRequest $request)
     {
-        $user = $request->user();
-        $shopId = $request->shop_id;
-        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('create', [AttributeValue::class, $request->shop_id]);
 
         $data = AttributeValueData::fromRequest($request->validated());
         $value = $this->attributeValueWriteService->createAttributeValue($data);
@@ -61,11 +57,7 @@ class AttributeValueController extends BaseController
     public function update(AttributeValueRequest $request, int $id)
     {
         $value = $this->attributeValueQueryService->getAttributeValueById($id);
-        $user = $request->user();
-        $shopId = $request->shop_id ?? $value->shop_id;
-        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('update', $value);
 
         $data = AttributeValueData::fromRequest($request->validated());
         $updated = $this->attributeValueWriteService->updateAttributeValue($value, $data);
@@ -79,11 +71,7 @@ class AttributeValueController extends BaseController
     public function destroy(Request $request, int $id)
     {
         $value = $this->attributeValueQueryService->getAttributeValueById($id);
-        $user = $request->user();
-        $shopId = $value->shop_id;
-        if (! $this->attributeValueQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('delete', $value);
 
         $this->attributeValueWriteService->deleteAttributeValue($value);
 

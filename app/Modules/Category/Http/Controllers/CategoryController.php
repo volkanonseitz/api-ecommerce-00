@@ -24,7 +24,6 @@ class CategoryController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Category::class);
 
         $language = $request->language ?? config('shop.default_language', 'id');
         $parent = $request->parent ?? null;
@@ -63,8 +62,6 @@ class CategoryController extends BaseController
         $category = Cache::remember($cacheKey, 3600, function () use ($params, $language) {
             return $this->categoryQueryService->getCategoryByIdOrSlug($params, $language);
         });
-
-        $this->authorize('view', $category);
 
         return $this->sendSuccess(new CategoryResource($category), 'Category detail');
     }

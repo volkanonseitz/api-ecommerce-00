@@ -10,13 +10,13 @@ use App\Models\User;
 
 class ProductPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         // Siapa pun bisa melihat daftar produk (tampilan publik)
         return true;
     }
 
-    public function view(User $user, Product $product): bool
+    public function view(?User $user, Product $product): bool
     {
         // Produk publik bisa dilihat semua, tapi produk draft/private hanya pemilik atau admin
         if ($product->status === 'publish' || $product->visibility === 'visibility_public') {
@@ -114,5 +114,19 @@ class ProductPolicy
     public function viewWishlist(User $user, Product $product): bool
     {
         return $user->id === $product->author_id || $this->view($user, $product);
+    }
+
+    public function viewDrafted(User $user): bool
+    {
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||
+               $user->hasPermissionTo(Permission::STORE_OWNER->value) ||
+               $user->hasPermissionTo(Permission::STAFF->value);
+    }
+
+    public function viewStock(User $user): bool
+    {
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value) ||
+               $user->hasPermissionTo(Permission::STORE_OWNER->value) ||
+               $user->hasPermissionTo(Permission::STAFF->value);
     }
 }

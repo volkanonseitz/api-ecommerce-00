@@ -1,18 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Listeners;
 
 use App\Events\OwnershipTransferStatusControl;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\UserService;
+use App\Modules\User\Services\UserQueryService;
+use App\Notifications\OwnershipTransferredStatus;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class OwnershipTransferStatusControlListener implements ShouldQueue
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(private UserQueryService $UserQueryService) {}
 
     public function handle(OwnershipTransferStatusControl $event)
     {
@@ -86,12 +89,12 @@ class OwnershipTransferStatusControlListener implements ShouldQueue
             return;
         }
 
-        $admins = $this->userService->getAdminUsers();
-        $users = $admins->push($previousOwner, $newOwner);
+        $admins = $this->UserQueryService->getAdminUsers();
+        $users = $admins->merge([$previousOwner, $newOwner]);
 
         foreach ($users as $user) {
             Notification::route('mail', $user->email)
-                ->notify(new TransferredShopOwnershipStatus(
+                ->notify(new OwnershipTransferredStatus(
                     $shop,
                     $previousOwner,
                     $newOwner,

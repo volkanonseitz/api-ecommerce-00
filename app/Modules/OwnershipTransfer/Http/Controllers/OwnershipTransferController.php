@@ -39,11 +39,6 @@ class OwnershipTransferController extends BaseController
 
         $user = $request->user();
 
-        // Check shop ownership permission
-        if (! $this->transferService->hasPermission($user, $request->shop_id)) {
-            return $this->sendError(config('notice.NOT_AUTHORIZED'), 403);
-        }
-
         $data = OwnershipTransferData::fromRequest($request->validated(), $user->id);
         $transfer = $this->transferService->createTransfer($data);
 

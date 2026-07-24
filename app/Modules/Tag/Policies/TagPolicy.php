@@ -7,18 +7,15 @@ namespace App\Modules\Tag\Policies;
 use App\Enums\Permission;
 use App\Models\Tag;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TagPolicy
 {
-    use HandlesAuthorization;
-
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Tags are generally public to view
     }
 
-    public function view(User $user, Tag $tag): bool
+    public function view(?User $user, Tag $tag): bool
     {
         return true; // Tags are generally public to view
     }

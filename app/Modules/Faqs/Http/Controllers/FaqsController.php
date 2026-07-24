@@ -24,7 +24,6 @@ class FaqsController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Faqs::class);
         $limit = (int) ($request->limit ?? 10);
         $faqs = $this->faqsQueryService->getFaqsQuery($request, $request->user())->paginate($limit);
 
@@ -72,7 +71,6 @@ class FaqsController extends BaseController
     public function show(int $id)
     {
         $faq = $this->faqsQueryService->findOrFail($id);
-        $this->authorize('view', $faq);
 
         return new FaqResource($faq);
     }

@@ -11,12 +11,12 @@ use App\Models\User;
 
 class FaqsPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // semua user bisa lihat daftar FAQ
     }
 
-    public function view(User $user, Faqs $faq): bool
+    public function view(?User $user, Faqs $faq): bool
     {
         return true;
     }

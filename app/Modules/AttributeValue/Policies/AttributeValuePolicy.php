@@ -8,12 +8,9 @@ use App\Enums\Permission;
 use App\Models\AttributeValue;
 use App\Models\Shop;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
-final class AttributeValuePolicy
+class AttributeValuePolicy
 {
-    use HandlesAuthorization;
-
     /**
      * Determine whether the user can view any models.
      */

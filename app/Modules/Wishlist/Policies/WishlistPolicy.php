@@ -6,12 +6,9 @@ namespace App\Modules\Wishlist\Policies;
 
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 class WishlistPolicy
 {
-    use HandlesAuthorization;
-
     /**
      * Determine whether the user can view any models.
      */
@@ -47,7 +44,7 @@ class WishlistPolicy
     /**
      * Determine whether the user can check the wishlist status of a product.
      */
-    public function checkStatus(User $user): bool
+    public function checkStatus(User $user, Product $product): bool
     {
         return true; // Any authenticated user can check if a product is in their wishlist
     }

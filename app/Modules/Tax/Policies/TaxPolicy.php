@@ -7,16 +7,13 @@ namespace App\Modules\Tax\Policies;
 use App\Enums\Permission;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TaxPolicy
 {
-    use HandlesAuthorization;
-
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Taxes are generally public or accessible to all authenticated users
     }
@@ -24,7 +21,7 @@ class TaxPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Tax $tax): bool
+    public function view(?User $user, Tax $tax): bool
     {
         return true; // Taxes are generally public or accessible to all authenticated users
     }

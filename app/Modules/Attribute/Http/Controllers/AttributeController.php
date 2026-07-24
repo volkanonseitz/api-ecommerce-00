@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Attribute\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Models\Attribute;
 use App\Modules\Attribute\DTO\AttributeData;
 use App\Modules\Attribute\Http\Requests\AttributeRequest;
 use App\Modules\Attribute\Http\Resources\AttributeResource;
 use App\Modules\Attribute\Services\AttributeQueryService;
 use App\Modules\Attribute\Services\AttributeWriteService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -43,11 +43,7 @@ class AttributeController extends BaseController
      */
     public function store(AttributeRequest $request)
     {
-        $user = $request->user();
-        $shopId = $request->shop_id;
-        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('create', Attribute::class);
 
         $data = AttributeData::fromRequest($request->validated());
         $attribute = $this->attributeWriteService->createAttribute($data);
@@ -79,13 +75,8 @@ class AttributeController extends BaseController
      */
     public function update(AttributeRequest $request, int $id)
     {
-        $user = $request->user();
-        $shopId = $request->shop_id;
-        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
-
         $attribute = $this->attributeQueryService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
+        $this->authorize('update', $attribute);
         $data = AttributeData::fromRequest($request->validated());
         $updated = $this->attributeWriteService->updateAttribute($attribute, $data);
         Cache::forget("attributes_{$data->language}");
@@ -102,11 +93,7 @@ class AttributeController extends BaseController
     public function destroy(Request $request, int $id)
     {
         $attribute = $this->attributeQueryService->getAttributeByIdOrSlug($id, $request->language ?? config('shop.default_language', 'id'));
-        $user = $request->user();
-        $shopId = $attribute->shop_id;
-        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('delete', $attribute);
 
         $language = $attribute->language;
         $this->attributeWriteService->deleteAttribute($attribute);
@@ -120,10 +107,7 @@ class AttributeController extends BaseController
      */
     public function exportAttributes(Request $request, int $shopId)
     {
-        $user = $request->user();
-        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('export', [Attribute::class, $shopId]);
 
         $list = $this->attributeQueryService->exportAttributes($shopId);
         $filename = 'attributes-for-shop-id-'.$shopId.'.csv';
@@ -151,11 +135,7 @@ class AttributeController extends BaseController
      */
     public function importAttributes(Request $request)
     {
-        $user = $request->user();
-        $shopId = $request->shop_id;
-        if (! $this->attributeQueryService->hasPermission($user, $shopId)) {
-            throw new AuthorizationException(config('notice.NOT_AUTHORIZED'));
-        }
+        $this->authorize('import', [Attribute::class, $request->shop_id]);
 
         $requestFile = $request->file('csv');
         if (! $requestFile) {
@@ -171,6 +151,10 @@ class AttributeController extends BaseController
         }
 
         try {
+            // Ambil shop_id dan user dari request
+            $shopId = (int) $request->shop_id;
+            $user = $request->user();
+
             $this->attributeWriteService->importAttributes($data, $shopId, $user);
             Cache::forget('attributes_'.config('shop.default_language', 'id'));
 

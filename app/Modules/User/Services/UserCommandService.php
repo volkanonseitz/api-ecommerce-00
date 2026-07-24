@@ -8,7 +8,9 @@ use App\Jobs\SendForgetPasswordEmailJob;
 use App\Models\User;
 use App\Modules\User\Actions\AdminUpdateUserAction;
 use App\Modules\User\Actions\CreateUserAction;
+use App\Modules\User\Actions\DeleteUserAvatarAction; // tambahkan
 use App\Modules\User\Actions\UpdateUserAction;
+use App\Modules\User\Actions\UpdateUserAvatarAction; // tambahkan
 use App\Modules\User\DTO\UpdateUserData;
 
 /**

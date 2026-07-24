@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // Pindahkan use statement ke sini
 
 class OrderQueryService
 {
@@ -146,10 +147,6 @@ class OrderQueryService
 
         $query->with($relations);
     }
-
-    use Illuminate\Support\Facades\DB;
-
-    // ...
 
     private function applyFilters(Builder $query, Request $request): void
     {

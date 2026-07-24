@@ -55,14 +55,15 @@ class CreateOrderAction
             $data->delivery_fee = $calculated['delivery_fee'];
             $data->paid_total = $calculated['paid_total'];
             $data->total = $calculated['total'];
-            // $data->products sudah diupdate oleh recalculateOrderAmounts dengan harga dari DB
 
-            // 5. Interaksi Sistem Wallet Poin
+            // 3. Simpan sementara poin yang akan digunakan (jika ada)
+            $pointsToDeduct = 0;
+
+            // 4. Interaksi Sistem Wallet Poin (sebelum order dibuat)
             if ($data->use_wallet_points && $user && $user->wallet) {
                 $wallet = $user->wallet;
                 $walletCurrency = $this->walletService->walletPointsToCurrency($wallet->available_points);
                 $remainingTotal = $data->paid_total;
-                $pointsToDeduct = 0;
 
                 if ($walletCurrency >= $remainingTotal) {
                     // Wallet cukup untuk bayar semua
@@ -76,22 +77,27 @@ class CreateOrderAction
                     $pointsToDeduct = $wallet->available_points;
                     $data->paid_total = $remainingTotal - $walletCurrency;
                 }
-
-                if ($pointsToDeduct > 0) {
-                    $this->walletService->deductPoints($user->id, $pointsToDeduct);
-                    OrderWalletPoint::create(['amount' => $pointsToDeduct, 'order_id' => $order->id]);
-                }
             }
 
-            // 6. Menyimpan Parent Order melalui PersistOrderAction
+            // 5. Menyimpan Parent Order melalui PersistOrderAction
             $order = $this->persistOrderAction->execute($data);
 
+            // 6. Jika ada poin yang digunakan, lakukan pengurangan dan catat transaksi
+            if ($pointsToDeduct > 0) {
+                $this->walletService->deductPoints($user->id, $pointsToDeduct);
+                OrderWalletPoint::create([
+                    'amount' => $pointsToDeduct,
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            // 7. Attach produk dan buat child orders
             if ($data->products) {
                 $this->attachProducts($order, $data->products);
                 $this->createChildOrders($order, $data);
             }
 
-            // 7. Inisiasi Payment Gateway Intent Eksternal
+            // 8. Inisiasi Payment Gateway Intent Eksternal
             if (! in_array($order->payment_gateway, [
                 PaymentGatewayType::CASH->value,
                 PaymentGatewayType::CASH_ON_DELIVERY->value,
@@ -233,7 +239,7 @@ class CreateOrderAction
 
     private function attachProducts(Order $order, array $products): void
     {
-        $order->products()->attach($products); // $products sekarang sudah dihitung ulang server
+        $order->products()->attach($products);
         foreach ($products as $cartProduct) {
             $productModel = Product::find($cartProduct['product_id']);
             if ($productModel) {

@@ -13,9 +13,9 @@ class NotifyLogsPolicy
     /**
      * Determine if the user can view any notifications.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return true; // semua user yang login bisa melihat notifikasi mereka sendiri
+        return $user !== null;
     }
 
     /**

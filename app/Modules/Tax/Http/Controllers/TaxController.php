@@ -25,8 +25,6 @@ class TaxController extends BaseController
 
     public function index()
     {
-        $this->authorize('viewAny', Tax::class);
-
         $taxes = $this->queryService->getAll();
 
         return $this->sendSuccess(TaxResource::collection($taxes), 'Taxes retrieved');
@@ -45,7 +43,6 @@ class TaxController extends BaseController
     public function show($id)
     {
         $tax = $this->queryService->findOrFail((int) $id);
-        $this->authorize('view', $tax);
 
         return $this->sendSuccess(new TaxResource($tax), 'Tax detail');
     }

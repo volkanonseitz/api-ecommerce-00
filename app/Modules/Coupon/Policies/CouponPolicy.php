@@ -8,13 +8,10 @@ use App\Enums\Permission;
 use App\Models\Coupon;
 use App\Models\Shop;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 final class CouponPolicy
 {
-    use HandlesAuthorization;
-
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // All authenticated users can view coupons
     }

@@ -25,8 +25,6 @@ class ResourceController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Resource::class);
-
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $resources = $this->queryService->getResources($language, $limit);
@@ -52,7 +50,6 @@ class ResourceController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $resource = $this->queryService->find($params, $language);
-        $this->authorize('view', $resource);
 
         return $this->sendSuccess(new ResourceResource($resource), 'Resource detail');
     }

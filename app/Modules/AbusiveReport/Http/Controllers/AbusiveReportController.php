@@ -46,7 +46,6 @@ class AbusiveReportController extends BaseController
 
     public function store(CreateAbusiveReportRequest $request): JsonResponse
     {
-        $this->authorize('create', AbusiveReport::class);
 
         $data = AbusiveReportData::fromRequest(
             $request->validated(),

@@ -25,8 +25,6 @@ class ReviewController extends BaseController
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Review::class);
-
         $limit = (int) $request->get('limit', 15);
         $reviews = $this->reviewService->getReviews($request, $request->user())->paginate($limit);
 
@@ -77,7 +75,6 @@ class ReviewController extends BaseController
     public function show(int $id): JsonResponse
     {
         $review = Review::findOrFail($id);
-        $this->authorize('view', $review);
 
         return $this->sendSuccess(
             new ReviewResource($review),

@@ -8,16 +8,10 @@ use App\Enums\Permission;
 use App\Models\Shop;
 use App\Models\TermsAndConditions;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TermsPolicy
 {
-    use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Terms are generally public, but can be filtered by permissions
     }
@@ -25,8 +19,17 @@ class TermsPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, TermsAndConditions $term): bool
+    public function view(?User $user, TermsAndConditions $term): bool
     {
+        // Public terms are always viewable
+        if ($term->is_approved && $term->shop_id === null) {
+            return true;
+        }
+
+        if (! $user) { // If not public and no user, deny
+            return false;
+        }
+
         if ($user->hasPermissionTo(Permission::SUPER_ADMIN->value)) {
             return true;
         }
@@ -43,8 +46,7 @@ class TermsPolicy
             return $shop && $shop->staffs->contains($user->id);
         }
 
-        // Public terms are always viewable
-        return $term->is_approved && $term->shop_id === null;
+        return false;
     }
 
     /**

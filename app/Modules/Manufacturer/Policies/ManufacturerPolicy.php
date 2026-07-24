@@ -10,12 +10,12 @@ use App\Models\User;
 
 class ManufacturerPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Manufacturer $manufacturer): bool
+    public function view(?User $user, Manufacturer $manufacturer): bool
     {
         return true;
     }

@@ -33,6 +33,6 @@ class AttachmentRequest extends FormRequest
 
     public function getAttachmentData(): AttachmentData
     {
-        return AttachmentData::fromValidated($this->validated());
+        return AttachmentData::fromRequest($this->validated());
     }
 }

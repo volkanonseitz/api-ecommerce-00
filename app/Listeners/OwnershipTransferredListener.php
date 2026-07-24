@@ -3,15 +3,15 @@
 namespace App\Listeners;
 
 use App\Events\ProcessOwnershipTransition;
+use App\Modules\User\Services\UserQueryService;
 use App\Notifications\OwnershipTransferred;
-use App\Services\UserService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class OwnershipTransferredListener implements ShouldQueue
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(private UserQueryService $UserQueryService) {}
 
     public function handle(ProcessOwnershipTransition $event)
     {
@@ -20,8 +20,8 @@ class OwnershipTransferredListener implements ShouldQueue
             $previousOwner = $event->previousOwner;
             $newOwner = $event->newOwner;
 
-            $admins = $this->userService->getAdminUsers();
-            $users = $admins->push($previousOwner, $newOwner);
+            $admins = $this->UserQueryService->getAdminUsers();
+            $users = $admins->merge([$previousOwner, $newOwner]);
 
             foreach ($users as $user) {
                 Notification::route('mail', $user->email)

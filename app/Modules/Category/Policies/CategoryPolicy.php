@@ -10,12 +10,12 @@ use App\Models\User;
 
 class CategoryPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return true; // semua user bisa lihat kategori
+        return true;
     }
 
-    public function view(User $user, Category $category): bool
+    public function view(?User $user, Category $category): bool
     {
         return true;
     }

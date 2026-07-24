@@ -20,10 +20,10 @@ class AbusiveReportPolicy
             || $user->id === $report->user_id;
     }
 
-    public function create(User $user): bool
+    public function create(?User $user): bool
     {
         // Siapa pun yang login boleh membuat laporan
-        return true;
+        return $user !== null;
     }
 
     public function delete(User $user, AbusiveReport $report): bool

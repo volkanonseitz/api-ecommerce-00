@@ -29,8 +29,6 @@ class TermsAndConditionsController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', TermsAndConditions::class);
-
         $limit = $request->limit ?? 10;
         $terms = $this->queryService->getTermsQuery($request, $request->user())->paginate($limit);
 
@@ -55,7 +53,6 @@ class TermsAndConditionsController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $term = $this->queryService->find($slug, $language);
-        $this->authorize('view', $term);
 
         return $this->sendSuccess(new TermsConditionResource($term), 'Terms detail');
     }

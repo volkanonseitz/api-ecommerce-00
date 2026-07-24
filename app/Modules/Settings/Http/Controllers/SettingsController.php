@@ -18,8 +18,6 @@ class SettingsController extends BaseController
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Settings::class);
-
         $language = $request->get('language', config('shop.default_language', 'id'));
         $settings = $this->settingsService->getSettingsWithMaintenance($language);
 
@@ -39,7 +37,6 @@ class SettingsController extends BaseController
     public function show(int $id): JsonResponse
     {
         $settings = Settings::findOrFail($id); // Assuming ID is unique for settings
-        $this->authorize('view', $settings);
 
         return $this->sendSuccess($settings, 'Settings detail retrieved successfully');
     }

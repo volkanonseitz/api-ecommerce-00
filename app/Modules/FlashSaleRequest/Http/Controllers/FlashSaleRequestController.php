@@ -93,6 +93,7 @@ class FlashSaleRequestController extends BaseController
 
     public function getRequestedProductsForFlashSale(Request $request)
     {
+        $this->authorize('viewAny', FlashSaleRequest::class);
         $request->validate(['vendor_request_id' => 'required|exists:flash_sale_requests,id']);
         $limit = (int) ($request->limit ?? 10);
         $products = $this->queryService->getRequestedProductsQuery($request, $request->vendor_request_id)->paginate($limit);

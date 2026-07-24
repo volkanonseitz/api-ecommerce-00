@@ -13,12 +13,12 @@ class SettingsPolicy
 {
     use HandlesAuthorization;
 
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Settings are generally public to view
     }
 
-    public function view(User $user, Settings $settings): bool
+    public function view(?User $user, Settings $settings): bool
     {
         return true; // Settings are generally public to view
     }

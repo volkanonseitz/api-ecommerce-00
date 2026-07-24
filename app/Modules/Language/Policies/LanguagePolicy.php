@@ -10,12 +10,12 @@ use App\Models\User;
 
 class LanguagePolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Language $language): bool
+    public function view(?User $user, Language $language): bool
     {
         return true;
     }

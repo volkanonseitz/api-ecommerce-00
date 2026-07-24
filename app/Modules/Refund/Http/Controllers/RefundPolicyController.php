@@ -49,8 +49,6 @@ class RefundPolicyController extends BaseController
         $language = $request->get('language', config('shop.default_language', 'id'));
         $policy = $this->policyService->findPolicy($slug, $language);
 
-        $this->authorize('view', $policy);
-
         return $this->sendSuccess(
             new RefundPolicyResource($policy),
             'Refund policy retrieved successfully'

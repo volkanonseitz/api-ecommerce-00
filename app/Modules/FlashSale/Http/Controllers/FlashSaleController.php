@@ -29,7 +29,6 @@ class FlashSaleController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', FlashSale::class);
         $limit = (int) ($request->limit ?? 10);
         $flashSales = $this->flashSaleQueryService->getFlashSalesQuery($request)->paginate($limit);
 
@@ -52,7 +51,6 @@ class FlashSaleController extends BaseController
         if (! $flashSale) {
             return $this->sendError('Flash sale not found', 404);
         }
-        $this->authorize('view', $flashSale);
 
         return new FlashSaleResource($flashSale);
     }

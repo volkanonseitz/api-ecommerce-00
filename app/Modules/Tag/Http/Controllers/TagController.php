@@ -20,8 +20,6 @@ class TagController extends BaseController
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Tag::class);
-
         $language = $request->get('language', config('shop.default_language', 'id'));
         $limit = (int) $request->get('limit', 15);
         $tags = $this->tagService->getTags($language, $limit);
@@ -51,8 +49,6 @@ class TagController extends BaseController
     {
         $language = $request->get('language', config('shop.default_language', 'id'));
         $tag = $this->tagService->getTagByIdOrSlug($param, $language);
-
-        $this->authorize('view', $tag);
 
         return $this->sendSuccess(
             new TagResource($tag),

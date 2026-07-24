@@ -10,12 +10,12 @@ use App\Models\User;
 
 class AuthorPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Author $author): bool
+    public function view(?User $user, Author $author): bool
     {
         return true;
     }

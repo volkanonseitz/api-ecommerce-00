@@ -12,7 +12,9 @@ class FlashSaleRequestPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
+            || $user->hasPermissionTo(Permission::STORE_OWNER->value)
+            || $user->hasPermissionTo(Permission::STAFF->value);
     }
 
     public function view(User $user, FlashSaleRequest $request): bool

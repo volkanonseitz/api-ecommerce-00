@@ -24,7 +24,6 @@ class CouponController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Coupon::class);
 
         $limit = (int) ($request->limit ?? 15);
         $query = $this->couponQueryService->getCouponsQuery($request, $request->user());

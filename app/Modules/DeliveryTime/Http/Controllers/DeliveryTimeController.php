@@ -23,8 +23,6 @@ class DeliveryTimeController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', DeliveryTime::class);
-
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = "delivery_times_{$language}";
         $deliveryTimes = Cache::rememberForever($cacheKey, function () use ($language) {
@@ -56,7 +54,6 @@ class DeliveryTimeController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $deliveryTime = $this->deliveryTimeQueryService->find($params, $language);
-        $this->authorize('view', $deliveryTime);
 
         return $this->sendSuccess(
             new DeliveryTimeResource($deliveryTime),

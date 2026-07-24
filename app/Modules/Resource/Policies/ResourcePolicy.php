@@ -16,7 +16,7 @@ class ResourcePolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Resources are generally public or accessible to all authenticated users
     }
@@ -24,7 +24,7 @@ class ResourcePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Resource $resource): bool
+    public function view(?User $user, Resource $resource): bool
     {
         return true; // Resources are generally public or accessible to all authenticated users
     }

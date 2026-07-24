@@ -9,7 +9,7 @@ use App\Models\User;
 
 class BecameSellerPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }

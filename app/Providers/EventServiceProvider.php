@@ -13,7 +13,8 @@ use App\Events\ProductReviewApproved;
 use App\Events\ProductReviewRejected;
 use App\Events\ShopMaintenance;
 use App\Listeners\DigitalProductNotifyLogsListener;
-use App\Listeners\OwnershipTransferStatusControlListener;
+use App\Listeners\OwnershipTransferredListener;
+use App\Listeners\OwnershipTransferStatusControlListener; // tambahkan jika ada
 use App\Listeners\ProductInventoryDecrement;
 use App\Listeners\ProductReviewApprovedListener;
 use App\Listeners\ProductReviewRejectedListener;
@@ -21,6 +22,7 @@ use App\Listeners\SendOrderCreationNotification;
 use App\Listeners\SendOrderReceivedNotification;
 use App\Listeners\ShopMaintenanceListener;
 use App\Listeners\StoredOrderNotifyLogsListener;
+// jika class ini ada di Listeners, bukan Notifications
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -54,18 +56,19 @@ class EventServiceProvider extends ServiceProvider
         ProductReviewRejected::class => [
             ProductReviewRejectedListener::class,
         ],
+        // Hapus duplikasi OwnershipTransferStatusControl, gabungkan listener-nya
         OwnershipTransferStatusControl::class => [
+            OwnershipTransferStatusControlListener::class,
+            // tambahkan listener lain jika ada
         ],
         PaymentMethods::class => [
+            // tambahkan listener jika ada, atau biarkan kosong
         ],
         ShopMaintenance::class => [
             ShopMaintenanceListener::class,
         ],
-        OwnershipTransferStatusControl::class => [
-            OwnershipTransferStatusControlListener::class,
-        ],
         ProcessOwnershipTransition::class => [
-            TransferredShopOwnershipNotification::class,
+            OwnershipTransferredListener::class, // ganti dengan listener yang benar
         ],
     ];
 

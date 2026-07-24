@@ -7,16 +7,10 @@ namespace App\Modules\Type\Policies;
 use App\Enums\Permission;
 use App\Models\Type;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TypePolicy
 {
-    use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true; // Types are generally public
     }
@@ -24,7 +18,7 @@ class TypePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Type $type): bool
+    public function view(?User $user, Type $type): bool
     {
         return true; // Types are generally public
     }

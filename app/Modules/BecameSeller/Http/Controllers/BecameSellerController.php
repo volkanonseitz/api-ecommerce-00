@@ -22,7 +22,6 @@ class BecameSellerController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', BecameSeller::class);
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = 'cached_became_seller_'.$language;
         $data = Cache::rememberForever($cacheKey, function () use ($language) {

@@ -23,7 +23,6 @@ class AuthorController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Author::class);
         $limit = $request->limit ?? 15;
         $language = $request->language ?? config('shop.default_language', 'id');
         $cacheKey = "authors_{$language}_{$limit}";
@@ -52,7 +51,6 @@ class AuthorController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $author = $this->authorQueryService->getAuthorBySlug($slug, $language);
-        $this->authorize('view', $author);
 
         return $this->sendSuccess(new AuthorResource($author), 'Author detail');
     }

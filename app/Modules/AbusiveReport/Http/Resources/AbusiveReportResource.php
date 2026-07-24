@@ -29,7 +29,7 @@ class AbusiveReportResource extends JsonResource
             ],
             'message' => $this->message,
             'user_id' => $this->when(
-                $user && $user->can('manage-abusive-reports'),
+                $user && $user->can('viewAny', AbusiveReport::class),
                 $this->user_id
             ),
             'created_at' => $this->created_at?->toISOString(),

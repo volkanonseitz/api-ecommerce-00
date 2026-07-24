@@ -64,21 +64,20 @@ RateLimiter::for('login', function (Request $request) {
     );
 });
 
-// Broadcast routes
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 // ========================
 // PUBLIC ROUTES (no auth)
 // ========================
 
-// AuthController (public)
+// Auth
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/social-login', [AuthController::class, 'socialLogin']);
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
-// ProductController (public)
+// Product public queries
 Route::get('/popular-products', [ProductMetricController::class, 'popular']);
 Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
 Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
@@ -86,182 +85,179 @@ Route::get('/products/calculate-rental-price', [ProductRentalController::class, 
 Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
 Route::get('/products/search', [ProductQueryController::class, 'search']);
 
-// AuthorController (public)
+// Authors
 Route::get('/top-authors', [AuthorController::class, 'topAuthor']);
 Route::apiResource('/authors', AuthorController::class)->only(['index', 'show']);
 
-// ManufacturerController (public)
+// Manufacturers
 Route::get('/top-manufacturers', [ManufacturerController::class, 'topManufacturer']);
 Route::apiResource('/manufacturers', ManufacturerController::class)->only(['index', 'show']);
 
-// TypeController (public)
+// Types
 Route::apiResource('/types', TypeController::class)->only(['index', 'show']);
 
-// AttachmentController (public)
+// Attachments (public read)
 Route::apiResource('/attachments', AttachmentController::class)->only(['index', 'show']);
 
-// CategoryController (public)
+// Categories
 Route::apiResource('/categories', CategoryController::class)->only(['index', 'show']);
 Route::get('/featured-categories', [CategoryController::class, 'fetchFeaturedCategories']);
 
-// DeliveryTimeController (public)
+// Delivery times
 Route::apiResource('/delivery-times', DeliveryTimeController::class)->only(['index', 'show']);
 
-// LanguageController (public)
+// Languages
 Route::apiResource('/languages', LanguageController::class)->only(['index', 'show']);
 
-// TagController (public)
+// Tags (public read)
 Route::apiResource('/tags', TagController::class)->only(['index', 'show']);
 
-// RefundReasonController (public)
+// Refund reasons
 Route::apiResource('/refund-reasons', RefundReasonController::class)->only(['index', 'show']);
 
-// ResourceController (public)
+// Resources
 Route::apiResource('/resources', ResourceController::class)->only(['index', 'show']);
 
-// CouponController (public)
-Route::apiResource('/coupons', CouponController::class)->only(['index', 'show']);
+// Coupon verify (public)
 Route::post('/coupons/verify', [CouponController::class, 'verify']);
 
-// AttributeController (public)
+Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::CUSTOMER->value]], function () {
+    // Coupon (index & show) - hanya untuk customer yang login
+    Route::apiResource('/coupons', CouponController::class)->only(['index', 'show']);
+});
+
+// Attributes (public read)
 Route::apiResource('/attributes', AttributeController::class)->only(['index', 'show']);
-Route::post('/import-attributes', [AttributeController::class, 'importAttributes']);
+Route::post('/import-attributes', [AttributeController::class, 'importAttributes']); // public? consider auth later
 Route::get('/export-attributes/{shop_id}', [AttributeController::class, 'exportAttributes']);
 
-// ShopController (public)
+// Shops (public listing & detail)
 Route::get('/shops', [ShopController::class, 'index']);
 Route::get('/shops/{shop:slug}', [ShopController::class, 'show']);
-Route::get('/near-by-shop', [ShopController::class, 'nearByShop']); // lat & lng via query string, divalidasi NearbyShopRequest
+Route::get('/near-by-shop', [ShopController::class, 'nearByShop']);
 
-// SettingsController (public)
+// Settings (public read)
 Route::apiResource('/settings', SettingsController::class)->only(['index']);
 
-// ReviewController (public)
+// Reviews (public read)
 Route::apiResource('/reviews', ReviewController::class)->only(['index', 'show']);
 
-// QuestionController (public)
+// Questions (public read)
 Route::apiResource('/questions', QuestionController::class)->only(['index', 'show']);
 
-// FeedbackController (public)
+// Feedbacks (public read)
 Route::apiResource('/feedbacks', FeedbackController::class)->only(['index', 'show']);
 
-// CheckoutController (public)
+// Checkout verify (public)
 Route::post('/orders/checkout/verify', [CheckoutController::class, 'verify']);
 
-// OrderController (public)
+// Order track (guest)
 Route::get('/orders/track/{identifier}', [OrderQueryController::class, 'show']);
 
-// PaymentIntentController (public)
+// Payment intent
 Route::get('/payment-intent', [PaymentIntentController::class, 'getPaymentIntent']);
 
-// FaqsController (public)
+// FAQs
 Route::apiResource('/faqs', FaqsController::class)->only(['index', 'show']);
 
-// TermsAndConditionsController (public)
+// Terms & conditions
 Route::apiResource('/terms-and-conditions', TermsAndConditionsController::class)->only(['index', 'show']);
 
-// FlashSaleController (public)
+// Flash sales
 Route::apiResource('/flash-sale', FlashSaleController::class)->only(['index', 'show']);
 
-// RefundPolicyController (public)
+// Refund policies
 Route::resource('/refund-policies', RefundPolicyController::class)->only(['index', 'show']);
 
-// StoreNoticeController (public)
+// Store notices (public index)
 Route::get('/store-notices', [StoreNoticeController::class, 'index'])->name('store-notices.index');
 
-// DownloadController (public)
+// Download token
 Route::get('/download_url/token/{token}', [DownloadController::class, 'downloadFile'])->name('download_url.token');
 
-// BecameSellerController (public)
+// Became seller
 Route::apiResource('/became-seller', BecameSellerController::class);
 
 // ========================
 // CUSTOMER (auth:sanctum, email.verified, permission:CUSTOMER)
 // ========================
 Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::CUSTOMER->value]], function () {
-    // User Module Authenticated Routes
+    // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [ProfileController::class, 'me']);
     Route::put('/me', [ProfileController::class, 'updateProfile']);
     Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
     Route::delete('/me/avatar', [ProfileController::class, 'deleteAvatar']);
 
-    // Security routes
+    // Security
     Route::post('/me/change-password', [UserSecurityController::class, 'changePassword']);
     Route::post('/me/logout-all', [UserSecurityController::class, 'logoutFromAllDevices']);
     Route::get('/me/sessions', [UserSecurityController::class, 'viewActiveSessions']);
     Route::delete('/me/sessions/{sessionId}', [UserSecurityController::class, 'revokeSession']);
 
-    // Admin/Super Admin User Management
-    Route::middleware(['permission:super_admin'])->group(function () {
-        Route::apiResource('/users', UserManagementController::class);
-        Route::patch('/users/{id}/toggle-active', [UserManagementController::class, 'toggleActive']);
-        Route::patch('/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
-        Route::patch('/users/{id}/assign-shop', [UserManagementController::class, 'assignShop']);
-    });
-    // Route::post('/update-contact', [AuthController::class, 'updateContact']); // Method not implemented
+    // Coupon (index & show) - hanya untuk customer yang login
+    Route::apiResource('/coupons', CouponController::class)->only(['index', 'show']);
 
-    // OrderController
+    // Orders
     Route::get('/my-orders', [OrderQueryController::class, 'myOrders']);
     Route::post('/orders', [OrderTransactionController::class, 'store']);
     Route::get('/orders/{identifier}', [OrderQueryController::class, 'show']);
     Route::post('/orders/{id}/cancel', [OrderTransactionController::class, 'cancel']);
 
-    // ReviewController
+    // Reviews (create, update)
     Route::apiResource('/reviews', ReviewController::class)->only(['store', 'update']);
 
-    // QuestionController
+    // Questions
     Route::apiResource('/questions', QuestionController::class)->only(['store']);
     Route::get('/my-questions', [QuestionController::class, 'myQuestions']);
 
-    // FeedbackController
+    // Feedbacks
     Route::apiResource('/feedbacks', FeedbackController::class)->only(['store']);
 
-    // AbusiveReportController
-    Route::apiResource('/abusive_reports', AbusiveReportController::class)->only(['store']);
+    // Abusive reports
+    Route::post('/abusive_reports', [AbusiveReportController::class, 'store']);
     Route::get('/my-reports', [AbusiveReportController::class, 'myReports']);
 
-    // ConversationController & MessageController
+    // Conversations & Messages
     Route::apiResource('/conversations', ConversationController::class)->only(['index', 'store']);
     Route::get('/conversations/{conversation_id}', [ConversationController::class, 'show']);
     Route::get('/messages/conversations/{conversation_id}', [MessageController::class, 'index']);
     Route::post('/messages/conversations/{conversation_id}', [MessageController::class, 'store']);
-    // Route::post('/messages/seen/{conversation_id}', [MessageController::class, 'seen']); // Method not implemented
 
-    // WishlistController
+    // Wishlists
     Route::post('/wishlists/toggle', [WishlistController::class, 'toggle']);
     Route::apiResource('/wishlists', WishlistController::class)->only(['index', 'store', 'destroy']);
     Route::get('/wishlists/in_wishlist/{product_id}', [WishlistController::class, 'in_wishlist']);
-    Route::get('/my-wishlists', [ProductController::class, 'myWishlists']); // via ProductController
+    Route::get('/my-wishlists', [ProductQueryController::class, 'myWishlists']);
 
-    // AttachmentController
+    // Attachments (store, update, delete)
     Route::apiResource('/attachments', AttachmentController::class)->only(['store', 'update', 'destroy']);
 
-    // AddressController
-    Route::apiResource('addresses', AddressController::class)->middleware('throttle:60,1');
+    // Addresses
+    Route::apiResource('addresses', AddressController::class)->middleware('throttle:60,1')->except(['show', 'index']);
 
-    // RefundController
+    // Refunds
     Route::apiResource('/refunds', RefundController::class)->only(['index', 'store', 'show']);
 
-    // DownloadController
+    // Downloads
     Route::get('/downloads', [DownloadController::class, 'fetchDownloadableFiles']);
     Route::post('/downloads/digital_file', [DownloadController::class, 'generateDownloadableUrl']);
 
-    // ShopController (follow)
-    Route::get('/followed-shops-popular-products', [ShopController::class, 'followedShopsPopularProducts']);
+    // Shop follow
     Route::get('/followed-shops', [ShopController::class, 'userFollowedShops']);
     Route::get('/follow-shop', [ShopController::class, 'userFollowedShop']);
     Route::post('/follow-shop', [ShopController::class, 'handleFollowShop']);
+    Route::get('/followed-shops-popular-products', [ProductQueryController::class, 'followedShopsPopularProducts']);
 
-    // PaymentMethodController
-    Route::apiResource('/payment-methods', PaymentMethodController::class)->only(['index', 'store', 'destroy']);
+    // Payment methods
+    Route::apiResource('/payment-methods', PaymentMethodController::class);
     Route::get('/payment-methods/gateways', [PaymentMethodController::class, 'gateways']);
     Route::post('/payment-methods/save', [PaymentMethodController::class, 'savePaymentMethod']);
     Route::post('/payment-methods/setup-intent', [PaymentMethodController::class, 'saveCardIntent']);
     Route::post('/payment-methods/set-default', [PaymentMethodController::class, 'setDefaultCard']);
 
-    // NotifyLogsController
-    Route::apiResource('/notify-logs', NotifyLogsController::class)->only(['index', 'show']);
+    // Notify logs
+    Route::apiResource('/notify-logs', NotifyLogsController::class)->except(['destroy']);
     Route::post('/notify-log-seen', [NotifyLogsController::class, 'readNotifyLogs']);
     Route::post('/notify-log-read-all', [NotifyLogsController::class, 'readAllNotifyLogs']);
 });
@@ -269,72 +265,60 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
 // ========================
 // STAFF & STORE OWNER (permission:STAFF|STORE_OWNER)
 // ========================
-Route::group(['middleware' => ['permission:'.Permission::STAFF->value.'|'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']], function () {
-    // ProductController
-    Route::apiResource('/products', ProductController::class)->only(['store', 'update', 'destroy']);
-    Route::get('/draft-products', [ProductController::class, 'draftedProducts']);
-    Route::get('/products-stock', [ProductController::class, 'productStock']);
-    Route::get('/products-by-flash-sale', [FlashSaleController::class, 'getProductsByFlashSale']);
+Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::STAFF->value.'|'.Permission::STORE_OWNER->value]], function () {
+    // Product management (CRUD)
+    Route::apiResource('/products', ProductCrudController::class)->only(['store', 'update', 'destroy']);
+    Route::get('/draft-products', [ProductQueryController::class, 'draftedProducts']);
+    Route::get('/products-stock', [ProductQueryController::class, 'productStock']);
+    Route::get('/products-by-flash-sale', [ProductQueryController::class, 'getProductsByFlashSale']);
 
-    // ResourceController
+    // Resource store
     Route::apiResource('/resources', ResourceController::class)->only(['store']);
 
-    // AttributeController
+    // Attributes
     Route::apiResource('/attributes', AttributeController::class)->only(['store', 'update', 'destroy']);
-
-    // AttributeValueController
     Route::apiResource('/attribute-values', AttributeValueController::class)->only(['store', 'update', 'destroy']);
 
-    // OrderController
+    // Order management
     Route::get('/orders', [OrderQueryController::class, 'index']);
     Route::patch('/orders/{id}/status', [OrderTransactionController::class, 'updateStatus']);
     Route::patch('/orders/{id}/payment-status', [OrderTransactionController::class, 'updatePaymentStatus']);
-
-    // Shop-specific orders
     Route::get('/shops/{shopId}/orders', [OrderQueryController::class, 'showByShop']);
-
-    // Order statistics
     Route::get('/orders/stats', [OrderQueryController::class, 'stats']);
 
-    // QuestionController
+    // Question update
     Route::apiResource('/questions', QuestionController::class)->only(['update']);
 
-    // AuthorController
+    // Authors & Manufacturers (store)
     Route::apiResource('/authors', AuthorController::class)->only(['store']);
-
-    // ManufacturerController
     Route::apiResource('/manufacturers', ManufacturerController::class)->only(['store']);
 
-    // StoreNoticeController
+    // Store notices (full)
     Route::get('/store-notices/getStoreNoticeType', [StoreNoticeController::class, 'getStoreNoticeType']);
     Route::get('/store-notices/getUsersToNotify', [StoreNoticeController::class, 'getUsersToNotify']);
     Route::post('/store-notices/read/', [StoreNoticeController::class, 'readNotice']);
     Route::post('/store-notices/read-all', [StoreNoticeController::class, 'readAllNotice']);
     Route::apiResource('/store-notices', StoreNoticeController::class)->only(['show', 'store', 'update', 'destroy']);
 
-    // FaqsController
+    // FAQs (store, update, delete)
     Route::apiResource('/faqs', FaqsController::class)->only(['store', 'update', 'destroy']);
 
-    // AnalyticsController
+    // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'analytics']);
     Route::get('/low-stock-products', [AnalyticsController::class, 'lowStockProducts']);
     Route::get('/category-wise-product', [AnalyticsController::class, 'categoryWiseProduct']);
     Route::get('/category-wise-product-sale', [AnalyticsController::class, 'categoryWiseProductSale']);
     Route::get('/top-rate-product', [AnalyticsController::class, 'topRatedProducts']);
 
-    // CouponController
+    // Coupon update (staff/store owner)
     Route::apiResource('/coupons', CouponController::class)->only(['update']);
-
-    // FlashSaleRequestController
-    Route::get('/requested-products-for-flash-sale', [FlashSaleRequestController::class, 'getRequestedProductsForFlashSale']);
-    Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleRequestController::class)->only(['index', 'show', 'store', 'destroy']);
 });
 
 // ========================
 // STORE OWNER ONLY (permission:STORE_OWNER)
 // ========================
-Route::group(['middleware' => ['permission:'.Permission::STORE_OWNER->value, 'auth:sanctum', 'email.verified']], function () {
-    // ShopController
+Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::STORE_OWNER->value]], function () {
+    // Shop management
     Route::post('/shops', [ShopController::class, 'store']);
     Route::put('/shops/{shop}', [ShopController::class, 'update']);
     Route::delete('/shops/{shop}', [ShopController::class, 'destroy']);
@@ -344,290 +328,117 @@ Route::group(['middleware' => ['permission:'.Permission::STORE_OWNER->value, 'au
     Route::delete('/staffs/{staff}', [ShopController::class, 'deleteStaff']);
     Route::post('/shops/{shop}/maintenance', [ShopController::class, 'shopMaintenanceEvent']);
 
-    // WithdrawController
+    // Withdraws
     Route::apiResource('/withdraws', WithdrawController::class)->only(['store', 'index', 'show']);
 
-    // FlashSaleController
+    // Flash sales (store, update, delete)
     Route::apiResource('/flash-sale', FlashSaleController::class)->only(['store', 'update', 'destroy']);
     Route::get('/product-flash-sale-info', [FlashSaleController::class, 'getFlashSaleInfoByProductID']);
 
-    // TermsAndConditionsController
+    // Terms & conditions (store, update, delete)
     Route::apiResource('/terms-and-conditions', TermsAndConditionsController::class)->only(['store', 'update', 'destroy']);
 
-    // CouponController
+    // Coupon (store & destroy)
     Route::apiResource('/coupons', CouponController::class)->only(['store', 'destroy']);
 
-    // AuthController (vendor list)
+    // Vendor list
     Route::get('/vendors/list', [AuthController::class, 'vendors']);
 
-    // OwnershipTransferController
+    // Ownership transfer (index, show)
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['index', 'show']);
 });
 
 // ========================
 // SUPER ADMIN ONLY (permission:SUPER_ADMIN)
 // ========================
-Route::group(['middleware' => ['permission:'.Permission::SUPER_ADMIN->value, 'auth:sanctum', 'email.verified']], function () {
-    // TypeController
+Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.Permission::SUPER_ADMIN->value]], function () {
+    // Types (full CRUD)
     Route::apiResource('/types', TypeController::class)->only(['store', 'update', 'destroy']);
 
-    // WithdrawController
+    // Withdraws (update, delete, approve)
     Route::apiResource('/withdraws', WithdrawController::class)->only(['update', 'destroy']);
     Route::post('/approve-withdraw', [WithdrawController::class, 'approveWithdraw']);
 
-    // CategoryController
+    // Categories (full CRUD)
     Route::apiResource('/categories', CategoryController::class)->only(['store', 'update', 'destroy']);
 
-    // DeliveryTimeController
+    // Delivery times (full CRUD)
     Route::apiResource('/delivery-times', DeliveryTimeController::class)->only(['store', 'update', 'destroy']);
 
-    // LanguageController
+    // Languages (full CRUD)
     Route::apiResource('/languages', LanguageController::class)->only(['store', 'update', 'destroy']);
 
-    // TagController
+    // Tags (full CRUD)
     Route::apiResource('/tags', TagController::class)->only(['store', 'update', 'destroy']);
 
-    // RefundReasonController
+    // Refund reasons (full CRUD)
     Route::apiResource('/refund-reasons', RefundReasonController::class)->only(['store', 'update', 'destroy']);
 
-    // ResourceController
+    // Resources (update, delete)
     Route::apiResource('/resources', ResourceController::class)->only(['update', 'destroy']);
 
-    // ReviewController
+    // Reviews (delete)
     Route::apiResource('/reviews', ReviewController::class)->only(['destroy']);
 
-    // QuestionController
+    // Questions (delete)
     Route::apiResource('/questions', QuestionController::class)->only(['destroy']);
 
-    // FeedbackController
+    // Feedbacks (update, delete)
     Route::apiResource('/feedbacks', FeedbackController::class)->only(['update', 'destroy']);
 
-    // AbusiveReportController
+    // Abusive reports (full)
     Route::apiResource('/abusive_reports', AbusiveReportController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::post('/abusive_reports/accept', [AbusiveReportController::class, 'accept']);
     Route::post('/abusive_reports/reject', [AbusiveReportController::class, 'reject']);
 
-    // SettingsController
+    // Settings (store)
     Route::apiResource('/settings', SettingsController::class)->only(['store']);
 
-    // AuthController
-    Route::apiResource('/users', AuthController::class);
-    // Route::post('/users/block-user', [\App\Modules\User\Http\Controllers\AuthController::class, 'banUser']); // Method not implemented - use UserManagementController
-    // Route::post('/users/unblock-user', [\App\Modules\User\Http\Controllers\AuthController::class, 'activeUser']); // Method not implemented - use UserManagementController
-    // Route::post('/add-points', [AuthController::class, 'addPoints']); // Method not implemented
-    // Route::post('/users/make-admin', [\App\Modules\User\Http\Controllers\AuthController::class, 'makeOrRevokeAdmin']); // Method not implemented - use UserManagementController
-    // Route::get('/admin/list', [\App\Modules\User\Http\Controllers\AuthController::class, 'admins']); // Method not implemented
-    // Route::get('/customers/list', [\App\Modules\User\Http\Controllers\AuthController::class, 'customers']); // Method not implemented
-    // Route::get('/my-staffs', [\App\Modules\User\Http\Controllers\AuthController::class, 'myStaffs']); // Method not implemented
-    // Route::get('/all-staffs', [AuthController::class, 'allStaffs']); // Method not implemented
-    // Route::get('/vendors/list', [AuthController::class, 'vendors']); // Method not implemented
+    // User management (full via UserManagementController)
+    Route::apiResource('/users', UserManagementController::class);
+    Route::patch('/users/{id}/toggle-active', [UserManagementController::class, 'toggleActive']);
+    Route::patch('/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
+    Route::patch('/users/{id}/assign-shop', [UserManagementController::class, 'assignShop']);
 
-    // AuthorController
+    // Authors (update, delete)
     Route::apiResource('/authors', AuthorController::class)->only(['update', 'destroy']);
 
-    // ManufacturerController
+    // Manufacturers (update, delete)
     Route::apiResource('/manufacturers', ManufacturerController::class)->only(['update', 'destroy']);
 
-    // TaxController
+    // Tax (full)
     Route::apiResource('/taxes', TaxController::class);
 
-    // ShippingController
+    // Shipping (full)
     Route::apiResource('/shippings', ShippingController::class);
 
-    // ShopController (approve/disapprove, new shops)
+    // Shop approval & new shops
     Route::post('/shops/{shop}/approve', [ShopController::class, 'approveShop']);
     Route::post('/shops/{shop}/disapprove', [ShopController::class, 'disApproveShop']);
     Route::get('/new-shops', [ShopController::class, 'newOrInActiveShops']);
 
-    // RefundController
+    // Refunds (delete, update)
     Route::apiResource('/refunds', RefundController::class)->only(['destroy', 'update']);
 
-    // NotifyLogsController
+    // Notify logs (delete)
     Route::apiResource('/notify-logs', NotifyLogsController::class)->only(['destroy']);
 
-    // TermsAndConditionsController (approve/disapprove)
+    // Terms approval
     Route::post('/approve-terms-and-conditions', [TermsAndConditionsController::class, 'approveTerm']);
     Route::post('/disapprove-terms-and-conditions', [TermsAndConditionsController::class, 'disApproveTerm']);
 
-    // RefundPolicyController
+    // Refund policies (store, update, delete)
     Route::resource('/refund-policies', RefundPolicyController::class)->only(['store', 'update', 'destroy']);
 
-    // CouponController (approve/disapprove)
+    // Coupon approval
     Route::post('/approve-coupon', [CouponController::class, 'approveCoupon']);
     Route::post('/disapprove-coupon', [CouponController::class, 'disApproveCoupon']);
 
-    // FlashSaleRequestController
+    // Flash sale request approval
     Route::post('/approve-flash-sale-requested-products', [FlashSaleRequestController::class, 'approveFlashSaleProductsRequest']);
     Route::post('/disapprove-flash-sale-requested-products', [FlashSaleRequestController::class, 'disapproveFlashSaleProductsRequest']);
     Route::apiResource('/vendor-requests-for-flash-sale', FlashSaleRequestController::class)->only(['update']);
 
-    // OwnershipTransferController
+    // Ownership transfer (update, delete)
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['update', 'destroy']);
 });
-
-// ========================
-// Module Routes
-// ========================
-
-// User Module Routes
-// Public Auth Routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/social-login', [AuthController::class, 'socialLogin']);
-Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
-Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-
-// Authenticated User Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [ProfileController::class, 'me']);
-    Route::put('/me', [ProfileController::class, 'updateProfile']);
-
-    // Security routes
-    Route::post('/me/change-password', [UserSecurityController::class, 'changePassword']);
-    Route::post('/me/logout-all', [UserSecurityController::class, 'logoutFromAllDevices']);
-    Route::get('/me/sessions', [UserSecurityController::class, 'viewActiveSessions']);
-    Route::delete('/me/sessions/{sessionId}', [UserSecurityController::class, 'revokeSession']);
-
-    // Admin/Super Admin User Management
-    Route::middleware(['permission:super_admin'])->group(function () {
-        Route::apiResource('/users', UserManagementController::class);
-        Route::patch('/users/{id}/toggle-active', [UserManagementController::class, 'toggleActive']);
-        Route::patch('/users/{id}/toggle-admin', [UserManagementController::class, 'toggleAdmin']);
-        Route::patch('/users/{id}/assign-shop', [UserManagementController::class, 'assignShop']);
-    });
-});
-
-// Product Module Routes
-// Public Routes (tanpa authentication)
-// Public product queries
-Route::get('/popular-products', [ProductMetricController::class, 'popular']);
-Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
-Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
-Route::get('/products/calculate-rental-price', [ProductRentalController::class, 'calculateRentalPrice']);
-
-// Public product queries
-Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
-
-// Authenticated Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Wishlist
-    Route::get('/my-wishlists', [ProductQueryController::class, 'myWishlists']);
-
-    // Shop-specific products
-    Route::get('/followed-shops-popular-products', [ProductQueryController::class, 'followedShopsPopularProducts']);
-
-    // Admin/Staff Product Management
-    Route::middleware(['permission:super_admin|store_owner|staff'])->group(function () {
-        Route::apiResource('/products', ProductCrudController::class)->only(['store', 'update', 'destroy']);
-        Route::patch('/products/{id}/stock', [ProductCrudController::class, 'updateStock']);
-        Route::patch('/products/{id}/status', [ProductCrudController::class, 'changeStatus']);
-
-        Route::get('/draft-products', [ProductQueryController::class, 'draftedProducts']);
-        Route::get('/products-stock', [ProductQueryController::class, 'productStock']);
-        Route::get('/products-by-flash-sale', [ProductQueryController::class, 'getProductsByFlashSale']);
-
-        // Rental Management
-        Route::post('/rental/availability', [ProductRentalController::class, 'checkAvailability']);
-        Route::get('/rental/blocked-dates/{productId}', [ProductRentalController::class, 'getBlockedDates']);
-    });
-
-    // Import/Export
-    Route::middleware(['permission:super_admin|store_owner'])->group(function () {
-        Route::post('/import-products', [ProductCrudController::class, 'importProducts']);
-        Route::post('/import-variation-options', [ProductCrudController::class, 'importVariationOptions']);
-        Route::get('/export-products/{shop_id}', [ProductCrudController::class, 'exportProducts']);
-        Route::get('/export-variation-options/{shop_id}', [ProductCrudController::class, 'exportVariableOptions']);
-        Route::post('/generate-description', [ProductCrudController::class, 'generateDescription']);
-    });
-
-    // Analytics Routes (Admin only)
-    Route::middleware(['permission:super_admin'])->prefix('admin')->group(function () {
-        Route::get('/low-stock-products', [ProductMetricController::class, 'lowStock']);
-        Route::get('/category-wise-product', [ProductMetricController::class, 'categoryWiseProduct']);
-        Route::get('/category-wise-product-sale', [ProductMetricController::class, 'categoryWiseProductSale']);
-        Route::get('/top-rate-product', [ProductMetricController::class, 'topRatedProducts']);
-
-        // Flash Sale Products
-        Route::get('/requested-products-for-flash-sale', [ProductMetricController::class, 'getRequestedProductsForFlashSale']);
-        Route::post('/approve-flash-sale-requested-products', [ProductMetricController::class, 'approveFlashSaleProductsRequest']);
-        Route::post('/disapprove-flash-sale-requested-products', [ProductMetricController::class, 'disapproveFlashSaleProductsRequest']);
-        Route::get('/product-flash-sale-info', [ProductMetricController::class, 'getFlashSaleInfoByProductID']);
-    });
-});
-
-// Order Module Routes
-// Public Routes (tanpa authentication)
-// Track order (guest access)
-Route::get('/orders/track/{identifier}', [OrderQueryController::class, 'show']);
-
-// Authenticated Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Customer orders
-    Route::get('/my-orders', [OrderQueryController::class, 'myOrders']);
-    Route::post('/orders', [OrderTransactionController::class, 'store']);
-    Route::get('/orders/{identifier}', [OrderQueryController::class, 'show']);
-    Route::post('/orders/{id}/cancel', [OrderTransactionController::class, 'cancel']);
-
-    // Admin/Staff Order Management
-    Route::middleware(['permission:super_admin|store_owner|staff'])->group(function () {
-        Route::get('/orders', [OrderQueryController::class, 'index']);
-        Route::patch('/orders/{id}/status', [OrderTransactionController::class, 'updateStatus']);
-        Route::patch('/orders/{id}/payment-status', [OrderTransactionController::class, 'updatePaymentStatus']);
-
-        // Shop-specific orders
-        Route::get('/shops/{shopId}/orders', [OrderQueryController::class, 'showByShop']);
-
-        // Order statistics
-        Route::get('/orders/stats', [OrderQueryController::class, 'stats']);
-    });
-});
-
-// Refund Module Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Refund Policies (Admin/Owner only)
-    Route::apiResource('refund-policies', RefundPolicyController::class);
-
-    // Refunds (Admin/Owner/Customer)
-    Route::apiResource('refunds', RefundController::class);
-});
-
-// Tag Module Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Tags
-    Route::apiResource('tags', TagController::class);
-});
-
-// Public tags (read-only)
-Route::get('/public-tags', [TagController::class, 'index']); // Public view
-Route::get('/public-tags/{param}', [TagController::class, 'show']); // Public view
-
-// Review Module Routes
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Reviews
-    Route::apiResource('reviews', ReviewController::class);
-});
-
-// Public reviews (read-only)
-Route::get('/products/{productId}/reviews', [ReviewController::class, 'index']); // Get reviews for a product
-
-// Type Module Routes
-Route::prefix('types')->group(function () {
-    Route::get('/', [TypeController::class, 'index']);
-    Route::post('/', [TypeController::class, 'store']);
-    Route::get('/{identifier}', [TypeController::class, 'show']);
-    Route::put('/{id}', [TypeController::class, 'update']);
-    Route::delete('/{id}', [TypeController::class, 'destroy']);
-});
-
-// Settings Module Routes
-Route::middleware(['auth:sanctum', 'permission:super_admin'])->group(function () {
-    // Settings (Super Admin only)
-    Route::get('/settings', [SettingsController::class, 'index']);
-    Route::post('/settings', [SettingsController::class, 'store']); // Use store to create/update
-    Route::put('/settings/{id}', [SettingsController::class, 'update']);
-    Route::get('/settings/{id}', [SettingsController::class, 'show']);
-});
-
-// Publicly accessible settings (read-only for general info)
-Route::get('/public-settings', [SettingsController::class, 'index']); // Public view, maybe filtered

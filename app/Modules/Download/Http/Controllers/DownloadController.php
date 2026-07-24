@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Download\Http\Controllers;
 
 use App\Http\Controllers\BaseController;
+use App\Models\DigitalFile;
 use App\Models\OrderedFile;
 use App\Modules\Download\Http\Requests\GenerateDownloadUrlRequest;
 use App\Modules\Download\Http\Resources\DownloadableFileResource;
@@ -39,7 +40,8 @@ class DownloadController extends BaseController
         $user = $request->user();
         $digitalFileId = $request->digital_file_id;
 
-        $this->authorize('download', [OrderedFile::class, $digitalFileId]);
+        $digitalFile = DigitalFile::findOrFail($digitalFileId);
+        $this->authorize('download', $digitalFile);
 
         $token = $this->downloadQueryService->generateDownloadToken($digitalFileId, $user->id);
 

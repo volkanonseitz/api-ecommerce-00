@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Modules\Shop\Policies;
 
 use App\Enums\Permission;
 use App\Models\Shop;
@@ -71,6 +71,13 @@ class ShopPolicy
         return $this->isSuperAdmin($user)
             || $this->isOwner($user, $shop)
             || $shop->staffs()->whereKey($user->id)->exists();
+    }
+
+    public function viewAdminShops(User $user): bool
+    {
+        return $this->isSuperAdmin($user)
+            || $user->hasPermissionTo(Permission::STORE_OWNER->value)
+            || $user->hasPermissionTo(Permission::STAFF->value);
     }
 
     private function isSuperAdmin(User $user): bool

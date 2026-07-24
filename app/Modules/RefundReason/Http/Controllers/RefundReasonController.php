@@ -25,8 +25,6 @@ class RefundReasonController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', RefundReason::class);
-
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $reasons = $this->queryService->getRefundReasons($language, $limit);
@@ -52,7 +50,6 @@ class RefundReasonController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $reason = $this->queryService->find($params, $language);
-        $this->authorize('view', $reason);
 
         return $this->sendSuccess(new RefundReasonResource($reason), 'Refund reason detail');
     }

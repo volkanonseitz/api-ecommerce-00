@@ -10,14 +10,14 @@ use App\Models\User;
 
 final class AddressPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return true; // All authenticated users can view their own addresses
+        return $user !== null;
     }
 
-    public function create(User $user): bool
+    public function create(?User $user): bool
     {
-        return true; // All authenticated users can create addresses
+        return $user !== null;
     }
 
     public function view(User $user, Address $address): bool

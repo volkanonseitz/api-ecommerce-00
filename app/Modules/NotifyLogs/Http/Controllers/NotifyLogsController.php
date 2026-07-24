@@ -22,8 +22,6 @@ class NotifyLogsController extends BaseController
     public function index(Request $request)
     {
         $user = $request->user();
-        $this->authorize('viewAny', NotifyLogs::class);
-
         $limit = (int) ($request->limit ?? 10);
         $logs = $this->notifyService->getNotifyLogsQuery($request, $user)->paginate($limit);
 

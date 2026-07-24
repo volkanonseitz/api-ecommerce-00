@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Payment\Providers;
 
-use App\Models\PaymentIntent;
-use App\Models\PaymentMethod;
 use App\Modules\Payment\Actions\CreatePaymentIntentAction;
 use App\Modules\Payment\Actions\DeletePaymentMethodAction;
 use App\Modules\Payment\Actions\GetPaymentMethodsAction;
@@ -14,10 +12,8 @@ use App\Modules\Payment\Actions\SetDefaultPaymentMethodAction;
 use App\Modules\Payment\Actions\StorePaymentMethodAction;
 use App\Modules\Payment\Contracts\PaymentGatewayFactoryInterface;
 use App\Modules\Payment\Factory\PaymentGatewayFactory;
-use App\Modules\Payment\Policies\PaymentMethodPolicy;
 use App\Modules\Payment\Services\PaymentMethodPersistService;
 use App\Modules\Payment\Services\PaymentMethodQueryService;
-use App\Modules\PaymentIntent\Policies\PaymentIntentPolicy;
 use App\Services\Payment\Providers\MidtransProvider;
 use App\Services\Payment\Providers\XenditProvider;
 use Illuminate\Support\ServiceProvider;
@@ -49,18 +45,9 @@ final class PaymentServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Register policies
-        $this->gate();
-
         // Publish configuration if needed
         $this->publishes([
             __DIR__.'/../config/payment.php' => config_path('payment.php'),
         ], 'payment-config');
-    }
-
-    private function gate(): void
-    {
-        \Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
-        \Gate::policy(PaymentIntent::class, PaymentIntentPolicy::class);
     }
 }

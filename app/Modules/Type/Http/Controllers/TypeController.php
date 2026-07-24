@@ -24,8 +24,6 @@ class TypeController extends BaseController
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Type::class);
-
         $language = $request->language ?? config('shop.default_language', 'id');
         $limit = $request->limit ?? 15;
         $types = $this->queryService->getTypesByLanguage($language, $limit);
@@ -51,7 +49,6 @@ class TypeController extends BaseController
     {
         $language = $request->language ?? config('shop.default_language', 'id');
         $type = $this->queryService->getTypeByIdOrSlug($params, $language);
-        $this->authorize('view', $type);
 
         return $this->sendSuccess(new TypeResource($type), 'Type detail');
     }
