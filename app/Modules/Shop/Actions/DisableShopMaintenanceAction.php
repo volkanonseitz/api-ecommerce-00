@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Shop\Actions;
 
-use App\Events\ShopMaintenance;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Modules\Shop\Events\ShopMaintenance;
 
 final class DisableShopMaintenanceAction
 {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\User\Http\Controllers;
 
 use App\Enums\Permission;
-use App\Events\ProcessUserData;
 use App\Http\Controllers\BaseController;
 use App\Modules\User\DTO\RegisterUserData;
 use App\Modules\User\Http\Requests\LoginRequest;
@@ -61,8 +60,6 @@ final class AuthController extends BaseController
         // Track session activity
         $this->securityService->trackSessionActivity($user, $request);
 
-        event(new ProcessUserData);
-
         return $this->sendSuccess([
             'token' => $token,
             'permissions' => $user->getPermissionNames(),
@@ -85,7 +82,6 @@ final class AuthController extends BaseController
         $user = $this->authService->register($data);
 
         $token = $this->authService->issueToken($user, 'register');
-        event(new ProcessUserData);
 
         return $this->sendSuccess([
             'token' => $token,
@@ -102,7 +98,6 @@ final class AuthController extends BaseController
         );
 
         $token = $this->authService->issueToken($user, $request->validated('provider').'-login');
-        event(new ProcessUserData);
 
         return $this->sendSuccess([
             'token' => $token,

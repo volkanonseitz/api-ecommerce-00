@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
-use App\Events\ProductReviewRejected;
 use App\Models\NotifyLogs;
+use App\Modules\Review\Events\ProductReviewRejected;
 use App\Modules\User\Services\UserQueryService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 

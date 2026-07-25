@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Events\RefundRequested;
-use App\Events\RefundUpdate;
+use App\Modules\Refund\Events\RefundRequested;
+use App\Modules\Refund\Events\RefundUpdate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

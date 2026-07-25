@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payment\Events;
 
+use App\Models\Order;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -9,13 +10,13 @@ final class PaymentFailed
 {
     use Dispatchable, SerializesModels;
 
-    public string $orderTrackingNumber;
+    public Order $order; // Ubah dari string $orderTrackingNumber
 
     public array $paymentData;
 
-    public function __construct(string $orderTrackingNumber, array $paymentData)
+    public function __construct(Order $order, array $paymentData) // Ubah parameter
     {
-        $this->orderTrackingNumber = $orderTrackingNumber;
+        $this->order = $order; // Ubah penugasan
         $this->paymentData = $paymentData;
     }
 }

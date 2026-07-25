@@ -3,12 +3,12 @@
 namespace App\Modules\Product\Actions;
 
 use App\Events\DigitalProductUpdateEvent;
-use App\Events\ProductReviewApproved;
-use App\Events\ProductReviewRejected;
 use App\Models\Product;
 use App\Models\Variation;
 use App\Modules\Product\DTO\ProductData;
 use App\Modules\Product\DTO\VariationOptionData;
+use App\Modules\Review\Events\ProductReviewApproved;
+use App\Modules\Review\Events\ProductReviewRejected;
 use Illuminate\Support\Facades\DB;
 
 class UpdateProductAction

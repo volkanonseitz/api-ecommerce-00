@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\FlashSaleRequest\Actions;
 
-use App\Events\FlashSaleProcessed;
 use App\Models\FlashSale;
 use App\Models\FlashSaleRequest;
+use App\Modules\FlashSale\Events\FlashSaleProcessed;
 
 final class ApproveFlashSaleRequestAction
 {

@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
-use App\Events\OrderProcessed;
 use App\Models\Variation;
+use App\Modules\Order\Events\OrderProcessed;
 
 class ProductInventoryDecrement
 {

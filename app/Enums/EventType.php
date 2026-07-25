@@ -16,6 +16,8 @@ enum EventType: string
     case QUESTION_ANSWERED = 'answerQuestion';
     case QUESTION_CREATED = 'createQuestion';
     case REVIEW_CREATED = 'createReview';
+    case MESSAGE_SENT = 'messageSent'; // Tambahkan ini
+    case STORE_NOTICE = 'storeNotice'; // Tambahkan ini
 
     /**
      * Get all values for database enum
@@ -43,6 +45,8 @@ enum EventType: string
             self::QUESTION_ANSWERED => 'answerQuestion',
             self::QUESTION_CREATED => 'createQuestion',
             self::REVIEW_CREATED => 'createReview',
+            self::MESSAGE_SENT => 'messageSent', // Tambahkan ini
+            self::STORE_NOTICE => 'storeNotice', // Tambahkan ini
         };
     }
 }

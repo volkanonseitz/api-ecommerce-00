@@ -12,6 +12,7 @@ use App\Models\Refund;
 use App\Models\Shop;
 use App\Models\User;
 use App\Modules\Refund\DTO\RefundData;
+use App\Modules\Shop\Events\CommissionRateUpdateEvent;
 use App\Modules\Wallet\Services\WalletService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -82,8 +83,9 @@ class RefundService
             foreach ($order->children as $child) {
                 Balance::where('shop_id', $child->shop_id)
                     ->decrement('total_earnings', $child->amount);
-                Balance::where('shop_id', $child->shop_id)
-                    ->decrement('current_balance', $child->amount);
+                $updatedBalance = Balance::where('shop_id', $child->shop_id);
+                $updatedBalance->decrement('current_balance', $child->amount);
+                event(new CommissionRateUpdateEvent(Shop::find($child->shop_id), $updatedBalance->first()));
             }
 
             $walletPoints = $this->walletService->currencyToWalletPoints($refund->amount);

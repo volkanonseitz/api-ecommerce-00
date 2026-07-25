@@ -2,9 +2,9 @@
 
 namespace App\Listeners;
 
-use App\Events\OrderCreated;
 use App\Models\NotifyLogs;
 use App\Models\Shop;
+use App\Modules\Order\Events\OrderCreated;
 use App\Modules\User\Services\UserQueryService;
 
 class StoredOrderNotifyLogsListener

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Payment\Providers;
 
 use App\Enums\PaymentMethodType;
+use App\Models\Order;
+use App\Modules\Payment\Events\PaymentFailed;
+use App\Modules\Payment\Events\PaymentSuccess;
 
 class XenditProvider extends AbstractPaymentProvider
 {
@@ -216,26 +219,45 @@ class XenditProvider extends AbstractPaymentProvider
     protected function handlePaymentSuccess(array $data): void
     {
         $externalId = $data['external_id'] ?? null;
-        if ($externalId) {
-            \Log::info('Xendit payment success for: '.$externalId);
-            // Update payment status logic here
+        if (! $externalId) {
+            \Log::warning('Xendit webhook success: external_id not found', ['payload' => $data]);
+
+            return;
         }
+
+        $order = Order::where('tracking_number', $externalId)->first();
+        if ($order) {
+            \Log::info('Xendit payment success for order: '.$externalId);
+            event(new PaymentSuccess($order, $data));
+        } else {
+            \Log::warning('Xendit webhook success: Order not found for tracking number: '.$externalId, ['payload' => $data]);
+        }
+
     }
 
     protected function handlePaymentFailed(array $data): void
     {
         $externalId = $data['external_id'] ?? null;
-        if ($externalId) {
-            \Log::warning('Xendit payment failed for: '.$externalId);
+        if (! $externalId) {
+            \Log::warning('Xendit webhook failed: external_id not found', ['payload' => $data]);
+
+            return;
         }
+
+        $order = Order::where('tracking_number', $externalId)->first();
+        if ($order) {
+            \Log::warning('Xendit payment failed for order: '.$externalId);
+            event(new PaymentFailed($order, $data));
+        } else {
+            \Log::warning('Xendit webhook failed: Order not found for tracking number: '.$externalId, ['payload' => $data]);
+        }
+
     }
 
     protected function handlePaymentExpired(array $data): void
     {
-        $externalId = $data['external_id'] ?? null;
-        if ($externalId) {
-            \Log::warning('Xendit payment expired for: '.$externalId);
-        }
+        // Untuk kesederhanaan, treat expired payment as failed payment
+        $this->handlePaymentFailed($data);
     }
 
     public function getSupportedPaymentMethods(): array

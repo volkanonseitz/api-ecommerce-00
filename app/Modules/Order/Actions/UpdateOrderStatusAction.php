@@ -6,6 +6,8 @@ namespace App\Modules\Order\Actions;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Modules\Order\Events\OrderCancelled;
+use App\Modules\Order\Events\OrderStatusChanged;
 use App\Modules\Order\Services\OrderInventoryService;
 
 class UpdateOrderStatusAction
@@ -20,12 +22,16 @@ class UpdateOrderStatusAction
         $order->order_status = $newStatus;
         $order->save();
 
+        // Dispatch OrderStatusChanged event after saving
+        event(new OrderStatusChanged($order));
+
         if ($order->parent_id === null) {
             // Update semua child orders
             $order->children()->update(['order_status' => $newStatus]);
         }
 
         if ($newStatus === OrderStatus::CANCELLED->value && $oldStatus !== OrderStatus::CANCELLED->value) {
+            event(new OrderCancelled($order));
             $this->inventoryService->restoreProductInventoryBulk($order);
         }
 

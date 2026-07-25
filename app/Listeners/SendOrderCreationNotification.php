@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
-use App\Events\OrderCreated;
 use App\Mail\OrderCreated as OrderCreatedMail;
+use App\Modules\Order\Events\OrderCreated;
 use Illuminate\Support\Facades\Mail;
 
 class SendOrderCreationNotification

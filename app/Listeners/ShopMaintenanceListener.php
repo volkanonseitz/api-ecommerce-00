@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
-use App\Events\ShopMaintenance;
 use App\Models\User;
+use App\Modules\Shop\Events\ShopMaintenance;
 use App\Modules\User\Services\UserQueryService;
 use App\Notifications\ShopMaintenanceNotification;
 use Carbon\Carbon;

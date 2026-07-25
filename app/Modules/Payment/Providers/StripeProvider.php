@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Payment\Providers;
 
+use App\Models\Order;
 use App\Modules\Payment\Events\PaymentFailed;
-use App\Modules\Payment\Events\PaymentSuccess;
+use App\Modules\Payment\Events\PaymentSuccess; // Tambahkan ini
 use Illuminate\Contracts\Auth\Authenticatable;
 use Psr\Log\LoggerInterface;
 use Stripe\Customer;
@@ -286,7 +287,10 @@ final class StripeProvider extends AbstractPaymentProvider
             ]);
 
             // Dispatch event for order status update
-            event(new PaymentSuccess($orderTrackingNumber, $data));
+            $order = Order::where('tracking_number', $orderTrackingNumber)->first(); // Asumsi ada method ini
+            if ($order) {
+                event(new PaymentSuccess($order, $data));
+            }
         }
     }
 
@@ -301,7 +305,10 @@ final class StripeProvider extends AbstractPaymentProvider
             ]);
 
             // Dispatch event for failed payment
-            event(new PaymentFailed($orderTrackingNumber, $data));
+            $order = Order::where('tracking_number', $orderTrackingNumber)->first(); // Asumsi ada method ini
+            if ($order) {
+                event(new PaymentFailed($order, $data));
+            }
         }
     }
 

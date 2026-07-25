@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Payment\Providers;
 
+use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Modules\Payment\Events\PaymentFailed;
+use App\Modules\Payment\Events\PaymentSuccess;
 use Midtrans\Config;
 use Midtrans\CoreApi;
 use Midtrans\Snap;
@@ -268,18 +271,46 @@ class MidtransProvider extends AbstractPaymentProvider
         $payload = $request->all();
         $statusCode = $payload['status_code'] ?? null;
 
-        if ($statusCode === '200') {
-            $this->handlePaymentSuccess($payload);
+        if ($statusCode === '200' || $statusCode === '201') { // Midtrans can return 200 for success, 201 for pending (e.g., VA)
+            $this->handleMidtransPaymentSuccess($payload);
         } else {
-            \Log::info('Midtrans webhook received: '.json_encode($payload));
+            $this->handleMidtransPaymentFailed($payload);
         }
     }
 
-    protected function handlePaymentSuccess(array $data): void
+    protected function handleMidtransPaymentSuccess(array $data): void
     {
         $orderId = $data['order_id'] ?? null;
-        if ($orderId) {
+        if (! $orderId) {
+            \Log::warning('Midtrans webhook success: order_id not found', ['payload' => $data]);
+
+            return;
+        }
+
+        $order = Order::where('tracking_number', $orderId)->first();
+        if ($order) {
             \Log::info('Midtrans payment success for order: '.$orderId);
+            event(new PaymentSuccess($order, $data));
+        } else {
+            \Log::warning('Midtrans webhook success: Order not found for tracking number: '.$orderId, ['payload' => $data]);
+        }
+    }
+
+    protected function handleMidtransPaymentFailed(array $data): void
+    {
+        $orderId = $data['order_id'] ?? null;
+        if (! $orderId) {
+            \Log::warning('Midtrans webhook failed: order_id not found', ['payload' => $data]);
+
+            return;
+        }
+
+        $order = Order::where('tracking_number', $orderId)->first();
+        if ($order) {
+            \Log::warning('Midtrans payment failed for order: '.$orderId, ['payload' => $data]);
+            event(new PaymentFailed($order, $data));
+        } else {
+            \Log::warning('Midtrans webhook failed: Order not found for tracking number: '.$orderId, ['payload' => $data]);
         }
     }
 }

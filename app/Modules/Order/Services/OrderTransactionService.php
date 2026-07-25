@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Order\Services;
 
-use App\Events\OrderDelivered;
 use App\Models\Order;
 use App\Models\Refund;
 use App\Models\User;
 use App\Modules\Order\Actions\CreateOrderAction;
 use App\Modules\Order\Actions\UpdateOrderStatusAction;
 use App\Modules\Order\DTO\OrderData;
+use App\Modules\Order\Events\OrderDelivered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
