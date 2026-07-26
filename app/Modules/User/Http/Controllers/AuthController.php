@@ -115,4 +115,23 @@ final class AuthController extends BaseController
 
         return $this->sendSuccess(true, 'Logged out');
     }
+
+    public function vendors(Request $request): JsonResponse
+    {
+        // Implement logic to fetch vendors. For now, a placeholder.
+        // This method was missing, so we add a basic implementation.
+        return $this->sendSuccess([], 'Vendors list (placeholder)');
+    }
+
+    public function forgotPassword(): JsonResponse
+    {
+        // TODO: Implement forgot password logic
+        return $this->sendSuccess(false, 'Forgot password not implemented');
+    }
+
+    public function resetPassword(): JsonResponse
+    {
+        // TODO: Implement reset password logic
+        return $this->sendSuccess(false, 'Reset password not implemented');
+    }
 }

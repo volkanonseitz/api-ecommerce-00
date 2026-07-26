@@ -1,0 +1,1843 @@
+[
+  {
+    "method": "POST",
+    "uri": "/register",
+    "controller": "AuthController",
+    "action": "register",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/login",
+    "controller": "AuthController",
+    "action": "login",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/social-login",
+    "controller": "AuthController",
+    "action": "socialLogin",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/password/forgot",
+    "controller": "AuthController",
+    "action": "forgotPassword",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/password/reset",
+    "controller": "AuthController",
+    "action": "resetPassword",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/popular-products",
+    "controller": "ProductMetricController",
+    "action": "popular",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/best-selling-products",
+    "controller": "ProductMetricController",
+    "action": "bestSelling",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/check-availability",
+    "controller": "ProductRentalController",
+    "action": "checkAvailability",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/products/calculate-rental-price",
+    "controller": "ProductRentalController",
+    "action": "calculateRentalPrice",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/products",
+    "controller": "ProductQueryController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/products/{id}",
+    "controller": "ProductQueryController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/products/search",
+    "controller": "ProductQueryController",
+    "action": "search",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/top-authors",
+    "controller": "AuthorController",
+    "action": "topAuthor",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/authors",
+    "controller": "AuthorController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/authors/{id}",
+    "controller": "AuthorController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/top-manufacturers",
+    "controller": "ManufacturerController",
+    "action": "topManufacturer",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/manufacturers",
+    "controller": "ManufacturerController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/manufacturers/{id}",
+    "controller": "ManufacturerController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/types",
+    "controller": "TypeController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/types/{id}",
+    "controller": "TypeController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/attachments",
+    "controller": "AttachmentController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/attachments/{id}",
+    "controller": "AttachmentController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/categories",
+    "controller": "CategoryController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/categories/{id}",
+    "controller": "CategoryController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/featured-categories",
+    "controller": "CategoryController",
+    "action": "fetchFeaturedCategories",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/delivery-times",
+    "controller": "DeliveryTimeController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/delivery-times/{id}",
+    "controller": "DeliveryTimeController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/languages",
+    "controller": "LanguageController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/languages/{id}",
+    "controller": "LanguageController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/tags",
+    "controller": "TagController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/tags/{id}",
+    "controller": "TagController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refund-reasons",
+    "controller": "RefundReasonController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refund-reasons/{id}",
+    "controller": "RefundReasonController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/resources",
+    "controller": "ResourceController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/resources/{id}",
+    "controller": "ResourceController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/coupons/verify",
+    "controller": "CouponController",
+    "action": "verify",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/coupons",
+    "controller": "CouponController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/coupons/{id}",
+    "controller": "CouponController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/attributes",
+    "controller": "AttributeController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/attributes/{id}",
+    "controller": "AttributeController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/import-attributes",
+    "controller": "AttributeController",
+    "action": "importAttributes",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/export-attributes/{shop_id}",
+    "controller": "AttributeController",
+    "action": "exportAttributes",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/shops",
+    "controller": "ShopController",
+    "action": "index",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/shops/{shop:slug}",
+    "controller": "ShopController",
+    "action": "show",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/near-by-shop",
+    "controller": "ShopController",
+    "action": "nearByShop",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/settings",
+    "controller": "SettingsController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/reviews",
+    "controller": "ReviewController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/reviews/{id}",
+    "controller": "ReviewController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/questions",
+    "controller": "QuestionController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/questions/{id}",
+    "controller": "QuestionController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/feedbacks",
+    "controller": "FeedbackController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/feedbacks/{id}",
+    "controller": "FeedbackController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/orders/checkout/verify",
+    "controller": "CheckoutController",
+    "action": "verify",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/orders/track/{identifier}",
+    "controller": "OrderQueryController",
+    "action": "show",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/payment-intent",
+    "controller": "PaymentIntentController",
+    "action": "getPaymentIntent",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/faqs",
+    "controller": "FaqsController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/faqs/{id}",
+    "controller": "FaqsController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/terms-and-conditions",
+    "controller": "TermsAndConditionsController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/terms-and-conditions/{id}",
+    "controller": "TermsAndConditionsController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/flash-sale",
+    "controller": "FlashSaleController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/flash-sale/{id}",
+    "controller": "FlashSaleController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refund-policies",
+    "controller": "RefundPolicyController",
+    "action": "index",
+    "type": "resource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refund-policies/{id}",
+    "controller": "RefundPolicyController",
+    "action": "show",
+    "type": "resource"
+  },
+  {
+    "method": "GET",
+    "uri": "/became-seller",
+    "controller": "BecameSellerController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/became-seller",
+    "controller": "BecameSellerController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/became-seller/{id}",
+    "controller": "BecameSellerController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/became-seller/{id}",
+    "controller": "BecameSellerController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/became-seller/{id}",
+    "controller": "BecameSellerController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/logout",
+    "controller": "AuthController",
+    "action": "logout",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/me",
+    "controller": "ProfileController",
+    "action": "me",
+    "type": "single"
+  },
+  {
+    "method": "PUT",
+    "uri": "/me",
+    "controller": "ProfileController",
+    "action": "updateProfile",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/me/avatar",
+    "controller": "ProfileController",
+    "action": "updateAvatar",
+    "type": "single"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/me/avatar",
+    "controller": "ProfileController",
+    "action": "deleteAvatar",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/me/change-password",
+    "controller": "UserSecurityController",
+    "action": "changePassword",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/me/logout-all",
+    "controller": "UserSecurityController",
+    "action": "logoutFromAllDevices",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/me/sessions",
+    "controller": "UserSecurityController",
+    "action": "viewActiveSessions",
+    "type": "single"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/me/sessions/{sessionId}",
+    "controller": "UserSecurityController",
+    "action": "revokeSession",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/coupons",
+    "controller": "CouponController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/coupons/{id}",
+    "controller": "CouponController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/my-orders",
+    "controller": "OrderQueryController",
+    "action": "myOrders",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/orders",
+    "controller": "OrderTransactionController",
+    "action": "store",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/orders/{identifier}",
+    "controller": "OrderQueryController",
+    "action": "show",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/orders/{id}/cancel",
+    "controller": "OrderTransactionController",
+    "action": "cancel",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/reviews",
+    "controller": "ReviewController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/reviews/{id}",
+    "controller": "ReviewController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/questions",
+    "controller": "QuestionController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/my-questions",
+    "controller": "QuestionController",
+    "action": "myQuestions",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/feedbacks",
+    "controller": "FeedbackController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/abusive_reports",
+    "controller": "AbusiveReportController",
+    "action": "store",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/my-reports",
+    "controller": "AbusiveReportController",
+    "action": "myReports",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/conversations",
+    "controller": "ConversationController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/conversations",
+    "controller": "ConversationController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/conversations/{conversation_id}",
+    "controller": "ConversationController",
+    "action": "show",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/messages/conversations/{conversation_id}",
+    "controller": "MessageController",
+    "action": "index",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/messages/conversations/{conversation_id}",
+    "controller": "MessageController",
+    "action": "store",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/wishlists/toggle",
+    "controller": "WishlistController",
+    "action": "toggle",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/wishlists",
+    "controller": "WishlistController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/wishlists",
+    "controller": "WishlistController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/wishlists/{id}",
+    "controller": "WishlistController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/wishlists/in_wishlist/{product_id}",
+    "controller": "WishlistController",
+    "action": "in_wishlist",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/my-wishlists",
+    "controller": "ProductQueryController",
+    "action": "myWishlists",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/attachments",
+    "controller": "AttachmentController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/attachments/{id}",
+    "controller": "AttachmentController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/attachments/{id}",
+    "controller": "AttachmentController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refunds",
+    "controller": "RefundController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/refunds",
+    "controller": "RefundController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/refunds/{id}",
+    "controller": "RefundController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/downloads",
+    "controller": "DownloadController",
+    "action": "fetchDownloadableFiles",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/downloads/digital_file",
+    "controller": "DownloadController",
+    "action": "generateDownloadableUrl",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/followed-shops",
+    "controller": "ShopController",
+    "action": "userFollowedShops",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/follow-shop",
+    "controller": "ShopController",
+    "action": "userFollowedShop",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/follow-shop",
+    "controller": "ShopController",
+    "action": "handleFollowShop",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/followed-shops-popular-products",
+    "controller": "ProductQueryController",
+    "action": "followedShopsPopularProducts",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/payment-methods",
+    "controller": "PaymentMethodController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/payment-methods",
+    "controller": "PaymentMethodController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/payment-methods/{id}",
+    "controller": "PaymentMethodController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/payment-methods/{id}",
+    "controller": "PaymentMethodController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/payment-methods/{id}",
+    "controller": "PaymentMethodController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/payment-methods/gateways",
+    "controller": "PaymentMethodController",
+    "action": "gateways",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/payment-methods/save",
+    "controller": "PaymentMethodController",
+    "action": "savePaymentMethod",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/payment-methods/setup-intent",
+    "controller": "PaymentMethodController",
+    "action": "saveCardIntent",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/payment-methods/set-default",
+    "controller": "PaymentMethodController",
+    "action": "setDefaultCard",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/notify-logs",
+    "controller": "NotifyLogsController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/notify-logs",
+    "controller": "NotifyLogsController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/notify-logs/{id}",
+    "controller": "NotifyLogsController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/notify-logs/{id}",
+    "controller": "NotifyLogsController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/notify-log-seen",
+    "controller": "NotifyLogsController",
+    "action": "readNotifyLogs",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/notify-log-read-all",
+    "controller": "NotifyLogsController",
+    "action": "readAllNotifyLogs",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/products",
+    "controller": "ProductCrudController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/products/{id}",
+    "controller": "ProductCrudController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/products/{id}",
+    "controller": "ProductCrudController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/draft-products",
+    "controller": "ProductQueryController",
+    "action": "draftedProducts",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/products-stock",
+    "controller": "ProductQueryController",
+    "action": "productStock",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/products-by-flash-sale",
+    "controller": "ProductQueryController",
+    "action": "getProductsByFlashSale",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/resources",
+    "controller": "ResourceController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/attributes",
+    "controller": "AttributeController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/attributes/{id}",
+    "controller": "AttributeController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/attributes/{id}",
+    "controller": "AttributeController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/attribute-values",
+    "controller": "AttributeValueController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/attribute-values/{id}",
+    "controller": "AttributeValueController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/attribute-values/{id}",
+    "controller": "AttributeValueController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/orders",
+    "controller": "OrderQueryController",
+    "action": "index",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/orders/{id}/status",
+    "controller": "OrderTransactionController",
+    "action": "updateStatus",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/orders/{id}/payment-status",
+    "controller": "OrderTransactionController",
+    "action": "updatePaymentStatus",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/shops/{shopId}/orders",
+    "controller": "OrderQueryController",
+    "action": "showByShop",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/orders/stats",
+    "controller": "OrderQueryController",
+    "action": "stats",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/questions/{id}",
+    "controller": "QuestionController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/authors",
+    "controller": "AuthorController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/manufacturers",
+    "controller": "ManufacturerController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/store-notices/getStoreNoticeType",
+    "controller": "StoreNoticeController",
+    "action": "getStoreNoticeType",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/store-notices/getUsersToNotify",
+    "controller": "StoreNoticeController",
+    "action": "getUsersToNotify",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/store-notices/read/",
+    "controller": "StoreNoticeController",
+    "action": "readNotice",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/store-notices/read-all",
+    "controller": "StoreNoticeController",
+    "action": "readAllNotice",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/store-notices",
+    "controller": "StoreNoticeController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/store-notices/{id}",
+    "controller": "StoreNoticeController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/store-notices/{id}",
+    "controller": "StoreNoticeController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/store-notices/{id}",
+    "controller": "StoreNoticeController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/faqs",
+    "controller": "FaqsController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/faqs/{id}",
+    "controller": "FaqsController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/faqs/{id}",
+    "controller": "FaqsController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/analytics",
+    "controller": "AnalyticsController",
+    "action": "analytics",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/low-stock-products",
+    "controller": "AnalyticsController",
+    "action": "lowStockProducts",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/category-wise-product",
+    "controller": "AnalyticsController",
+    "action": "categoryWiseProduct",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/category-wise-product-sale",
+    "controller": "AnalyticsController",
+    "action": "categoryWiseProductSale",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/top-rate-product",
+    "controller": "AnalyticsController",
+    "action": "topRatedProducts",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/coupons/{id}",
+    "controller": "CouponController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/shops",
+    "controller": "ShopController",
+    "action": "store",
+    "type": "single"
+  },
+  {
+    "method": "PUT",
+    "uri": "/shops/{shop}",
+    "controller": "ShopController",
+    "action": "update",
+    "type": "single"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/shops/{shop}",
+    "controller": "ShopController",
+    "action": "destroy",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/my-shops",
+    "controller": "ShopController",
+    "action": "myShops",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/transfer-shop-ownership",
+    "controller": "ShopController",
+    "action": "transferShopOwnership",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/shops/{shop}/staffs",
+    "controller": "ShopController",
+    "action": "addStaff",
+    "type": "single"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/staffs/{staff}",
+    "controller": "ShopController",
+    "action": "deleteStaff",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/shops/{shop}/maintenance",
+    "controller": "ShopController",
+    "action": "shopMaintenanceEvent",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/withdraws",
+    "controller": "WithdrawController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/withdraws",
+    "controller": "WithdrawController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/withdraws/{id}",
+    "controller": "WithdrawController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/flash-sale",
+    "controller": "FlashSaleController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/flash-sale/{id}",
+    "controller": "FlashSaleController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/flash-sale/{id}",
+    "controller": "FlashSaleController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/product-flash-sale-info",
+    "controller": "FlashSaleController",
+    "action": "getFlashSaleInfoByProductID",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/terms-and-conditions",
+    "controller": "TermsAndConditionsController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/terms-and-conditions/{id}",
+    "controller": "TermsAndConditionsController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/terms-and-conditions/{id}",
+    "controller": "TermsAndConditionsController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/coupons",
+    "controller": "CouponController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/coupons/{id}",
+    "controller": "CouponController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/vendors/list",
+    "controller": "AuthController",
+    "action": "vendors",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/ownership-transfer",
+    "controller": "OwnershipTransferController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/ownership-transfer/{id}",
+    "controller": "OwnershipTransferController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/types",
+    "controller": "TypeController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/types/{id}",
+    "controller": "TypeController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/types/{id}",
+    "controller": "TypeController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/withdraws/{id}",
+    "controller": "WithdrawController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/withdraws/{id}",
+    "controller": "WithdrawController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/approve-withdraw",
+    "controller": "WithdrawController",
+    "action": "approveWithdraw",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/categories",
+    "controller": "CategoryController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/categories/{id}",
+    "controller": "CategoryController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/categories/{id}",
+    "controller": "CategoryController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/delivery-times",
+    "controller": "DeliveryTimeController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/delivery-times/{id}",
+    "controller": "DeliveryTimeController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/delivery-times/{id}",
+    "controller": "DeliveryTimeController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/languages",
+    "controller": "LanguageController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/languages/{id}",
+    "controller": "LanguageController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/languages/{id}",
+    "controller": "LanguageController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/tags",
+    "controller": "TagController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/tags/{id}",
+    "controller": "TagController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/tags/{id}",
+    "controller": "TagController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/refund-reasons",
+    "controller": "RefundReasonController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/refund-reasons/{id}",
+    "controller": "RefundReasonController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/refund-reasons/{id}",
+    "controller": "RefundReasonController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/resources/{id}",
+    "controller": "ResourceController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/resources/{id}",
+    "controller": "ResourceController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/reviews/{id}",
+    "controller": "ReviewController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/questions/{id}",
+    "controller": "QuestionController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/feedbacks/{id}",
+    "controller": "FeedbackController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/feedbacks/{id}",
+    "controller": "FeedbackController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/abusive_reports",
+    "controller": "AbusiveReportController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/abusive_reports/{id}",
+    "controller": "AbusiveReportController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/abusive_reports/{id}",
+    "controller": "AbusiveReportController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/abusive_reports/{id}",
+    "controller": "AbusiveReportController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/abusive_reports/accept",
+    "controller": "AbusiveReportController",
+    "action": "accept",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/abusive_reports/reject",
+    "controller": "AbusiveReportController",
+    "action": "reject",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/settings",
+    "controller": "SettingsController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/users",
+    "controller": "UserManagementController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/users",
+    "controller": "UserManagementController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/users/{id}",
+    "controller": "UserManagementController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/users/{id}",
+    "controller": "UserManagementController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/users/{id}",
+    "controller": "UserManagementController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/users/{id}/toggle-active",
+    "controller": "UserManagementController",
+    "action": "toggleActive",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/users/{id}/toggle-admin",
+    "controller": "UserManagementController",
+    "action": "toggleAdmin",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/users/{id}/assign-shop",
+    "controller": "UserManagementController",
+    "action": "assignShop",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/authors/{id}",
+    "controller": "AuthorController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/authors/{id}",
+    "controller": "AuthorController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/manufacturers/{id}",
+    "controller": "ManufacturerController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/manufacturers/{id}",
+    "controller": "ManufacturerController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/taxes",
+    "controller": "TaxController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/taxes",
+    "controller": "TaxController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/taxes/{id}",
+    "controller": "TaxController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/taxes/{id}",
+    "controller": "TaxController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/taxes/{id}",
+    "controller": "TaxController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/shippings",
+    "controller": "ShippingController",
+    "action": "index",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/shippings",
+    "controller": "ShippingController",
+    "action": "store",
+    "type": "apiResource"
+  },
+  {
+    "method": "GET",
+    "uri": "/shippings/{id}",
+    "controller": "ShippingController",
+    "action": "show",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/shippings/{id}",
+    "controller": "ShippingController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/shippings/{id}",
+    "controller": "ShippingController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/shops/{shop}/approve",
+    "controller": "ShopController",
+    "action": "approveShop",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/shops/{shop}/disapprove",
+    "controller": "ShopController",
+    "action": "disApproveShop",
+    "type": "single"
+  },
+  {
+    "method": "GET",
+    "uri": "/new-shops",
+    "controller": "ShopController",
+    "action": "newOrInActiveShops",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/refunds/{id}",
+    "controller": "RefundController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/refunds/{id}",
+    "controller": "RefundController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/notify-logs/{id}",
+    "controller": "NotifyLogsController",
+    "action": "destroy",
+    "type": "apiResource"
+  },
+  {
+    "method": "POST",
+    "uri": "/approve-terms-and-conditions",
+    "controller": "TermsAndConditionsController",
+    "action": "approveTerm",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/disapprove-terms-and-conditions",
+    "controller": "TermsAndConditionsController",
+    "action": "disApproveTerm",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/refund-policies",
+    "controller": "RefundPolicyController",
+    "action": "store",
+    "type": "resource"
+  },
+  {
+    "method": "PUT",
+    "uri": "/refund-policies/{id}",
+    "controller": "RefundPolicyController",
+    "action": "update",
+    "type": "resource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/refund-policies/{id}",
+    "controller": "RefundPolicyController",
+    "action": "destroy",
+    "type": "resource"
+  },
+  {
+    "method": "POST",
+    "uri": "/approve-coupon",
+    "controller": "CouponController",
+    "action": "approveCoupon",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/disapprove-coupon",
+    "controller": "CouponController",
+    "action": "disApproveCoupon",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/approve-flash-sale-requested-products",
+    "controller": "FlashSaleRequestController",
+    "action": "approveFlashSaleProductsRequest",
+    "type": "single"
+  },
+  {
+    "method": "POST",
+    "uri": "/disapprove-flash-sale-requested-products",
+    "controller": "FlashSaleRequestController",
+    "action": "disapproveFlashSaleProductsRequest",
+    "type": "single"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/vendor-requests-for-flash-sale/{id}",
+    "controller": "FlashSaleRequestController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "PATCH",
+    "uri": "/ownership-transfer/{id}",
+    "controller": "OwnershipTransferController",
+    "action": "update",
+    "type": "apiResource"
+  },
+  {
+    "method": "DELETE",
+    "uri": "/ownership-transfer/{id}",
+    "controller": "OwnershipTransferController",
+    "action": "destroy",
+    "type": "apiResource"
+  }
+]
