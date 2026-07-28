@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Enums\Permission;
-use App\Events\ReviewCreated;
 use App\Models\User;
+use App\Modules\Review\Events\ReviewCreated;
 use App\Notifications\NewReviewCreated; // Event ini tetap di App\Events sesuai rekomendasi
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;

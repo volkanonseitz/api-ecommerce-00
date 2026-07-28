@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Enums\Permission;
-use App\Events\QuestionAnswered;
 use App\Models\User;
+use App\Modules\Message\Events\QuestionAnswered;
 use App\Notifications\NotifyQuestionAnswered; // Event ini tetap di App\Events sesuai rekomendasi
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;

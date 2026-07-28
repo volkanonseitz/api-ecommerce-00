@@ -2,9 +2,9 @@
 
 namespace App\Modules\Product\Actions;
 
-use App\Events\DigitalProductUpdateEvent;
 use App\Models\Product;
 use App\Models\Variation;
+use App\Modules\Download\Events\DigitalProductUpdateEvent;
 use App\Modules\Product\DTO\ProductData;
 use App\Modules\Product\DTO\VariationOptionData;
 use App\Modules\Review\Events\ProductReviewApproved;

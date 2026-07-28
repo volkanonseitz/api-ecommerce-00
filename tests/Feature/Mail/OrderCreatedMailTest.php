@@ -3,9 +3,9 @@
 namespace Tests\Feature\Mail;
 
 use App\Mail\OrderCreated as OrderCreatedMailable; // Alias untuk menghindari konflik nama
-use App\Modules\Order\Events\OrderCreated as OrderCreatedEvent;
 use App\Models\Order;
 use App\Models\User;
+use App\Modules\Order\Events\OrderCreated as OrderCreatedEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;

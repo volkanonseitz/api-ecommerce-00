@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
-use App\Events\PaymentMethods;
-use App\Models\PaymentMethod; // Asumsi model PaymentMethod ada
+use App\Models\PaymentMethod;
+use App\Modules\PaymentMethod\Events\PaymentMethods; // Asumsi model PaymentMethod ada
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;

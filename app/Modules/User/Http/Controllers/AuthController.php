@@ -7,8 +7,10 @@ namespace App\Modules\User\Http\Controllers;
 use App\Enums\Permission;
 use App\Http\Controllers\BaseController;
 use App\Modules\User\DTO\RegisterUserData;
+use App\Modules\User\Http\Requests\ForgotPasswordRequest;
 use App\Modules\User\Http\Requests\LoginRequest;
 use App\Modules\User\Http\Requests\RegisterRequest;
+use App\Modules\User\Http\Requests\ResetPasswordRequest;
 use App\Modules\User\Http\Requests\SocialLoginRequest;
 use App\Modules\User\Services\AuthService;
 use App\Modules\User\Services\UserSecurityService;
@@ -71,8 +73,6 @@ final class AuthController extends BaseController
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        // Otorisasi nilai `permission` yang DIMINTA dicek di sini (bukan trust dari payload
-        // mentah), lalu diteruskan terpisah ke DTO -> defense in depth terhadap privilege escalation.
         $requestedPermission = $request->validated('permission');
         if ($requestedPermission === Permission::SUPER_ADMIN->value) {
             $requestedPermission = null;
@@ -116,22 +116,25 @@ final class AuthController extends BaseController
         return $this->sendSuccess(true, 'Logged out');
     }
 
-    public function vendors(Request $request): JsonResponse
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        // Implement logic to fetch vendors. For now, a placeholder.
-        // This method was missing, so we add a basic implementation.
-        return $this->sendSuccess([], 'Vendors list (placeholder)');
+        try {
+            $this->authService->sendPasswordResetLink($request->validated());
+
+            return $this->sendSuccess(true, 'If your email is in our system, you will receive a password reset link.');
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
     }
 
-    public function forgotPassword(): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        // TODO: Implement forgot password logic
-        return $this->sendSuccess(false, 'Forgot password not implemented');
-    }
+        try {
+            $this->authService->resetPassword($request->validated());
 
-    public function resetPassword(): JsonResponse
-    {
-        // TODO: Implement reset password logic
-        return $this->sendSuccess(false, 'Reset password not implemented');
+            return $this->sendSuccess(true, 'Your password has been reset successfully.');
+        } catch (\Throwable $th) {
+            return $this->sendError($th->getMessage());
+        }
     }
 }

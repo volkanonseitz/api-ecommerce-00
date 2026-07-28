@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Modules\Download\Events;
 
 use App\Models\Product;
 use App\Models\User;

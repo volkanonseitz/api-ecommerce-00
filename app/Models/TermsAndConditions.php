@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class TermsAndConditions extends Model
 {
+    use HasFactory;
+
     protected $table = 'terms_and_conditions';
 
     protected $guarded = [];

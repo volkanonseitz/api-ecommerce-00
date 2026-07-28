@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Http\Controllers;
 
+use App\Enums\Permission;
 use App\Http\Controllers\BaseController;
 use App\Models\User;
 use App\Modules\User\Actions\ToggleAdminPrivilegeAction;
@@ -12,6 +13,7 @@ use App\Modules\User\Http\Requests\AdminCreateUserRequest;
 use App\Modules\User\Http\Requests\AdminUpdateUserRequest;
 use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\User\Services\UserCommandService;
+use App\Modules\User\Services\UserQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +24,10 @@ use Illuminate\Http\Request;
  */
 final class UserManagementController extends BaseController
 {
-    public function __construct(private readonly UserCommandService $userCommandService) {}
+    public function __construct(
+        private readonly UserCommandService $userCommandService,
+        private readonly UserQueryService $userQueryService
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -100,5 +105,12 @@ final class UserManagementController extends BaseController
         $isNowAdmin = $action->execute($target);
 
         return $this->sendSuccess(true, $isNowAdmin ? 'Admin granted' : 'Admin revoked');
+    }
+
+    public function vendors(Request $request): JsonResponse
+    {
+        $vendors = $this->userQueryService->getUsersByPermission(Permission::STORE_OWNER);
+
+        return $this->sendSuccess($vendors, 'Vendors list retrieved successfully');
     }
 }

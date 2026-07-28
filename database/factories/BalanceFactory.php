@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Balance;
+use App\Models\Shop;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,7 @@ class BalanceFactory extends Factory
         $withdrawn = $this->faker->randomFloat(2, 0, $total);
 
         return [
-            'shop_id' => Shop::factory(),
+            'shop_id' => Shop::factory()->create()->id,
             'admin_commission_rate' => $this->faker->optional()->randomFloat(2, 5, 20),
             'total_earnings' => $total,
             'withdrawn_amount' => $withdrawn,

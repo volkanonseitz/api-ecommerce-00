@@ -2,9 +2,9 @@
 
 namespace App\Listeners;
 
-use App\Events\DigitalProductUpdateEvent;
 use App\Models\NotifyLogs;
 use App\Models\User;
+use App\Modules\Download\Events\DigitalProductUpdateEvent;
 use App\Modules\User\Services\UserQueryService;
 use App\Notifications\DigitalProductUpdated;
 use Illuminate\Contracts\Queue\ShouldQueue;

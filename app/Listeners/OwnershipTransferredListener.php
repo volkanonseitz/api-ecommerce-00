@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Events\ProcessOwnershipTransition;
+use App\Modules\Shop\Events\ProcessOwnershipTransition;
 use App\Modules\User\Services\UserQueryService;
 use App\Notifications\OwnershipTransferred;
 use Illuminate\Contracts\Queue\ShouldQueue;

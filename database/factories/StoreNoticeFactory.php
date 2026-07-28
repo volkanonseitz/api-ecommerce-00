@@ -2,7 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\StoreNoticePriority;
+use App\Enums\StoreNoticeType;
 use App\Models\StoreNotice;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,7 +25,7 @@ class StoreNoticeFactory extends Factory
             'description' => $this->faker->optional()->paragraph(),
             'effective_from' => $effectiveFrom,
             'expired_at' => $this->faker->dateTimeBetween($effectiveFrom, '+1 month'),
-            'type' => StoreNoticeType::INFO,
+            'type' => StoreNoticeType::ALL_VENDOR,
             'created_by' => User::factory(),
             'updated_by' => null,
         ];

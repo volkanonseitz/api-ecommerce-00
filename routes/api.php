@@ -29,6 +29,7 @@ use App\Modules\OwnershipTransfer\Http\Controllers\OwnershipTransferController;
 use App\Modules\PaymentIntent\Http\Controllers\PaymentIntentController;
 use App\Modules\PaymentMethod\Http\Controllers\PaymentMethodController;
 use App\Modules\Product\Http\Controllers\ProductCrudController;
+use App\Modules\Product\Http\Controllers\ProductInventoryController;
 use App\Modules\Product\Http\Controllers\ProductMetricController;
 use App\Modules\Product\Http\Controllers\ProductQueryController;
 use App\Modules\Product\Http\Controllers\ProductRentalController;
@@ -41,6 +42,7 @@ use App\Modules\Review\Http\Controllers\ReviewController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use App\Modules\Shipping\Http\Controllers\ShippingController;
 use App\Modules\Shop\Http\Controllers\ShopController;
+use App\Modules\Shop\Http\Controllers\ShopQueryController;
 use App\Modules\StoreNotice\Http\Controllers\StoreNoticeController;
 use App\Modules\Tag\Http\Controllers\TagController;
 use App\Modules\Tax\Http\Controllers\TaxController;
@@ -50,6 +52,7 @@ use App\Modules\User\Http\Controllers\AuthController;
 use App\Modules\User\Http\Controllers\ProfileController;
 use App\Modules\User\Http\Controllers\UserManagementController;
 use App\Modules\User\Http\Controllers\UserSecurityController;
+use App\Modules\Webhook\Http\Controllers\WebhookController;
 use App\Modules\Wishlist\Http\Controllers\WishlistController;
 use App\Modules\Withdraw\Http\Controllers\WithdrawController;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -135,6 +138,7 @@ Route::get('/export-attributes/{shop_id}', [AttributeController::class, 'exportA
 Route::get('/shops', [ShopController::class, 'index']);
 Route::get('/shops/{shop:slug}', [ShopController::class, 'show']);
 Route::get('/near-by-shop', [ShopController::class, 'nearByShop']);
+Route::get('/shops/search', [ShopQueryController::class, 'search']);
 
 // Settings (public read)
 Route::apiResource('/settings', SettingsController::class)->only(['index']);
@@ -188,6 +192,11 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::put('/me', [ProfileController::class, 'updateProfile']);
     Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
     Route::delete('/me/avatar', [ProfileController::class, 'deleteAvatar']);
+
+    // User management routes
+    Route::get('/user', [AuthController::class, 'getUser']);
+    Route::put('/user', [ProfileController::class, 'updateUser']);
+    Route::delete('/user', [ProfileController::class, 'deleteUser']);
 
     // Security
     Route::post('/me/change-password', [UserSecurityController::class, 'changePassword']);
@@ -260,6 +269,9 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::apiResource('/notify-logs', NotifyLogsController::class)->except(['destroy']);
     Route::post('/notify-log-seen', [NotifyLogsController::class, 'readNotifyLogs']);
     Route::post('/notify-log-read-all', [NotifyLogsController::class, 'readAllNotifyLogs']);
+
+    // Webhooks
+    Route::apiResource('/webhooks', WebhookController::class);
 });
 
 // ========================
@@ -312,6 +324,11 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
 
     // Coupon update (staff/store owner)
     Route::apiResource('/coupons', CouponController::class)->only(['update']);
+
+    // Inventory management
+    Route::get('/products/low-stock', [ProductInventoryController::class, 'lowStock']);
+    Route::get('/products/{product}/inventory', [ProductInventoryController::class, 'show']);
+    Route::put('/products/{product}/inventory', [ProductInventoryController::class, 'update']);
 });
 
 // ========================
@@ -342,7 +359,7 @@ Route::group(['middleware' => ['auth:sanctum', 'email.verified', 'permission:'.P
     Route::apiResource('/coupons', CouponController::class)->only(['store', 'destroy']);
 
     // Vendor list
-    Route::get('/vendors/list', [AuthController::class, 'vendors']);
+    Route::get('/vendors/list', [UserManagementController::class, 'vendors']);
 
     // Ownership transfer (index, show)
     Route::apiResource('/ownership-transfer', OwnershipTransferController::class)->only(['index', 'show']);

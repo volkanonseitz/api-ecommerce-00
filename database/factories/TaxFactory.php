@@ -26,4 +26,15 @@ class TaxFactory extends Factory
             'on_shipping' => $this->faker->boolean(),
         ];
     }
+
+    public function global(): Factory
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_global' => true,
+            'country' => null,
+            'state' => null,
+            'zip' => null,
+            'city' => null,
+        ]);
+    }
 }

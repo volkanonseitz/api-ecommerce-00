@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Settings;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<Settings>

@@ -73,8 +73,16 @@ class ProductQueryController extends BaseController
     {
         $this->authorize('viewAny', Product::class);
 
+        $query = $request->get('q', '');
         $perPage = (int) $request->get('limit', 15);
-        $products = $this->cacheService->getCachedProducts($request, $perPage);
+
+        $products = Product::search($query)
+            ->when($request->filled('category'), fn ($q) => $q->where('categories', $request->category))
+            ->when($request->filled('price_min'), fn ($q) => $q->where('price', '>=', (float) $request->price_min))
+            ->when($request->filled('price_max'), fn ($q) => $q->where('price', '<=', (float) $request->price_max))
+            ->when($request->filled('in_stock'), fn ($q) => $q->where('in_stock', $request->boolean('in_stock')))
+            ->orderBy($request->get('sort', 'created_at'), $request->get('order', 'desc'))
+            ->paginate($perPage);
 
         return $this->sendPaginated(
             $products,

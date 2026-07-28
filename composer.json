@@ -18,7 +18,9 @@
         "maatwebsite/excel": "^3.1",
         "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^8.0",
-        "spatie/period": "^2.4"
+        "spatie/period": "^2.4",
+        "laravel/scout": "^11.1",
+        "meilisearch/meilisearch-php": "^1.6"
     },
     "require-dev": {
         "dedoc/scramble": "^0.13.30",
@@ -31,7 +33,6 @@
         "midtrans/midtrans-php": "^2.6",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "nunomaduro/phpinsights": "^2.14",
         "phpunit/phpunit": "^12.5.12",
         "stripe/stripe-php": "^20.3",
         "xendit/xendit-php": "^7.0"
@@ -90,8 +91,7 @@
             "vendor/bin/pint"
         ],
         "analyse": [
-            "vendor/bin/phpstan analyse",
-            "vendor/bin/phpinsights"
+            "vendor/bin/phpstan analyse"
         ]
     },
     "extra": {

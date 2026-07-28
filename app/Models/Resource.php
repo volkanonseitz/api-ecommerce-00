@@ -2,16 +2,23 @@
 
 namespace App\Models;
 
+use App\Enums\ResourceType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Resource extends Model
 {
+    use HasFactory;
+
     protected $table = 'resources';
 
     protected $guarded = [];
 
-    protected $casts = ['image' => 'json'];
+    protected $casts = [
+        'image' => 'json',
+        'type' => ResourceType::class,
+    ];
 
     protected $appends = ['translated_languages'];
 

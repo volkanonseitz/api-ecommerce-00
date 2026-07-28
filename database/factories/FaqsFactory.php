@@ -3,7 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Faqs;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<Faqs>

@@ -12,7 +12,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\App;
 
- // Tambahkan ini
+// Tambahkan ini
 
 class AdminCommissionRateUpdate extends Mailable
 {

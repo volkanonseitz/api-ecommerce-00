@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Shop\Actions;
 
 use App\Enums\DefaultStatusType;
-use App\Events\ProcessOwnershipTransition;
 use App\Models\OwnershipTransfer;
 use App\Models\Shop;
 use App\Models\User;
+use App\Modules\Shop\Events\ProcessOwnershipTransition;
 
 final class TransferShopOwnershipAction
 {

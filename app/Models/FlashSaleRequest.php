@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FlashSaleRequest extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'flash_sale_requests';
@@ -17,6 +19,7 @@ class FlashSaleRequest extends Model
 
     protected $casts = [
         'request_status' => 'boolean',
+        'requested_product_ids' => 'array',
     ];
 
     public function flashSale(): BelongsTo

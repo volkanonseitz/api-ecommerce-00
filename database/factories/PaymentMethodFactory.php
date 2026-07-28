@@ -2,12 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\PaymentGateway;
 use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends Factory<PaymentMethod>
- */
 class PaymentMethodFactory extends Factory
 {
     protected $model = PaymentMethod::class;
@@ -17,14 +16,14 @@ class PaymentMethodFactory extends Factory
         return [
             'method_key' => Str::random(16),
             'payment_gateway_id' => PaymentGateway::factory(),
-            'default_card' => $this->faker->boolean(),
+            'default_payment' => $this->faker->boolean(),
             'fingerprint' => md5($this->faker->uuid()),
             'owner_name' => $this->faker->name(),
             'network' => $this->faker->randomElement(['Visa', 'Mastercard']),
             'type' => 'credit',
             'last4' => $this->faker->numerify('####'),
             'expires' => $this->faker->creditCardExpirationDateString(),
-            'origin' => $this->faker->optional()->country(),
+            'origin' => $this->faker->country(),
             'verification_check' => $this->faker->optional()->word(),
         ];
     }

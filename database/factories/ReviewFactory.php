@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Order;
+use App\Models\Product;
 use App\Models\Review;
+use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +21,7 @@ class ReviewFactory extends Factory
         return [
             'order_id' => Order::factory(),
             'user_id' => User::factory(),
-            'shop_id' => Shop::factory(),
+            'shop_id' => Shop::factory()->create()->id,
             'product_id' => Product::factory(),
             'variation_option_id' => null,
             'comment' => $this->faker->paragraph(),

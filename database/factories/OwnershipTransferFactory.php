@@ -2,7 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\DefaultStatusType;
 use App\Models\OwnershipTransfer;
+use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,12 +22,12 @@ class OwnershipTransferFactory extends Factory
         $shop = Shop::factory()->create(['owner_id' => $from->id]);
 
         return [
-            'transaction_identifier' => '2026-06-14-0001', // akan dioverride boot
-            'from' => $from->id,
-            'shop_id' => $shop->id,
-            'to' => $to->id,
+            'transaction_identifier' => null,
+            'from' => User::factory(),
+            'shop_id' => Shop::factory(),
+            'to' => User::factory(),
             'message' => $this->faker->optional()->sentence(),
-            'created_by' => User::factory()->create()->id,
+            'created_by' => User::factory(),
             'status' => DefaultStatusType::PENDING,
         ];
     }

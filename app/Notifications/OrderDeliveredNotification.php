@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notifications;
 
 use App\Models\Order;
@@ -7,22 +9,17 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 
-class OrderDeliveredNotification extends Notification implements ShouldQueue
+final class OrderDeliveredNotification extends Notification implements ShouldQueue
 {
     use Queueable;
-
-    protected Order $order;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Order $order)
-    {
-        $this->order = $order;
-    }
+    public function __construct(
+        public Order $order
+    ) {}
 
     /**
      * Get the notification's delivery channels.
@@ -39,31 +36,12 @@ class OrderDeliveredNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $translationEnabled = config('shop.translation_enabled', false);
-        $defaultLanguage = config('shop.default_language', 'en');
-        $locale = $defaultLanguage;
-
-        if ($translationEnabled && isset($this->order->language)) {
-            $locale = $this->order->language;
-        }
-        App::setLocale($locale);
-
-        try {
-            $url = config('shop.shop_url').'/orders/'.$this->order->tracking_number;
-        } catch (\Exception $e) {
-            Log::error('shop.shop_url not configured: '.$e->getMessage());
-            $url = url('/orders/'.$this->order->tracking_number); // Fallback URL
-        }
-
         return (new MailMessage)
-            ->subject(__('order.delivered_subject', ['ORDER_TRACKING_NUMBER' => $this->order->tracking_number]))
-            ->markdown(
-                'emails.orders.delivered',
-                [
-                    'order' => $this->order,
-                    'url' => $url,
-                ]
-            );
+            ->subject('Pesanan Anda Telah Diterima!')
+            ->greeting('Halo, '.$notifiable->name.'!')
+            ->line('Pesanan Anda dengan nomor pelacakan '.$this->order->tracking_number.' telah berhasil diterima.')
+            ->action('Lihat Pesanan', url('/orders/'.$this->order->tracking_number))
+            ->line('Terima kasih telah berbelanja dengan kami!');
     }
 
     /**
@@ -74,7 +52,9 @@ class OrderDeliveredNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'order_id' => $this->order->id,
+            'tracking_number' => $this->order->tracking_number,
+            'status' => 'delivered',
         ];
     }
 }

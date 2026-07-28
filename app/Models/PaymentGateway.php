@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaymentGateway extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'payment_gateways';
@@ -20,8 +22,8 @@ class PaymentGateway extends Model
         return $this->hasMany(PaymentMethod::class);
     }
 
-    public function users(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->BelongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Product\Exceptions\InventoryException;
+use App\Modules\Shop\Events\ProductLowStock;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,10 +14,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use HasFactory, Searchable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::saved(fn (Product $product) => $product->wasLowStock() && event(new ProductLowStock($product)));
+    }
 
     protected $table = 'products';
 
@@ -24,7 +34,8 @@ class Product extends Model
         'image', 'gallery', 'video', 'status', 'product_type',
         'is_rental', 'is_digital', 'is_external', 'in_stock', 'is_taxable',
         'shop_id', 'type_id', 'author_id', 'manufacturer_id', 'shipping_class_id',
-        'sold_quantity', 'visibility',
+        'sold_quantity', 'visibility', 'reserved_quantity', 'low_stock_threshold',
+        'currency_code',
     ];
 
     protected $casts = [
@@ -37,6 +48,9 @@ class Product extends Model
         'in_stock' => 'boolean',
         'is_taxable' => 'boolean',
         'in_flash_sale' => 'boolean',
+        'reserved_quantity' => 'integer',
+        'low_stock_threshold' => 'integer',
+        'available_quantity' => 'integer',
     ];
 
     public function type(): BelongsTo
@@ -136,8 +150,73 @@ class Product extends Model
         return $this->belongsTo(Shipping::class, 'shipping_class_id');
     }
 
+    public function isLowStock(): bool
+    {
+        return $this->available_quantity <= $this->low_stock_threshold;
+    }
+
+    public function wasLowStock(): bool
+    {
+        return $this->available_quantity <= $this->low_stock_threshold;
+    }
+
+    public function isOutOfStock(): bool
+    {
+        return $this->available_quantity <= 0;
+    }
+
+    public function reserveStock(int $quantityToReserve): void
+    {
+        DB::transaction(function () use ($quantityToReserve) {
+            $this->refresh(); // Ambil data terbaru dari DB
+            if ($this->available_quantity < $quantityToReserve) {
+                throw new InventoryException('Not enough stock to reserve '.$this->name.'. Available: '.$this->available_quantity.', Requested: '.$quantityToReserve);
+            }
+            $this->increment('reserved_quantity', $quantityToReserve);
+            $this->refresh();
+        });
+    }
+
+    public function releaseStock(int $quantityToRelease): void
+    {
+        DB::transaction(function () use ($quantityToRelease) {
+            $this->refresh();
+            if ($this->reserved_quantity < $quantityToRelease) {
+                throw new InventoryException('Not enough reserved stock to release for '.$this->name.'. Reserved: '.$this->reserved_quantity.', Requested: '.$quantityToRelease);
+            }
+            $this->decrement('reserved_quantity', $quantityToRelease);
+            $this->refresh();
+        });
+    }
+
     public function flashSales(): BelongsToMany
     {
         return $this->belongsToMany(FlashSale::class, 'flash_sale_products')->withPivot('flash_sale_id', 'product_id');
+    }
+
+    public function toSearchableArray(): array
+    {
+        $array = $this->toArray();
+
+        // Customize the data array for searching
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'sku' => $this->sku,
+            'price' => $this->price,
+            'sale_price' => $this->sale_price,
+            'max_price' => $this->max_price,
+            'min_price' => $this->min_price,
+            'in_stock' => $this->in_stock,
+            'shop_id' => $this->shop_id,
+            'type_id' => $this->type_id,
+            'author_id' => $this->author_id,
+            'manufacturer_id' => $this->manufacturer_id,
+            'categories' => $this->categories->pluck('name')->toArray(),
+            'tags' => $this->tags->pluck('name')->toArray(),
+            'status' => $this->status,
+            'product_type' => $this->product_type,
+        ];
     }
 }

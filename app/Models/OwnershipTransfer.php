@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OwnershipTransfer extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'ownership_transfers';
@@ -18,9 +20,13 @@ class OwnershipTransfer extends Model
     protected static function boot()
     {
         parent::boot();
+
         static::creating(function ($model) {
             $model->transaction_identifier = static::generateTransactionId();
-            $model->created_by = Auth::id();
+
+            if (empty($model->created_by)) {
+                $model->created_by = Auth::id();
+            }
         });
     }
 

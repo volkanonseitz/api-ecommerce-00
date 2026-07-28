@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ResourceType;
 use App\Models\Address;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
@@ -88,11 +89,25 @@ class DatabaseSeeder extends Seeder
         DeliveryTime::factory(4)->create();
 
         // Resources (dropoff, pickup, dll)
-        Resource::factory(3)->create(['type' => 'dropoff']);
-        Resource::factory(3)->create(['type' => 'pickup']);
-        Resource::factory(2)->create(['type' => 'deposit']);
-        Resource::factory(2)->create(['type' => 'person']);
-        Resource::factory(2)->create(['type' => 'feature']);
+        Resource::factory(3)->create([
+            'type' => ResourceType::DROPOFF_LOCATION,
+        ]);
+
+        Resource::factory(3)->create([
+            'type' => ResourceType::PICKUP_LOCATION,
+        ]);
+
+        Resource::factory(2)->create([
+            'type' => ResourceType::DEPOSIT,
+        ]);
+
+        Resource::factory(2)->create([
+            'type' => ResourceType::PERSON,
+        ]);
+
+        Resource::factory(2)->create([
+            'type' => ResourceType::FEATURES,
+        ]);
 
         // Types (kategori produk utama)
         Type::factory(5)->create();
@@ -119,19 +134,19 @@ class DatabaseSeeder extends Seeder
         // $admin->assignRole('super_admin');
 
         // User biasa dengan profil
-        $users = User::factory(20)
+        $users = User::factory(2)
             ->active()
             ->has(Profile::factory(), 'profile')
             ->create();
 
         // Shop untuk beberapa user (owner)
-        $shops = Shop::factory(8)
-            ->active()
-            ->create(['owner_id' => $users->random()->id]);
+        $shops = Shop::factory(1)->create([
+            'owner_id' => $users->random()->id,
+        ]);
 
         // Staff/user ke shop (many-to-many)
         foreach ($shops as $shop) {
-            $randomUsers = $users->random(rand(1, 3));
+            $randomUsers = $users->random(rand(1, min(2, $users->count())));
             foreach ($randomUsers as $user) {
                 DB::table('user_shop')->insert([
                     'user_id' => $user->id,
@@ -150,14 +165,14 @@ class DatabaseSeeder extends Seeder
         Manufacturer::factory(8)->create();
 
         // Atribut dan nilai
-        $attributes = Attribute::factory(5)->create();
-        foreach ($attributes as $attr) {
-            AttributeValue::factory(3)->forAttribute($attr)->create();
-        }
+        $attributes = Attribute::factory(1)->create();
+        AttributeValue::factory(3)->create([
+            'attribute_id' => $attributes->random()->id,
+        ]);
 
         $products = collect();
         foreach ($shops as $shop) {
-            $productsForShop = Product::factory(rand(5, 15))
+            $productsForShop = Product::factory(2)
                 ->for($shop)
                 ->withAuthor(Author::inRandomOrder()->first())
                 ->withManufacturer(Manufacturer::inRandomOrder()->first())
@@ -192,14 +207,17 @@ class DatabaseSeeder extends Seeder
                 }
 
                 // Hubungan dengan resources
-                $dropoff = Resource::where('type', 'dropoff')->inRandomOrder()->first();
+                $dropoff = Resource::where('type', ResourceType::DROPOFF_LOCATION)->inRandomOrder()->first();
+
                 if ($dropoff) {
                     DB::table('dropoff_location_product')->insert([
                         'resource_id' => $dropoff->id,
                         'product_id' => $product->id,
                     ]);
                 }
-                $pickup = Resource::where('type', 'pickup')->inRandomOrder()->first();
+
+                $pickup = Resource::where('type', ResourceType::PICKUP_LOCATION)->inRandomOrder()->first();
+
                 if ($pickup) {
                     DB::table('pickup_location_product')->insert([
                         'resource_id' => $pickup->id,
@@ -216,13 +234,13 @@ class DatabaseSeeder extends Seeder
 
         $orders = collect();
         foreach ($users as $user) {
-            $orderCount = rand(0, 5);
+            $orderCount = 1;
             for ($i = 0; $i < $orderCount; $i++) {
                 $shop = $shops->random();
-                $order = Order::factory()
-                    ->for($user, 'customer')
-                    ->for($shop)
-                    ->create();
+                $order = Order::factory()->create([
+                    'customer_id' => $user->id,
+                    'shop_id' => $shop->id,
+                ]);
 
                 $shopProducts = $products->where('shop_id', $shop->id)->random(min(3, $products->count()));
                 $total = 0;
@@ -266,8 +284,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
         // 6. KOMUNIKASI & NOTIFIKASI
         // ============================================================
-
-        foreach ($shops->random(5) as $shop) {
+        foreach ($shops->random(min(1, $shops->count())) as $shop) {
             $conversation = Conversation::factory()
                 ->for($shop)
                 ->for($users->random(), 'user')
@@ -285,7 +302,7 @@ class DatabaseSeeder extends Seeder
         // 7. REVIEW & FEEDBACK
         // ============================================================
 
-        foreach ($products->random(min(30, $products->count())) as $product) {
+        foreach ($products->random(min(1, $products->count())) as $product) {
             $order = $orders->where('shop_id', $product->shop_id)->first();
             if ($order) {
                 $review = Review::factory()
@@ -299,7 +316,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        foreach ($products->random(20) as $product) {
+        foreach ($products->random(min(1, $products->count())) as $product) {
             Question::factory()
                 ->for($product)
                 ->for($product->shop)
@@ -308,7 +325,7 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach ($users as $user) {
-            $randomProducts = $products->random(rand(1, 5));
+            $randomProducts = $products->random(rand(1, min(1, $products->count())));
             foreach ($randomProducts as $product) {
                 Wishlist::factory()
                     ->for($user)
@@ -322,7 +339,7 @@ class DatabaseSeeder extends Seeder
         // ============================================================
 
         $flashSale = FlashSale::factory()->active()->create();
-        $flashSaleProducts = $products->random(5);
+        $flashSaleProducts = $products->random(min(1, $products->count()));
         foreach ($flashSaleProducts as $product) {
             DB::table('flash_sale_products')->insert([
                 'flash_sale_id' => $flashSale->id,
@@ -333,7 +350,7 @@ class DatabaseSeeder extends Seeder
         $flashSaleRequest = FlashSaleRequest::factory()
             ->for($flashSale)
             ->create();
-        foreach ($products->random(3) as $product) {
+        foreach ($products->random(min(1, $products->count())) as $product) {
             DB::table('flash_sale_requests_products')->insert([
                 'flash_sale_requests_id' => $flashSaleRequest->id,
                 'product_id' => $product->id,
@@ -342,18 +359,18 @@ class DatabaseSeeder extends Seeder
 
         Coupon::factory(10)->create(['shop_id' => null]);
         foreach ($shops as $shop) {
-            Coupon::factory(3)->forShop($shop)->create();
+            Coupon::factory(3)->for($shop, 'shop')->create();
         }
 
         // ============================================================
         // 9. STORE NOTICES
         // ============================================================
 
-        $storeNotices = StoreNotice::factory(5)->create();
+        $storeNotices = StoreNotice::factory(1)->create();
         foreach ($storeNotices as $notice) {
-            $notice->users()->attach($users->random(3));
-            $notice->shops()->attach($shops->random(2));
-            foreach ($users->random(2) as $user) {
+            $notice->users()->attach($users->random(min(1, $users->count())));
+            $notice->shops()->attach($shops->random(min(1, $shops->count())));
+            foreach ($users->random(min(1, $users->count())) as $user) {
                 DB::table('store_notice_read')->insert([
                     'store_notice_id' => $notice->id,
                     'user_id' => $user->id,
@@ -367,10 +384,10 @@ class DatabaseSeeder extends Seeder
         // ============================================================
 
         foreach ($shops as $shop) {
-            Withdraw::factory(rand(0, 3))->for($shop)->create();
+            Withdraw::factory(rand(0, 1))->for($shop)->create();
         }
 
-        foreach ($shops->random(3) as $shop) {
+        foreach ($shops->random(min(1, $shops->count())) as $shop) {
             OwnershipTransfer::factory()
                 ->for($shop)
                 ->create([
@@ -383,39 +400,39 @@ class DatabaseSeeder extends Seeder
         // 11. FAQ, TERMS & CONDITIONS, BANNERS
         // ============================================================
 
-        Faqs::factory(5)->create();
-        foreach ($shops->random(3) as $shop) {
-            Faqs::factory(2)->forShop($shop)->create();
+        Faqs::factory(1)->create();
+        foreach ($shops->random(min(1, $shops->count())) as $shop) {
+            Faqs::factory(1)->for($shop, 'shop')->create();
         }
 
-        TermsAndConditions::factory(3)->approved()->create();
-        foreach ($shops->random(2) as $shop) {
-            TermsAndConditions::factory(1)->forShop($shop)->create();
+        TermsAndConditions::factory(1)->create();
+        foreach ($shops->random(min(1, $shops->count())) as $shop) {
+            TermsAndConditions::factory(1)->for($shop, 'shop')->create();
         }
 
         foreach (Type::all() as $type) {
-            Banner::factory(2)->for($type)->create();
+            Banner::factory(1)->for($type)->create();
         }
 
         // ============================================================
         // 12. COMMISSION & ADDRESS
         // ============================================================
 
-        Commission::factory(4)->create();
+        Commission::factory(1)->create();
 
         foreach ($users as $user) {
-            Address::factory(rand(1, 3))->for($user, 'customer')->create();
+            Address::factory(rand(1, 1))->for($user, 'customer')->create();
         }
 
         // ============================================================
         // 13. PROVIDER, PAYMENT GATEWAY & METHOD
         // ============================================================
 
-        Provider::factory(5)->create();
+        Provider::factory(1)->create();
 
-        foreach ($users->random(5) as $user) {
+        foreach ($users->random(min(1, $users->count())) as $user) {
             $gateway = PaymentGateway::factory()->for($user)->create();
-            PaymentMethod::factory(rand(1, 2))->for($gateway)->create();
+            PaymentMethod::factory(rand(1, 1))->for($gateway)->create();
         }
 
         // ============================================================
@@ -447,10 +464,12 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        DownloadToken::factory(20)->create();
+        DownloadToken::factory(2)->create();
 
         // Aktifkan kembali foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $this->call(CurrencySeeder::class);
 
         $this->command->info('Database seeding completed successfully!');
     }

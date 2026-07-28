@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class Settings extends Model
 {
+    use HasFactory;
+
     protected $table = 'settings';
 
     /**

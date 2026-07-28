@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\FlashSaleType;
 use App\Models\FlashSale;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<FlashSale>
@@ -22,7 +24,7 @@ class FlashSaleFactory extends Factory
             'description' => $this->faker->optional()->paragraph(),
             'start_date' => $startDate,
             'end_date' => $this->faker->dateTimeBetween($startDate, '+2 weeks'),
-            'sale_status' => $this->faker->boolean(),
+            'sale_status' => false,
             'type' => FlashSaleType::PERCENTAGE,
             'rate' => $this->faker->optional()->numberBetween(5, 50),
             'sale_builder' => json_encode([]),
@@ -30,5 +32,14 @@ class FlashSaleFactory extends Factory
             'cover_image' => json_encode([$this->faker->imageUrl()]),
             'language' => Config::get('app.locale'),
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn () => [
+            'sale_status' => true,
+            'start_date' => now()->subDay(),
+            'end_date' => now()->addWeek(),
+        ]);
     }
 }

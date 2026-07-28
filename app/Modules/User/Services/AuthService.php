@@ -9,8 +9,13 @@ use App\Models\UserSession;
 use App\Modules\User\Actions\AttemptLoginAction;
 use App\Modules\User\Actions\RegisterUserAction;
 use App\Modules\User\DTO\RegisterUserData;
+use App\Modules\User\Exceptions\AuthException;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 /**
  * AuthService kini hanya orchestrator tipis (sebelumnya "Fat Service"
@@ -62,6 +67,36 @@ final class AuthService
         }
 
         return false;
+    }
+
+    public function sendPasswordResetLink(array $data): string
+    {
+        $status = Password::sendResetLink($data);
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw new AuthException((string) $status);
+        }
+
+        return (string) $status;
+    }
+
+    public function resetPassword(array $data): string
+    {
+        $status = Password::reset($data, function (User $user, string $password) {
+            $user->forceFill([
+                'password' => Hash::make($password),
+            ])->setRememberToken(Str::random(60));
+
+            $user->save();
+
+            event(new PasswordReset($user));
+        });
+
+        if ($status !== Password::PASSWORD_RESET) {
+            throw new AuthException((string) $status);
+        }
+
+        return (string) $status;
     }
 
     public function issueToken(User $user, ?string $deviceName = null): string

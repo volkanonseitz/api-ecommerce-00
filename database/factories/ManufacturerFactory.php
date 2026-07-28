@@ -3,7 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Manufacturer;
+use App\Models\Type;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<Manufacturer>

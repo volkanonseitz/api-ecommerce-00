@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\RefundPolicy;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<RefundPolicy>
@@ -23,7 +24,7 @@ class RefundPolicyFactory extends Factory
             'target' => RefundPolicyTarget::VENDOR,
             'language' => Config::get('app.locale'),
             'status' => RefundPolicyStatus::PENDING,
-            'shop_id' => Shop::factory(),
+            'shop_id' => Shop::factory()->create()->id,
         ];
     }
 }

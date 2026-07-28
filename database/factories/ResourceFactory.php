@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\ResourceType;
 use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @extends Factory<resource>
@@ -25,7 +27,7 @@ class ResourceFactory extends Factory
             'image' => json_encode([$this->faker->imageUrl()]),
             'is_approved' => $this->faker->boolean(80),
             'price' => $this->faker->optional()->randomFloat(2, 10, 500),
-            'type' => 'dropoff',
+            'type' => ResourceType::DROPOFF_LOCATION,
         ];
     }
 }

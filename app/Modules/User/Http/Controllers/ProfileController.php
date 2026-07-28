@@ -42,13 +42,38 @@ final class ProfileController extends BaseController
 
     public function update(UserUpdateRequest $request): JsonResponse
     {
-        // Selalu update diri sendiri ($request->user()) -> route param {id} TIDAK dipakai
-        // sebagai sumber kebenaran, sehingga endpoint ini tidak rentan IDOR sama sekali.
         $user = $request->user();
         $data = UpdateUserData::fromValidated($request->validated());
         $updated = $this->userCommandService->updateSelf($user, $data);
 
         return $this->sendSuccess(new UserResource($updated), 'User updated');
+    }
+
+    public function getUser(Request $request): JsonResponse
+    {
+        return $this->sendSuccess($request->user(), 'User data retrieved successfully');
+    }
+
+    public function updateUser(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
+        ]);
+
+        $user->fill($data);
+        $user->save();
+
+        return $this->sendSuccess($user, 'User data updated successfully');
+    }
+
+    public function deleteUser(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->delete();
+
+        return $this->sendSuccess(null, 'User deleted successfully');
     }
 
     public function changePassword(ChangePasswordRequest $request, ChangePasswordAction $action): JsonResponse

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Question\Actions;
 
-use App\Events\QuestionAnswered;
 use App\Models\Question;
+use App\Modules\Message\Events\QuestionAnswered;
 use App\Modules\Question\DTO\QuestionData;
 
 final class UpdateQuestionAction

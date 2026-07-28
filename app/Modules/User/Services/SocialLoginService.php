@@ -6,10 +6,10 @@ namespace App\Modules\User\Services;
 
 use App\Enums\Permission;
 use App\Enums\Role;
-use App\Exceptions\SocialLoginException;
 use App\Jobs\GiveSignupPointsJob;
 use App\Models\Settings;
 use App\Models\User;
+use App\Modules\User\Exceptions\SocialLoginException;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
 

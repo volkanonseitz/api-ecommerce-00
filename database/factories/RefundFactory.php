@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Order;
 use App\Models\Refund;
+use App\Models\RefundPolicy;
+use App\Models\RefundReason;
+use App\Models\RefundStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,7 +27,7 @@ class RefundFactory extends Factory
             'order_id' => Order::factory(),
             'customer_id' => User::factory(),
             'refund_policy_id' => RefundPolicy::factory(),
-            'shop_id' => Shop::factory(),
+            'shop_id' => Shop::factory()->create()->id,
             'refund_reason_id' => RefundReason::factory(),
         ];
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Modules\Review\Events;
 
 use App\Models\Review;
 use Illuminate\Foundation\Events\Dispatchable;

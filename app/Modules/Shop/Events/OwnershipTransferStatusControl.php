@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Modules\Shop\Events;
 
 use App\Models\OwnershipTransfer;
 use Illuminate\Foundation\Events\Dispatchable;

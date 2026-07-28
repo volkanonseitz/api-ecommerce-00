@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Model;
+use App\Models\PaymentGateway;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

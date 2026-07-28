@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Modules\NotifyLogs\Events;
 
 use App\Models\StoreNotice;
 use App\Models\User;

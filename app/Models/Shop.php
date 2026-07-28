@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 /**
  * @property int $id
@@ -20,6 +22,9 @@ use Illuminate\Support\Str;
  */
 class Shop extends Model
 {
+    use HasFactory;
+    use Searchable;
+
     protected $table = 'shops';
 
     /**
@@ -57,6 +62,7 @@ class Shop extends Model
             'cover_image' => 'json',
             'address' => 'json',
             'settings' => 'json',
+            'notifications' => 'json', // tambahkan ini
             'is_active' => 'boolean',
         ];
     }
@@ -140,6 +146,19 @@ class Shop extends Model
     public function withdraws(): HasMany
     {
         return $this->hasMany(Withdraw::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'slug' => $this->slug,
+            'is_active' => $this->is_active,
+            'owner_id' => $this->owner_id,
+            'address' => $this->address,
+        ];
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use App\Enums\EventType; // Asumsi EventType enum ada
-use App\Events\StoreNoticeEvent;
-use App\Models\NotifyLogs; // Asumsi model NotifyLogs ada
+use App\Models\NotifyLogs;
+use App\Modules\NotifyLogs\Events\StoreNoticeEvent; // Asumsi model NotifyLogs ada
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;

@@ -3,7 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Order;
+use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Order>
@@ -30,7 +34,7 @@ class OrderFactory extends Factory
             'cancelled_delivery_fee' => 0,
             'coupon_id' => null,
             'parent_id' => null,
-            'shop_id' => Shop::factory(),
+            'shop_id' => Shop::factory()->create()->id,
             'discount' => $this->faker->optional(0.3)->randomFloat(2, 5, 50),
             'payment_gateway' => $this->faker->randomElement(['stripe', 'paypal']),
             'altered_payment_gateway' => null,
@@ -38,9 +42,9 @@ class OrderFactory extends Factory
             'billing_address' => json_encode(['address' => $this->faker->streetAddress()]),
             'logistics_provider' => null,
             'delivery_fee' => $this->faker->randomFloat(2, 0, 50),
-            'delivery_time' => $this->faker->optional()->dateTimeBetween('now', '+1 week')->format('Y-m-d H:i:s'),
-            'order_status' => 'pending',
-            'payment_status' => 'pending',
+            'delivery_time' => $this->faker->optional()->dateTimeBetween('now', '+1 week'),
+            'order_status' => 'order-pending',
+            'payment_status' => 'payment-pending',
         ];
     }
 }

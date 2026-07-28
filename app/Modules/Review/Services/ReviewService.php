@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Review\Services;
 
-use App\Events\ReviewCreated;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\User;
 use App\Modules\Review\DTO\ReviewData;
+use App\Modules\Review\Events\ReviewCreated;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 

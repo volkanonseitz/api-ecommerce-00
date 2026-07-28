@@ -33,6 +33,14 @@ final class UserQueryService
         });
     }
 
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsersByPermission(Permission $permission): Collection
+    {
+        return User::permission($permission->value)->get();
+    }
+
     public function hasShopAuthority(?Authenticatable $user, ?int $shopId = null): bool
     {
         if (! $user instanceof User) {

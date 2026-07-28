@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\StoreNotice;
 use App\Models\StoreNoticeRead;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

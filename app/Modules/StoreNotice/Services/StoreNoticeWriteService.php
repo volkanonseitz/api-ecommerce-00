@@ -6,10 +6,10 @@ namespace App\Modules\StoreNotice\Services;
 
 use App\Enums\Permission;
 use App\Enums\StoreNoticeType;
-use App\Events\StoreNoticeEvent;
 use App\Models\Shop;
 use App\Models\StoreNotice;
 use App\Models\User;
+use App\Modules\NotifyLogs\Events\StoreNoticeEvent;
 use App\Modules\StoreNotice\Actions\CreateStoreNoticeAction;
 use App\Modules\StoreNotice\Actions\DeleteStoreNoticeAction;
 use App\Modules\StoreNotice\Actions\UpdateStoreNoticeAction;

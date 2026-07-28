@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
-use App\Events\OwnershipTransferStatusControl;
 use App\Models\Product;
 use App\Models\User;
+use App\Modules\Shop\Events\OwnershipTransferStatusControl;
 use App\Modules\User\Services\UserQueryService;
 use App\Notifications\OwnershipTransferredStatus;
 use Illuminate\Contracts\Queue\ShouldQueue;

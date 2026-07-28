@@ -101,4 +101,12 @@ final class ShopQueryService
             ->take($limit)
             ->get();
     }
+
+    public function search(string $query, int $limit, array $filters = []): LengthAwarePaginator
+    {
+        return Shop::search($query)
+            ->when(isset($filters['is_active']), fn ($q) => $q->where('is_active', (bool) $filters['is_active']))
+            ->when(isset($filters['owner_id']), fn ($q) => $q->where('owner_id', (int) $filters['owner_id']))
+            ->paginate($limit);
+    }
 }

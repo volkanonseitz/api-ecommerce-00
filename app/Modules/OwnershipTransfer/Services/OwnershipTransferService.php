@@ -6,11 +6,11 @@ namespace App\Modules\OwnershipTransfer\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\Permission;
-use App\Events\OwnershipTransferStatusControl;
 use App\Models\Order;
 use App\Models\OwnershipTransfer;
 use App\Models\Shop;
 use App\Modules\OwnershipTransfer\DTO\OwnershipTransferData;
+use App\Modules\Shop\Events\OwnershipTransferStatusControl;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;

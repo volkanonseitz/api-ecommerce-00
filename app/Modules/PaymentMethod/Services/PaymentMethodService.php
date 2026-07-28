@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\PaymentMethod\Services;
 
-use App\Events\PaymentMethods;
 use App\Models\PaymentGateway;
 use App\Models\PaymentMethod;
 use App\Modules\Payment\Factory\PaymentProviderFactory;
 use App\Modules\PaymentMethod\DTO\PaymentMethodData;
+use App\Modules\PaymentMethod\Events\PaymentMethods;
 use App\Services\Payment\Contracts\PaymentProviderInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
