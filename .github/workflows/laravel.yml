@@ -1,0 +1,66 @@
+name: Laravel CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, dom, fileinfo, mysql, sqlite
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Prepare Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Pint
+        run: |
+          if composer show laravel/pint >/dev/null 2>&1; then
+            ./vendor/bin/pint --test
+          else
+            echo "Laravel Pint not installed."
+          fi
+
+      - name: Run PHPStan
+        run: |
+          if [ -f vendor/bin/phpstan ]; then
+            ./vendor/bin/phpstan analyse
+          else
+            echo "PHPStan not installed."
+          fi
+
+      - name: Run PHPUnit
+        run: |
+          if [ -f artisan ]; then
+            php artisan test
+          fi
