@@ -16,6 +16,7 @@ use App\Modules\User\Services\AuthService;
 use App\Modules\User\Services\UserSecurityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Controller hanya mengarahkan lalu lintas data (thin controller):
@@ -136,5 +137,51 @@ final class AuthController extends BaseController
         } catch (\Throwable $th) {
             return $this->sendError($th->getMessage());
         }
+    }
+
+    public function emailVerify($user, Request $request, $id, $hash): JsonResponse
+    {
+        if (! URL::hasValidSignature($request)) {
+            abort(403, 'Invalid signature.');
+        }
+
+        // $user = User::findOrFail($id);
+
+        if (! hash_equals(
+            sha1($user->getEmailForVerification()),
+            $hash
+        )) {
+            abort(403, 'Invalid hash.');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return redirect(
+            config('app.frontend_url').'/email-verified?success=1'
+        );
+    }
+
+    public function emailVerifyNotification(Request $request): JsonResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Email already verified.',
+            ]);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json([
+            'message' => 'Verification email sent.',
+        ]);
+    }
+
+    public function getEmailVerified(Request $request): JsonResponse
+    {
+        return response()->json([
+            'verified' => $request->user()->hasVerifiedEmail(),
+        ]);
     }
 }

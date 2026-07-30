@@ -19,7 +19,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email:rfc,dns'],
+            // 'email' => ['required', 'email:rfc,dns'] //dns akan dinyalakan jika uji coba berhasil nanti,
+            'email' => ['required', 'email:rfc'],
             'password' => ['required', 'string'],
         ];
     }

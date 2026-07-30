@@ -25,7 +25,7 @@ class LowStockProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'sku' => $this->sku,
-            'stock' => $this->stock,
+            'in_stock' => $this->in_stock,
             'low_stock_threshold' => $this->low_stock_threshold,
             'shop' => [
                 'id' => $this->shop->id,

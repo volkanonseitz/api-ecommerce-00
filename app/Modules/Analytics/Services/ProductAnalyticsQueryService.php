@@ -56,7 +56,7 @@ class ProductAnalyticsQueryService
         $query = Product::query()
             ->with(['shop', 'type'])
             ->where('language', $language)
-            ->whereColumn('stock', '<', 'low_stock_threshold');
+            ->whereColumn('in_stock', '<', 'low_stock_threshold');
 
         // Filter tipe
         if ($typeId) {

@@ -79,14 +79,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/social-login', [AuthController::class, 'socialLogin']);
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'emailVerify'])->middleware('signed')->name('verification.verify');
+Route::middleware('auth:sanctum')->post('/email/verification-notification', [AuthController::class, 'emailVerifyNotification']);
+Route::middleware('auth:sanctum')->get('/email/verified', [AuthController::class, 'getEmailVerify']);
 
 // Product public queries
 Route::get('/popular-products', [ProductMetricController::class, 'popular']);
 Route::get('/best-selling-products', [ProductMetricController::class, 'bestSelling']);
 Route::get('/check-availability', [ProductRentalController::class, 'checkAvailability']);
 Route::get('/products/calculate-rental-price', [ProductRentalController::class, 'calculateRentalPrice']);
-Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
 Route::get('/products/search', [ProductQueryController::class, 'search']);
+Route::apiResource('/products', ProductQueryController::class)->only(['index', 'show']);
 
 // Authors
 Route::get('/top-authors', [AuthorController::class, 'topAuthor']);

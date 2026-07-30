@@ -48,33 +48,46 @@ class Settings extends Model
     private const CACHE_TTL_SECONDS = 3600;
 
     /**
-     * PERFORMANCE: Settings adalah data semi-statis yang dibaca berkali-kali
-     * (mis. setiap request nearByShop butuh maxShopDistance) tapi jarang berubah.
-     * Di-cache via Redis untuk menghindari query berulang.
+     * PERFORMANCE:
+     * Simpan hanya atribut model ke Redis, bukan object Eloquent.
+     * Ini menghindari masalah __PHP_Incomplete_Class saat upgrade
+     * Laravel/PHP atau perubahan struktur model.
      */
     public static function getData(?string $language = null): self
     {
         $lang = $language ?? config('shop.default_language', 'id');
 
-        return Cache::remember(
+        $attributes = Cache::remember(
             "settings:{$lang}",
             self::CACHE_TTL_SECONDS,
-            function () use ($lang): self {
-                $data = static::where('language', $lang)->first();
+            function () use ($lang): array {
+                $settings = static::where('language', $lang)->first();
 
-                if (! $data) {
-                    $data = static::where('language', 'id')->first();
+                if (! $settings) {
+                    $settings = static::where('language', 'id')->first();
                 }
 
-                return $data ?? new self(['options' => []]);
+                return $settings?->getAttributes() ?? [
+                    'language' => $lang,
+                    'options' => [],
+                ];
             }
         );
+
+        $model = new self;
+        $model->forceFill($attributes);
+
+        // Anggap sebagai model yang berasal dari database
+        if (isset($attributes['id'])) {
+            $model->exists = true;
+            $model->syncOriginal();
+        }
+
+        return $model;
     }
 
     protected static function booted(): void
     {
-        // Invalidasi cache setiap kali settings disimpan/dihapus, agar tidak
-        // menyajikan data basi (stale cache) setelah admin mengubah konfigurasi.
         static::saved(function (self $settings): void {
             Cache::forget("settings:{$settings->language}");
         });
