@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\AbusiveReport\Policies;
 
+use App\Enums\Permission;
 use App\Models\AbusiveReport;
 use App\Models\User;
 
@@ -11,12 +12,12 @@ class AbusiveReportPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage-abusive-reports');
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
     }
 
     public function view(User $user, AbusiveReport $report): bool
     {
-        return $user->hasPermissionTo('manage-abusive-reports')
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
             || $user->id === $report->user_id;
     }
 
@@ -28,17 +29,17 @@ class AbusiveReportPolicy
 
     public function delete(User $user, AbusiveReport $report): bool
     {
-        return $user->hasPermissionTo('manage-abusive-reports')
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value)
             || $user->id === $report->user_id;
     }
 
     public function accept(User $user): bool
     {
-        return $user->hasPermissionTo('manage-abusive-reports');
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
     }
 
     public function reject(User $user): bool
     {
-        return $user->hasPermissionTo('manage-abusive-reports');
+        return $user->hasPermissionTo(Permission::SUPER_ADMIN->value);
     }
 }

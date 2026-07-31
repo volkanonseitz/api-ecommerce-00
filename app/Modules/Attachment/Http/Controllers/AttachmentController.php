@@ -47,7 +47,8 @@ class AttachmentController extends BaseController
 
     public function destroy(int $id)
     {
-        $this->authorize('delete', Attachment::class);
+        $attachment = $this->attachmentQueryService->find($id);
+        $this->authorize('delete', $attachment);
         $this->attachmentWriteService->delete($id);
 
         return $this->sendSuccess(null, 'Attachment deleted successfully');
