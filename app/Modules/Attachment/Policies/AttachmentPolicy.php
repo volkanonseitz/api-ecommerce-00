@@ -27,7 +27,7 @@ final class AttachmentPolicy
             || $user->hasPermissionTo(Permission::STORE_OWNER->value);
     }
 
-    public function delete(User $user, Attachment $attachment): bool
+    public function delete(User $user): bool
     {
         return $this->create($user);
     }

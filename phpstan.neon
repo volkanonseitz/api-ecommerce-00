@@ -4,5 +4,5 @@ includes:
 
 parameters:
     paths:
-        - app
-    level: 1
+        - app/Modules/Feedback
+    level: 8
